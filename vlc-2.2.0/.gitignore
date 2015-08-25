@@ -1507,3 +1507,5 @@ src/video_output/vout_subpictures.lo
 src/video_output/vout_wrapper.lo
 src/video_output/window.lo
 src/vlc-plugin.pc
+modules/gui/qt4/dialogs/user/.libs
+modules/gui/qt4/dialogs/user/.deps
