@@ -127,13 +127,23 @@ bool LoginDialog::login()
 
 	qDebug() << "username:" << nameEdit->text();
 	qDebug() << "password:" << passEdit->text();
-	//connect server and send login information
-	//if login successfull
+
 	userOption = UserOption::getInstance( p_intf );
-	printf( "loginDialog userOption = %p , b_NetShared = %d \n", userOption, userOption->getNetShared() );
+	if( !userOption->isLoaded() )
+	{
+		printf( "python module is not loaded, can'n connect to server!\n" );
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "用户登录" ),
+				qtr( "Python 模块没有加载成功，无法链接到服务器！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+		return false;
+	}
 
 	//int uid = userOption->nfschina_login( nameEdit->text(), passEdit->text(), false, "192.168.7.97", "80" );
-	int uid = userOption->nfschina_login( nameEdit->text(), passEdit->text(), userOption->getNetShared() );
+	//int uid = userOption->nfschina_login( nameEdit->text(), passEdit->text(), userOption->getNetShared() );
+	int uid = userOption->nfschina_login( nameEdit->text(), passEdit->text() );
 	printf( "Login result: %d\n", uid );
 	if( uid > 0 )
 	{
@@ -176,6 +186,18 @@ bool LoginDialog::login()
 void LoginDialog::logout()
 {
 	qDebug() << __func__;
+	UserOption *user = UserOption::getInstance( p_intf );
+	if( !user->isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "用户退出" ),
+				qtr( "当前没有用户登陆，不需要退出!" ),
+				QMessageBox::Ok ,
+				NULL );
+		msgBox.exec();
+
+		return ;
+	}
 	QMessageBox msgBox( QMessageBox::Information,
 			qtr( "用户退出" ),
 			qtr( "您确定要退出吗？" ),
@@ -185,8 +207,10 @@ void LoginDialog::logout()
 	if( ret == QMessageBox::Yes )
 	{
 		//saveLogInfo();
-		//logoutFromServer();// Needed ????
+		user->nfschina_logout( user->getLUid() );
 		setLogState( false );
+		UserOption::getInstance( p_intf )->setLogin( false );
+		UserOption::getInstance( p_intf )->setLUid( -1 );
 	}
 	else if( ret == QMessageBox::No )
 	{

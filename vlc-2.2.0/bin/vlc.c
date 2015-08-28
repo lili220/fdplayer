@@ -40,6 +40,7 @@
 # include <pthread.h>
 #endif
 #include <unistd.h>
+#include <python2.7/Python.h>
 
 #ifdef __OS2__
 # include <iconv.h>
@@ -114,6 +115,19 @@ static void exit_timeout (int signum)
  *****************************************************************************/
 int main( int i_argc, const char *ppsz_argv[] )
 {
+
+#if 1
+	/*add by lili*/
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		return -1;
+	}
+	//PyRun_SimpleString( "import sys" );
+	//PyRun_SimpleString( "sys.path.append('./')" );
+
+#endif
+
     /* The so-called POSIX-compliant MacOS X reportedly processes SIGPIPE even
      * if it is blocked in all thread.
      * Note: this is NOT an excuse for not protecting against SIGPIPE. If

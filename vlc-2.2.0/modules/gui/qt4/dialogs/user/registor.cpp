@@ -130,6 +130,16 @@ void RegistorDialog::registor()
 	}
 
 	userOption = UserOption::getInstance( p_intf );
+	if( !userOption->isLoaded() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "用户注册" ),
+				qtr( "python模块没有加载成功，无法链接到服务器！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+		return;
+	}
 	int uid = userOption->nfschina_registor( nameEdit->text(), passEdit->text() );
 	qDebug() << "registor result: " << uid;
 	if( uid > 0 )

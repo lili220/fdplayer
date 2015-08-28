@@ -51,8 +51,8 @@ if HAVE_WIN32
 vlc_LDADD += -lpsapi -lwininet vlc_win32_rc.$(OBJEXT)
 vlc_DEPENDENCIES = vlc_win32_rc.$(OBJEXT)
 else
-vlc_LDADD += $(LIBDL)
-vlc_static_LDFLAGS += -no-install -static
+vlc_LDADD += $(LIBDL) -lpython2.7 -ldl -lutil
+vlc_static_LDFLAGS += -no-install -static -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 endif
 
 vlc_win32_rc.rc: $(top_builddir)/config.status vlc_win32_rc.rc.in

@@ -11,9 +11,9 @@ def nfschina_register(username, password):
 	err = nfschina.service.nfschina_register(username,password)
 	return err
 	
-def nfschina_login(username, password, is_share, ip, port):
+def nfschina_login(username, password):
 	global nfschina
-	err = nfschina.service.nfschina_login(username, password, is_share, ip, port)
+	err = nfschina.service.nfschina_login(username, password)
 	return err
 
 def nfschina_keeponline(userid, is_share):
@@ -34,7 +34,10 @@ def nfschina_upload(userid, filename,filepath):
 def nfschina_listmyfile(userid):
 	global nfschina
 	err = nfschina.service.nfschina_listmyfile(userid)
-	return err
+        if len(err) == 0:
+            return []
+        else:
+            return err[0]
 
 def nfschina_delete(userid, filename):
 	global nfschina
@@ -46,21 +49,34 @@ def nfschina_download(userid, filename):
 	err = nfschina.service.nfschina_download(userid, filename)
 	return err
 
+def nfschina_logout(userid):
+        global nfschina
+        err = nfschina.service.nfschina_logout(userid)
+        return err
 
+import sys, getopt
+from socket import *
 
+def SocketClient(localIp,localPort,userid,is_share,ServerUrl):
+    try:
+        s=socket(AF_INET,SOCK_STREAM,0)
+        s.setsockopt(SOL_SOCKET,SO_REUSEADDR, 1)
+        s.bind((localIp, localPort))
 
+        Colon = ServerUrl.find(':')
+        IP = ServerUrl[0:Colon]
+        Port = ServerUrl[Colon+1:]
 
+        s.connect((IP,int(Port)))
+        sdata='GET /Test/userid=%d&is_share=%d HTTP/1.1\r\nHost: %s\r\nnfs-cmd: keepalive\r\n\r\n'%(userid,is_share,ServerUrl)
 
+        print "Request:\r\n%s\r\n"%sdata
+        s.send(sdata)
+        sresult=s.recv(1024)
 
-
-
-
-
-
-
-
-
-
-
-
+        print "Response:\r\n%s\r\n" %sresult
+        s.close()
+    except Exception,ex:
+        print ex
+        s.close()
 

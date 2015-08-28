@@ -63,41 +63,16 @@
 
 #include <assert.h>
 
-UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
+#if 0
+ThreadKeepAlive::ThreadKeepAlive( intf_thread_t _p_intf, QString ip, int port, int uid, bool share )
+	:p_intf( _p_intf ), userid( uid ), b_share( share ), localIp( ip ), localPort( port )
 {
-	pArgs = NULL;
-	pRetValue = NULL;
-
-	pModule = NULL;
-	regist = NULL;
-	login = NULL;
-	keeponline = NULL;
-	fileupload = NULL;
-	listmyfile = NULL;
-	filedelete = NULL;
-	filedownload = NULL;
-
-	b_localShared = false;
-	b_netShared = false;
-
-	setServerIp( "192.168.7.97" );
-	setServerPort( "80" );
-
-	//readSettings();//read localshare state and netshare state
-	init();
-}
-
-UserOption::~UserOption()
-{
-}
-
-void UserOption::init()
-{
+	stopped = false;
 	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
 		printf( "Python initialize failed! \n" );
-		return;
+		return ;
 	}
 
 	PyRun_SimpleString( "import sys" );
@@ -111,54 +86,156 @@ void UserOption::init()
 		return ;
 	}
 
+	keepalive = PyObject_GetAttrString(pModule, "SocketClient");
+	if(keepalive == NULL)
+	{
+		printf( "keepalive is NULL\n" );
+		return ;
+	}
+}
+
+void ThreadKeepAlive::run()
+{
+	UserOption *user = UserOption::getInstance( p_intf );
+
+	printf( "----------------------%s-----------------------\n", __func__ );
+	//printf( "userid = %d, is_share = %d, serverUrl = %s\n", userid, is_share, ServerUrl.toStdString().c_str() );
+	pArgs = PyTuple_New( 5 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", localIp.toStdString().c_str() ) );
+	//PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", localPort.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", localPort ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", userid ) );
+	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "i", is_share ) );
+	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", user->getServerUrl().toStdString().c_str() ) );
+
+	pRetValue = PyObject_CallObject( keepalive, pArgs );
+}
+
+void ThreadKeepAlive::stop()
+{
+	stopped = true;
+}
+#endif
+
+UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
+{
+	/*Initialize PyObjects */
+	pArgs = NULL;
+	pRetValue = NULL;
+
+	pModule = NULL;
+	regist = NULL;
+	login = NULL;
+	logout = NULL;
+	keeponline = NULL;
+	fileupload = NULL;
+	listmyfile = NULL;
+	filedelete = NULL;
+	filedownload = NULL;
+
+	keepalive = NULL;
+
+	b_localShared = false;
+	b_netShared = false;
+
+	/*default settings*/
+	setServerIp( "192.168.7.96" );
+	setServerPort( 80 );
+	setServerUrl( "192.168.7.96:8001" );
+
+	//readSettings();//read localshare state and netshare state
+	b_login = false;
+	b_load = init();
+}
+
+UserOption::~UserOption()
+{
+}
+
+bool UserOption::init()
+{
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return false;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	pModule = PyImport_ImportModule( "registor" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import registor! \n" );
+		return false;
+	}
+
 	regist = PyObject_GetAttrString(pModule,"nfschina_register");
 	if(regist == NULL)
 	{
 		printf("regist is NULL\n");
-		return ;
+		return false;
 	}
 
 	login = PyObject_GetAttrString(pModule,"nfschina_login");
 	if(login == NULL)
 	{
 		printf("login is NULL\n");
-		return ;
+		return false;
+	}
+
+	logout = PyObject_GetAttrString(pModule,"nfschina_logout");
+	if(logout == NULL)
+	{
+		printf("logout is NULL\n");
+		return false;
 	}
 
 	keeponline = PyObject_GetAttrString(pModule,"nfschina_keeponline");
 	if(keeponline == NULL)
 	{
 		printf("keeponline is NULL\n");
-		return ;
+		return false;
 	}
 
 	fileupload = PyObject_GetAttrString(pModule,"nfschina_upload");
 	if(fileupload == NULL)
 	{
 		printf("fileupload is NULL\n");
-		return ;
+		return false;
 	}
 
 	listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
 	if(listmyfile == NULL)
 	{
 		printf("listmyfile is NULL\n");
-		return ;
+		return false;
 	}
 
 	filedelete = PyObject_GetAttrString(pModule,"nfschina_delete");
 	if(filedelete == NULL)
 	{
 		printf("delete is NULL\n");
-		return ;
+		return false;
 	}
 
 	filedownload = PyObject_GetAttrString(pModule,"nfschina_download");
 	if(filedownload ==NULL)
 	{
 		printf("download is NULL\n");
-		return ;
+		return false;
 	}
+
+	keepalive = PyObject_GetAttrString(pModule, "SocketClient");
+	if(keepalive == NULL)
+	{
+		printf( "keepalive is NULL\n" );
+		return false;
+	}
+
+	return true;
 }
 
 int UserOption::nfschina_registor( QString username, QString password )
@@ -173,46 +250,56 @@ int UserOption::nfschina_registor( QString username, QString password )
 	return uid;
 }
 
-int UserOption::nfschina_login( QString username, QString password, bool b_share, QString ip, QString port )
+//int UserOption::nfschina_login( QString username, QString password, bool b_share, QString ip, QString port )
+int UserOption::nfschina_login( QString username, QString password )
 {
 	printf("//service.nfschina_login\n");
 
-	pArgs = PyTuple_New( 5 );
+	printf("username=%s :: password = %s\n",username.toStdString().c_str(), password.toStdString().c_str() );
+	pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", username.toStdString().c_str()) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", password.toStdString().c_str()) );
-	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", b_share ) );
-	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", ip.toStdString().c_str()) );
-	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", port.toStdString().c_str()) );
+	//PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", b_share ) );
+	//PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", ip.toStdString().c_str()) );
+	//PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", port.toStdString().c_str()) );
 
 	pRetValue = PyObject_CallObject( login, pArgs );
 	int uid = _PyInt_AsInt(pRetValue);
 	printf("login :: luid = %d\n",uid);
+	b_login = ( uid > 0 ? true : false );
 
 	return uid;
 }
 
-int UserOption::nfschina_login( QString username, QString password, bool b_share )
+int UserOption::nfschina_logout( int userid )
 {
-	printf("//service.nfschina_login2\n");
+	printf("//service.nfschina_logout\n");
 
-	pArgs = PyTuple_New( 5 );
-	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", username.toStdString().c_str()) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", password.toStdString().c_str()) );
-	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", b_share ) );
-	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", serverIp.toStdString().c_str()) );
-	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", serverPort.toStdString().c_str()) );
+	if( !isLogin() )
+	{
+		printf( "No user is Login current!\n" );
+		return 0;
+	}
+	printf("userid=%d \n", userid );
+	pArgs = PyTuple_New( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 
-	pRetValue = PyObject_CallObject( login, pArgs );
-	int uid = _PyInt_AsInt(pRetValue);
-	printf("login :: luid = %d\n",uid);
+	pRetValue = PyObject_CallObject( logout, pArgs );
+	int ret = _PyInt_AsInt(pRetValue);
+	printf("logout :: ret = %d\n",ret );
 
-	return uid;
+	return ret;//????
 }
 
 int UserOption::nfschina_keeponline( int userid, bool b_share )
 {
 	printf( "------------------------%s-------------------------\n", __func__ );
 	printf( "userid = %d, b_share = %d\n", userid, b_share );
+	if( !isLogin() )
+	{
+		printf( "Plase Login !\n" );
+		return -1;// ?????
+	}
 
 	pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue("i", luid) );
@@ -225,8 +312,20 @@ int UserOption::nfschina_keeponline( int userid, bool b_share )
 
 	return err;
 }
+
 int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
 {
+	if( !isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "文件上传提示框" ),
+				qtr( "您还未登陆，不能上传共享文件！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+
+		return -1;// ?????
+	}
 	pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
@@ -239,19 +338,50 @@ int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath 
 	
 	return err;
 }
-int UserOption::nfschina_listMyFile( int userid )
+
+void UserOption::nfschina_listMyFile( int userid )
 {
+	if( !isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "获取共享文件" ),
+				qtr( "您还未登陆，不能获取共享文件列表！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+
+		return ;
+	}
 	pArgs = PyTuple_New ( 1 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 
 	pRetValue = PyObject_CallObject( listmyfile, pArgs );
-	int err = _PyInt_AsInt( pRetValue );
-	printf( "listmyfile retvalue:%d\n", err );
+	int s = PyList_Size( pRetValue );
 
-	return err;
+	fileList.clear(); int i = 0;
+	for( i = 0; i < s; i++ )
+	{
+		fileList << PyString_AsString( PyList_GetItem( pRetValue, i ) );
+		printf( "file[%d]:%s\n", i,  PyString_AsString( PyList_GetItem( pRetValue, i ) ));
+	}
+	printf( "s = %d, fileList count = %d\n", s, fileList.count() );
+
+	return ;
 }
+
 int UserOption::nfschina_delete( int userid, QString filename )
 {
+	if( !isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "删除提示框" ),
+				qtr( "您还未登陆，不能进行删除操作！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+
+		return -1;// ?????
+	}
 	pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
@@ -263,8 +393,20 @@ int UserOption::nfschina_delete( int userid, QString filename )
 	return err;
 
 }
+
 int UserOption::nfschina_download( int userid, QString filename )
 {
+	if( !isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "下载提示框" ),
+				qtr( "您还未登陆，不能进行下载操作！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+
+		return -1;// ?????
+	}
 	pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
@@ -296,5 +438,30 @@ void UserOption::toggleNetShared( bool state )
 
 	printf("state = %d\n", state );
 	printf("b_netShared = %d\n", b_netShared );
-	nfschina_keeponline( getLUid(), getNetShared() );
+	if( isLogin() )
+	{
+		printf("line:%d\n", __LINE__);
+		nfschina_keepalive("0.0.0.0", 8000, getLUid(), state, getServerUrl() );
+	//	nfschina_keeponline( getLUid(), getNetShared() );
+	}
+	printf("line:%d\n", __LINE__);
+}
+
+void UserOption::nfschina_keepalive(QString localIp, int localPort, int userid, bool is_share, QString ServerUrl)
+{
+	printf( "----------------------%s-----------------------\n", __func__ );
+#if 0
+	ThreadKeepAlive *keepalive = new ThreadKeepAlive( p_intf, localIp, localPort, userid, is_share );
+	keepalive->run();
+#endif
+	//printf( "userid = %d, is_share = %d, serverUrl = %s\n", userid, is_share, ServerUrl.toStdString().c_str() );
+	pArgs = PyTuple_New( 5 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", localIp.toStdString().c_str() ) );
+	//PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", localPort.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", localPort ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", userid ) );
+	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "i", is_share ) );
+	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", ServerUrl.toStdString().c_str() ) );
+
+	pRetValue = PyObject_CallObject( keepalive, pArgs );
 }

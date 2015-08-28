@@ -48,6 +48,7 @@ class QStandardItemModel;
 class QDir;
 class QStandardItem;
 class QFileInfo;
+class UserOption;
 
 class UserShareSelector : public QVLCFrame
 {
@@ -64,32 +65,6 @@ private:
     virtual ~UserShareSelector();
 };
 
-class ShareStateWidget : public QVLCFrame, public Singleton<ShareStateWidget>
-{
-	Q_OBJECT
-public:
-		ShareStateWidget( intf_thread_t *);
-		void doLocalShare(bool state );
-		void doNetShare(bool state );
-		void openLocalShare();
-		void closeLocalShare();
-		void openNetShare();
-		void closeNetShare();
-public slots:
-		void toggleLocalShareState();
-		void toggleNetShareState();
-		friend class Singleton<ShareStateWidget>;
-private:
-	QLabel *localShareState;
-	QPushButton *localShareBtn;
-
-	QLabel *netShareState;
-	QPushButton *netShareBtn;
-
-	bool b_localShared;//局域网共享是否开启
-	bool b_netShared; //广域网是否开启
-};
-
 class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 {
 	Q_OBJECT
@@ -99,10 +74,14 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 		void contextMenuEvent(QContextMenuEvent* e);
 		QTreeView* initLocalShareTreeView();
 		QTreeView* initServerShareTreeView();
-		QWidget* initShareControlWidget();
 		QStandardItem* addRow(QStandardItemModel* model, const QFileInfo& file );
+		QStandardItem* addRow(QStandardItemModel* model, const QString& file );
 		QStandardItem* addRow(QStandardItem* model, const QFileInfo& file );
 		void addDirEntries(QDir* dir , QStandardItem* itemModel );
+
+		void setConfigPath( QString path = "../sbin/minidlna.conf"){ configPath = path; }
+		QString getSharePath();
+		void setSharePath( QString path = "~" ){ sharePath = path; }
 
 		public slots:
 			friend class Singleton<UserShareDialog>;
@@ -110,12 +89,14 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 		virtual void close() { toggleVisible(); }
 
 		void updateUserShareDialog();
-		void showUserDialog();
+		void updateServerShareDialog();
+		//void showUserDialog();
 
 		void addShareFile();
 		void delShareFile();
 		void upLoadShareFile();
 		void downLoadShareFile();
+		void deleteRemoteShareFile();
 		QString getFilePath( QString basedir );
 		void removeFile( QString file );
 
@@ -125,18 +106,18 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 	void stopPlaying();
 
 signals:
-	void shareFileChanged();
+	void localShareFileChanged();
+	void serverShareFileChanged();
 
 private:
 		virtual ~UserShareDialog();
 
+		UserOption *user;
 		QLabel *title;
-		QPushButton *logoutBtn;
 		QSplitter *leftSplitter;
 		QSplitter *split;
 		UserShareSelector *selector;
 		QStackedWidget *mainWidget;
-		//QTreeView *tree;
 
 		/*Local Share Widget */
 		QTreeView *localShareTree;
@@ -146,9 +127,9 @@ private:
 		QTreeView *serverShareTree;
 		QStandardItemModel *serverShareModel;
 
-		/*Share Control Widget */
-		ShareStateWidget *shareControlWidget;
-
 		bool isPause;
+		/*file share path*/
+		QString configPath;//path for minidlna.conf
+		QString sharePath;//midia_dir's value in minidlna.conf file
 };
 #endif

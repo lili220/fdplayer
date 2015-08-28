@@ -29,6 +29,7 @@
 #include "qt4.hpp"
 #include "dialogs/user/usershare.hpp"
 #include "dialogs/user/login.hpp"
+#include "dialogs/user/useroption.hpp"
 #include "util/qt_dirs.hpp"
 
 #include <vlc_about.h>
@@ -49,7 +50,6 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QDebug>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QTreeWidget>
@@ -83,12 +83,9 @@ UserShareSelector::UserShareSelector( intf_thread_t *_p_intf ) : QVLCFrame( _p_i
 
 	listWidget = new QListWidget( this );
 	listWidget->addItem( qtr("我的共享文件") );
-	//listWidget->addItem( "网络共享文件" );
 	listWidget->addItem( qtr("云端共享文件") );
-	listWidget->addItem( qtr("共享文件开关") );
 
 	//restoreWidgetPosition( "UserShareSelector", QSize( 500, 450 ) );
-
 }
 
 UserShareSelector::~UserShareSelector()
@@ -107,18 +104,6 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 
 	/*Top Welecom Message and Logout Button */
 	QGridLayout *mainLayout = new QGridLayout( this );
-	QHBoxLayout *topLayout = new QHBoxLayout;
-
-	title = new QLabel( this );
-	//title->setText( "欢迎" + UserDialog::getInstance()->getLUsername() );
-
-	logoutBtn = new QPushButton( this );
-	logoutBtn->setText( qtr("退出") );
-	logoutBtn->setMaximumSize(80, 40);
-	topLayout->addWidget( title );
-	topLayout->setSpacing( 10 );
-	topLayout->addWidget( logoutBtn );
-	mainLayout->addLayout( topLayout, 0, 1 );
 
 	/* Midle side  Main Windown */
 	selector = new UserShareSelector( _p_intf );
@@ -129,51 +114,21 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 
 	/* Main Windows */
 	localShareTree = initLocalShareTreeView();
-	//tree->setRootIndex( model->index( p_intf->p_sys->filepath ) );
-	//tree->setRootIndex( model->index( "/home/lili/share" ) );
-	
-//	QLabel *label2 = new QLabel("窗口2");
-	//QLabel *label3 = new QLabel("窗口3");
 	serverShareTree = initServerShareTreeView();
-	shareControlWidget = new ShareStateWidget( _p_intf );
-
-	//QDirModel *model = new QDirModel(0, 5, this);
-
 
 	mainWidget = new QStackedWidget( this );
-
 	mainWidget->addWidget( localShareTree );
-	//mainWidget->addWidget( label2 );
 	mainWidget->addWidget( serverShareTree );
-	mainWidget->addWidget( shareControlWidget );
 
 	QHBoxLayout *layout = new QHBoxLayout( this );
 	layout->addWidget( leftSplitter );
 	layout->setSpacing( 10 );
 	layout->addWidget( mainWidget );
-	mainLayout->addLayout(layout, 1, 1);
-
-#if 0
-	/*buttom add and del Button */
-	QHBoxLayout *buttomLayout = new QHBoxLayout( this );
-	buttomLayout->addStretch(20);
-	QPushButton * delBtn = new QPushButton( this );
-	delBtn->setText( "删除" );
-	delBtn->setMaximumSize( 80, 40 );
-	buttomLayout->addWidget( delBtn );
-	QPushButton *addBtn = new QPushButton( this );
-	addBtn->setText( "增加" );
-	addBtn->setMaximumSize( 80, 40 );
-	buttomLayout->addWidget( addBtn );
-	mainLayout->addLayout( buttomLayout, 2, 1);
-	connect(delBtn, SIGNAL(clicked()), this, SLOT(delShareFile()) );
-	connect(addBtn, SIGNAL(clicked()), this, SLOT(addShareFile()) );
-#endif
+	mainLayout->addLayout(layout, 0, 1);
 
 	connect( selector->getListWidget(), SIGNAL(currentRowChanged(int)), mainWidget, SLOT(setCurrentIndex(int)) );
-	connect( this, SIGNAL( shareFileChanged() ), this, SLOT(updateUserShareDialog()) );
-	//connect( UserDialog::getInstance(), SIGNAL( userChanged() ), this, SLOT(updateUserShareDialog()) );
-	connect( logoutBtn, SIGNAL(clicked()), this, SLOT(showUserDialog()) );
+	connect( this, SIGNAL( localShareFileChanged() ), this, SLOT(updateUserShareDialog()) );
+	connect( this, SIGNAL( serverShareFileChanged() ), this, SLOT(updateServerShareDialog()) );
 	connect( localShareTree, SIGNAL(doubleClicked( const QModelIndex )), this, SLOT( playShareFile(const QModelIndex& ) ) );
 }
 
@@ -182,143 +137,6 @@ UserShareDialog::~UserShareDialog()
     saveWidgetPosition( "UserShareDialog" );
 }
 
-void ShareStateWidget::toggleLocalShareState()
-{
-	b_localShared = ! b_localShared;
-
-	if( b_localShared )
-	{
-		localShareState->setText( qtr("局域网共享已开启") );
-		localShareBtn->setText( qtr("关闭局域网共享") );
-	}
-	else
-	{
-		localShareState->setText( qtr("局域网共享已关闭") );
-		localShareBtn->setText( qtr("开启局域网共享") );
-	}
-
-	doLocalShare( b_localShared ); //TODO 打开或关闭本地共享的后台工作
-}
-
-void ShareStateWidget::toggleNetShareState()
-{
-
-	qDebug() << __func__ ;
-	b_netShared = !b_netShared;
-
-	if( b_netShared )
-	{
-		netShareState->setText( qtr("广域网共享已开启") );
-		netShareBtn->setText( qtr("关闭广域网共享") );
-	}
-	else
-	{
-		netShareState->setText( qtr("广域网共享已关闭") );
-		netShareBtn->setText( qtr("开启广域网共享") );
-	}
-
-	doNetShare( b_netShared ); //TODO 打开或关闭网络共享的后台工作
-}
-
-ShareStateWidget::ShareStateWidget( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
-{
-	localShareState = new QLabel( this );
-	localShareBtn = new QPushButton( this );
-
-	if( b_localShared )
-	{
-		localShareState->setText( qtr("局域网共享已开启") );
-		localShareBtn->setText( qtr("关闭局域网共享") );
-	}
-	else
-	{
-		localShareState->setText( "局域网共享已关闭" );
-		localShareBtn->setText( "开启局域网共享" );
-	}
-
-	localShareBtn->setMaximumSize( 100, 30 );
-	localShareState->setBuddy( localShareBtn );
-
-	QHBoxLayout *localShareLayout = new QHBoxLayout;
-	localShareLayout->addStretch(5);
-	localShareLayout->addWidget( localShareState );
-	localShareLayout->addStretch(15);
-	localShareLayout->addWidget( localShareBtn );
-	localShareLayout->addStretch(5);
-
-	netShareState = new QLabel( this );
-	netShareBtn = new QPushButton( this );
-	if( b_netShared )
-	{
-		netShareState->setText( "广域网共享已开启" );
-		netShareBtn->setText( "关闭广域网共享" );
-	}
-	else
-	{
-		netShareState->setText( "广域网共享已关闭" );
-		netShareBtn->setText( "开启广域网共享" );
-	}
-	netShareBtn->setMaximumSize( 100, 30 );
-	netShareState->setBuddy( netShareBtn );
-
-	QHBoxLayout *netShareLayout = new QHBoxLayout;
-	netShareLayout->addStretch(5);
-	netShareLayout->addWidget( netShareState );
-	netShareLayout->addStretch(15);
-	netShareLayout->addWidget( netShareBtn );
-	netShareLayout->addStretch(5);
-
-	QVBoxLayout *mainLayout = new QVBoxLayout( this );
-	mainLayout->addStretch(1);
-	mainLayout->addLayout( localShareLayout );
-	mainLayout->addLayout( netShareLayout );
-	mainLayout->addStretch(19);
-
-	setLayout( mainLayout );
-
-	connect( localShareBtn, SIGNAL(clicked()), this, SLOT( toggleLocalShareState()) );
-	connect( netShareBtn, SIGNAL(clicked()), this, SLOT( toggleNetShareState()) );
-}
-
-void ShareStateWidget::doLocalShare(bool isOpen )
-{
-	if( isOpen )
-		openLocalShare();
-	else
-		closeLocalShare();
-}
-
-void ShareStateWidget::openLocalShare()
-{
-	qDebug() << "opening Local Share .......";
-	//TODO
-}
-
-void ShareStateWidget::closeLocalShare()
-{
-	qDebug() << "closing Local Share .......";
-	//TODO
-}
-
-void ShareStateWidget::doNetShare(bool isOpen )
-{
-	if( isOpen )
-		openNetShare();
-	else
-		closeNetShare();
-}
-
-void ShareStateWidget::openNetShare()
-{
-	qDebug() << "opening Net Share .......";
-	//TODO
-}
-
-void ShareStateWidget::closeNetShare()
-{
-	qDebug() << "closing Net Share .......";
-	//TODO
-}
 
 QTreeView* UserShareDialog::initLocalShareTreeView()
 {
@@ -367,6 +185,27 @@ QTreeView* UserShareDialog::initServerShareTreeView()
 	model->setHeaderData( 4, Qt::Horizontal, qtr("路  径") );
 
 	//getServerShareItems();
+	user = UserOption::getInstance( p_intf );
+	if( !user->isLoaded() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "云端共享提示" ),
+				qtr( "用户尚未登陆, 将无法查看云端共享文件！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+	}
+
+	if( user->isLogin() )
+	{
+		qDebug() << __func__ << ":" << __LINE__;
+		user->nfschina_listMyFile( user->getLUid() );
+		QList<QString> list = user->getFileList();
+		foreach( const QString& file, list )
+		{
+			addRow( model, file );
+		}
+	}
 
 	tree->setModel( model );
 	return tree;
@@ -430,6 +269,20 @@ QStandardItem* UserShareDialog::addRow( QStandardItemModel* model, const QFileIn
 	return item;
 }
 
+QStandardItem* UserShareDialog::addRow( QStandardItemModel* model, const QString& file )
+{
+	QStandardItem *item = new QStandardItem( file );
+	model->appendRow( item );
+
+	model->setItem( model->indexFromItem( item ).row(), 1, new QStandardItem( qtr("文件") ) );
+
+	//model->setItem( model->indexFromItem( item ).row(), 2, new QStandardItem( QString::number(file.size(), 10) ) );
+	//model->setItem( model->indexFromItem( item ).row(), 3, new QStandardItem( file.lastModified().toString()) );
+	//model->setItem( model->indexFromItem( item ).row(), 4, new QStandardItem( file.filePath()) );
+
+	return item;
+}
+
 void UserShareDialog::updateUserShareDialog()
 {
 	if( title )
@@ -457,31 +310,50 @@ void UserShareDialog::updateUserShareDialog()
 #endif
 }
 
+void UserShareDialog::updateServerShareDialog()
+{
+	
+	if( serverShareTree )
+	{
+		mainWidget->removeWidget( serverShareTree );
+		delete serverShareTree;
+		serverShareTree = initServerShareTreeView();
+		mainWidget->insertWidget( 1, serverShareTree );
+		mainWidget->setCurrentWidget( serverShareTree );
+	}
+}
+
+#if 0
 void UserShareDialog::showUserDialog()
 {
 	toggleVisible();
 	//UserDialog::getInstance()->setLogin( false );
 	//UserDialog::getInstance()->toggleVisible();
 }
+#endif
 
 void UserShareDialog::contextMenuEvent(QContextMenuEvent* e)
 {
 	//printf("------------------------------func:%s---------------------------------------------------\n", __func__);
 	//TODO 应该在类中增加menu成员，生成menu时先检查是否已生成，如果生成先销毁，再重新生成
 	QMenu *menu = new QMenu();
-	QAction *addaction = new QAction( qtr("增加共享文件"), menu );
+	QAction *addaction = new QAction( qtr("增加本地共享文件"), menu );
+	addaction->setCheckable( false );//todo  need to delete
 	menu->addAction( addaction );
 
-	QAction *delaction = new QAction( qtr("删除共享文件"), menu );
+	QAction *delaction = new QAction( qtr("删除本地共享文件"), menu );
 	menu->addAction( delaction );
 
 	menu->addSeparator();
 
-	QAction *uploadaction = new QAction( qtr("上传为共享文件"), menu );
+	QAction *uploadaction = new QAction( qtr("上传为网络共享文件"), menu );
 	menu->addAction( uploadaction );
 
-	QAction *downloadaction = new QAction( qtr("下载共享文件"), menu );
+	QAction *downloadaction = new QAction( qtr("下载共享文件到本地"), menu );
 	menu->addAction( downloadaction );
+
+	QAction *remotedelaction = new QAction( qtr("删除网络共享文件"), menu );
+	menu->addAction( remotedelaction );
 
 	menu->addSeparator();
 
@@ -500,6 +372,7 @@ void UserShareDialog::contextMenuEvent(QContextMenuEvent* e)
 	connect( delaction, SIGNAL(triggered(bool)), this, SLOT(delShareFile()) );
 	connect( uploadaction, SIGNAL(triggered(bool)), this, SLOT(upLoadShareFile()) );
 	connect( downloadaction, SIGNAL(triggered(bool)), this, SLOT(downLoadShareFile()) );
+	connect( remotedelaction, SIGNAL(triggered(bool)), this, SLOT(deleteRemoteShareFile()) );
 
 	connect( playaction, SIGNAL(triggered(bool)), this, SLOT(playShareFile()) );
 	connect( pauseaction, SIGNAL(triggered(bool)), this, SLOT(pausePlaying()) );
@@ -515,15 +388,6 @@ void UserShareDialog::playShareFile( const QModelIndex& index )
 	QString url = toURI( toNativeSeparators( file ) );
 	Open::openMRL( UserShareDialog::getInstance()->p_intf, url, true, true );
 
-#if 0
-	for( int columnIndex = 0; columnIndex < m->columnCount(); ++columnIndex )
-	{
-		QModelIndex x = m->index( index.row(), columnIndex );
-		QString s = x.data().toString();
-		qDebug() << s;
-		QMessageBox::about(this,s,s);
-	}
-#endif
 }
 
 void UserShareDialog::playShareFile()
@@ -586,7 +450,7 @@ void UserShareDialog::addShareFile()
 		QFile::link(file, dest );
 	}
 
-	emit shareFileChanged();
+	emit localShareFileChanged();
 }
 
 void UserShareDialog::delShareFile( )
@@ -618,13 +482,46 @@ void UserShareDialog::delShareFile( )
 #endif
 
 
-	emit shareFileChanged();
+	emit localShareFileChanged();
 }
 
 void UserShareDialog::upLoadShareFile()
 {
+	QModelIndex index = localShareTree->currentIndex();
+	if( !index.isValid() )
+		return ;
+
+	QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+	QString file = m->index(index.row(), 0 ).data().toString();
+	QString filepath = m->index(index.row(), 4 ).data().toString();
+	qDebug() << "upload file:" << file;
+	qDebug() << "upload filepath:" << filepath;
+	UserOption *user = UserOption::getInstance( p_intf );
+	if( user->isLoaded() )
+	{
+		int ret = user->nfschina_upLoad( user->getLUid(), file, filepath );
+		//emit serverShareFileChanged();
+	}
 }
 
 void UserShareDialog::downLoadShareFile()
 {
+}
+
+void UserShareDialog::deleteRemoteShareFile()
+{
+	QModelIndex index = serverShareTree->currentIndex();
+	if( !index.isValid() )
+		return ;
+
+	QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+	QString file = m->index(index.row(), 0 ).data().toString();
+
+	UserOption *user = UserOption::getInstance( p_intf );
+	if( user->isLoaded() )
+	{
+		int ret = user->nfschina_delete( user->getLUid(), file );
+		qDebug() << "delete " << file << "result: " << ret;
+		emit serverShareFileChanged();
+	}
 }
