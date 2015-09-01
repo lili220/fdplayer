@@ -84,7 +84,7 @@ public:
 	int nfschina_upLoad( int userid, QString filename, QString filepath );
 	void nfschina_listMyFile( int userid );
 	int nfschina_delete( int userid, QString filename );
-	int nfschina_download( int userid, QString filename );
+	QString nfschina_download( int userid, QString filename );
 
 	QList<QString> getFileList(){ return fileList; }
 	int getRUid(){ return ruid; }

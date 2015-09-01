@@ -394,7 +394,7 @@ int UserOption::nfschina_delete( int userid, QString filename )
 
 }
 
-int UserOption::nfschina_download( int userid, QString filename )
+QString UserOption::nfschina_download( int userid, QString filename )
 {
 	if( !isLogin() )
 	{
@@ -405,17 +405,21 @@ int UserOption::nfschina_download( int userid, QString filename )
 				NULL );
 		msgBox.exec();
 
-		return -1;// ?????
+		return NULL;// ?????
 	}
 	pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
 
 	pRetValue = PyObject_CallObject( filedownload, pArgs );
+	printf( "get url:%s\n", PyString_AsString( pRetValue ) );
+	return PyString_AsString( pRetValue );
+#if 0
 	int err = _PyInt_AsInt( pRetValue );
 	printf( "filedownload retvalue:%d\n", err );
 
 	return err;
+#endif
 }
 
 void UserOption::toggleLocalShared( bool state )

@@ -454,7 +454,6 @@ QMenu *VLCMenuBar::ToolsMenu( intf_thread_t *p_intf, QMenu *menu )
     return menu;
 }
 
-#include <QDebug>
 /**
  * View Menu
  * Interface modification, load other interfaces, activate Extensions
@@ -480,7 +479,6 @@ QMenu *VLCMenuBar::ViewMenu( intf_thread_t *p_intf, QMenu *current, MainInterfac
         QList<QAction*> actions = menu->actions();
         foreach( QAction *a, actions )
         {
-			qDebug() << a->text();
             QMenu *m = a->menu();
             if( a->parent() == menu ) delete a;
             else menu->removeAction( a );

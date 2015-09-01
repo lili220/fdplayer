@@ -68,6 +68,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <string.h>
 
 
 #include <assert.h>
@@ -103,7 +104,8 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	setWindowTitle( qtr("共享文件窗口") );
 
 	/*Top Welecom Message and Logout Button */
-	QGridLayout *mainLayout = new QGridLayout( this );
+	//QGridLayout *mainLayout = new QGridLayout( this );
+	QGridLayout *mainLayout = new QGridLayout;
 
 	/* Midle side  Main Windown */
 	selector = new UserShareSelector( _p_intf );
@@ -112,6 +114,9 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	leftSplitter->setMinimumWidth( 100 );
 	leftSplitter->setMaximumWidth( 120 );
 
+	setConfigPath( "~/minidlna.conf" );
+	qDebug() << getConfigPath();
+	setSharePath( getConfigPath() );
 	/* Main Windows */
 	localShareTree = initLocalShareTreeView();
 	serverShareTree = initServerShareTreeView();
@@ -126,6 +131,8 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	layout->addWidget( mainWidget );
 	mainLayout->addLayout(layout, 0, 1);
 
+	setLayout( mainLayout );
+
 	connect( selector->getListWidget(), SIGNAL(currentRowChanged(int)), mainWidget, SLOT(setCurrentIndex(int)) );
 	connect( this, SIGNAL( localShareFileChanged() ), this, SLOT(updateUserShareDialog()) );
 	connect( this, SIGNAL( serverShareFileChanged() ), this, SLOT(updateServerShareDialog()) );
@@ -137,7 +144,6 @@ UserShareDialog::~UserShareDialog()
     saveWidgetPosition( "UserShareDialog" );
 }
 
-
 QTreeView* UserShareDialog::initLocalShareTreeView()
 {
 	QTreeView *tree = new QTreeView;
@@ -148,7 +154,9 @@ QTreeView* UserShareDialog::initLocalShareTreeView()
 	model->setHeaderData( 3, Qt::Horizontal, qtr("修改日期") );
 	model->setHeaderData( 4, Qt::Horizontal, qtr("路  径") );
 
-	QDir *dir = new QDir("/home/lili/share/");
+	QString path = getSharePath();
+	QDir *dir = new QDir( path );
+	//QDir *dir = new QDir("/home/lili/share/");
 
 	QFileInfoList entries = dir->entryInfoList();
 	foreach(const QFileInfo &file, entries)
@@ -185,7 +193,7 @@ QTreeView* UserShareDialog::initServerShareTreeView()
 	model->setHeaderData( 4, Qt::Horizontal, qtr("路  径") );
 
 	//getServerShareItems();
-	user = UserOption::getInstance( p_intf );
+	UserOption *user = UserOption::getInstance( p_intf );
 	if( !user->isLoaded() )
 	{
 		QMessageBox msgBox( QMessageBox::Information,
@@ -234,6 +242,34 @@ void UserShareDialog::addDirEntries( QDir* dir, QStandardItem* itemParent )
 			addRow( itemParent, file );
 		}
 	}
+}
+
+QString UserShareDialog::getSharePath()
+{
+	QString configFile = getConfigPath();
+	//QString cmd;
+	char cmd[1024] = {0};
+	sprintf( cmd, "sed -n --silent '/^media_dir=/p' ");
+	strcat( cmd, configFile.toStdString().c_str() );
+	strcat( cmd, "  | awk -F, '{print $2}'" );
+	//cmd << "sed -n --silent '/^media_dir=/p' " << configFile << " | awk -F, '{print $2}'";
+	qDebug() << "cmd:" << cmd;
+	QString path;
+	QString cmdbuf = cmd;
+	qDebug() << "cmdbuf:" << cmdbuf;
+	FILE * pathFile= popen( cmdbuf.toStdString().c_str(), "r" );
+	if( !pathFile )
+		return NULL;
+
+	char buf[1024] = {0};
+	fread( buf, sizeof(char), sizeof(buf), pathFile );
+	pclose( pathFile );
+	int len = strlen( buf );
+	if( buf[ len-1 ] == '\r' || buf[ len-1 ] == '\n' )
+		buf[ len-1 ] = '\0';
+	path = buf;
+
+	return path;
 }
 
 QStandardItem* UserShareDialog::addRow( QStandardItem* itemParent, const QFileInfo& file )
@@ -397,6 +433,48 @@ void UserShareDialog::playShareFile()
 	Open::openMRL( UserShareDialog::getInstance()->p_intf, file, true, true);
 #endif
 
+#if 1
+	bool first = true;
+	bool pl = true;
+
+	if( localShareTree == mainWidget->currentWidget() )
+	{
+		qDebug() << " localShareTree";
+
+		QModelIndex index = localShareTree->currentIndex();
+		if( !index.isValid() )
+			return ;
+
+		//QStandardItem* currentItem = localShareModel->itemFromIndex( index );
+
+		QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+		QString file = m->index(index.row(), 4 ).data().toString();
+		QString url = toURI( toNativeSeparators( file ) );
+		qDebug() << "url:" << url ;
+		Open::openMRL( p_intf, url, first, pl);
+		first = false;
+	}
+	else if( serverShareTree == mainWidget->currentWidget() )
+	{
+		qDebug() << "serverShareTree";
+		QModelIndex index = serverShareTree->currentIndex();
+		if( !index.isValid() )
+			return ;
+
+		QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+		QString file = m->index(index.row(), 0 ).data().toString();
+		UserOption *user = UserOption::getInstance( p_intf );
+		
+		QString url = user->nfschina_download( user->getLUid(), file );
+
+		//QString url = toURI( toNativeSeparators( file ) );
+		qDebug() << "playing file:" << file ;
+		qDebug() << "url:" << url ;
+		Open::openMRL( p_intf, url, first, pl);
+		first = false;
+	}
+#endif
+#if 0
 	bool first = true;
 	bool pl = true;
 
@@ -406,6 +484,7 @@ void UserShareDialog::playShareFile()
 	qDebug() << url;
 	Open::openMRL( UserShareDialog::getInstance()->p_intf, url, first, pl);
 	first = false;
+#endif
 }
 
 void UserShareDialog::pausePlaying()
@@ -414,7 +493,7 @@ void UserShareDialog::pausePlaying()
 	//RecentsMRL::getInstance()->addRecent("file:///home/lili/share/baofengyu.mp4");
 	isPause = !isPause;
 	playlist_Pause( THEPL );
-	
+
 }
 
 void UserShareDialog::stopPlaying()
@@ -487,6 +566,10 @@ void UserShareDialog::delShareFile( )
 
 void UserShareDialog::upLoadShareFile()
 {
+	/*do nothing if currentWidget is not localshare Window */
+	if( localShareTree != mainWidget->currentWidget() )
+		return;
+
 	QModelIndex index = localShareTree->currentIndex();
 	if( !index.isValid() )
 		return ;
@@ -500,7 +583,7 @@ void UserShareDialog::upLoadShareFile()
 	if( user->isLoaded() )
 	{
 		int ret = user->nfschina_upLoad( user->getLUid(), file, filepath );
-		//emit serverShareFileChanged();
+		emit serverShareFileChanged();
 	}
 }
 

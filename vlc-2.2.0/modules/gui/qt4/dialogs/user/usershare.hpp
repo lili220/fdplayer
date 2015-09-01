@@ -49,6 +49,7 @@ class QDir;
 class QStandardItem;
 class QFileInfo;
 class UserOption;
+class QListWidgetItem;
 
 class UserShareSelector : public QVLCFrame
 {
@@ -80,8 +81,9 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 		void addDirEntries(QDir* dir , QStandardItem* itemModel );
 
 		void setConfigPath( QString path = "../sbin/minidlna.conf"){ configPath = path; }
+		QString getConfigPath(){ return configPath; }
+		void setSharePath( QString path = "~/share" ){ sharePath = path; }
 		QString getSharePath();
-		void setSharePath( QString path = "~" ){ sharePath = path; }
 
 		public slots:
 			friend class Singleton<UserShareDialog>;
@@ -112,7 +114,7 @@ signals:
 private:
 		virtual ~UserShareDialog();
 
-		UserOption *user;
+		//UserOption *user;
 		QLabel *title;
 		QSplitter *leftSplitter;
 		QSplitter *split;
