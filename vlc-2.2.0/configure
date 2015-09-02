@@ -14,6 +14,9 @@
 ## M4sh Initialization. ##
 ## -------------------- ##
 
+#add by zhangwanchun, 2015-08-12
+dlna_configure_arg=$*
+
 # Be more Bourne compatible
 DUALCASE=1; export DUALCASE # for MKS sh
 if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then :
@@ -56038,3 +56041,35 @@ echo "build vlc executable  : no"
 fi
 echo "
 To build vlc and its plugins, type \`$MAKE', or \`./compile' if you like nice colors."
+
+
+#add by zhangwanchun, 2015-08-11
+sed -i "s/-Werror-implicit-function-declaration//g" ./modules/packetizer/Makefile
+rcode=$?
+if [ $rcode != 0 ];then
+	echo "modify ./modules/packetizer/Makefile error"
+	exit 1
+fi
+
+echo "-----------------------------Compile minidlna-1.1.4 begin----------------------------"
+echo "argments: [$dlna_configure_arg]"
+
+cd ./minidlna-1.1.4
+./configure $dlna_configure_arg
+rcode=$?
+if [ $rcode == 0 ];then
+	echo "Compile minidlna-1.1.4 completed"
+else
+	echo "Compile minidlna-1.1.4 uncompleted, Some error occurred"
+	exit 1
+fi
+cd ..
+echo "------------------------------Compile minidlna-1.1.4 end-----------------------------"
+
+
+
+
+
+
+
+

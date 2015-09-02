@@ -1846,4 +1846,6 @@ minidlna-1.1.4/minidlnad
 minidlna-1.1.4/tagutils/.dirstamp
 minidlna-1.1.4/dlna_tools
 minidlna-1.1.4/minidlna.conf
+minidlna-1.1.4/po/Makefile.in
+
 
