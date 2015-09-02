@@ -432,11 +432,44 @@ void UserOption::toggleLocalShared( bool state )
 
 	printf("state = %d\n", state );
 	printf("b_localShared = %d\n", b_localShared );
+	QString cmd;
+
 	if( b_localShared )//Open LocalShare
 	{
+		if( access("../sbin/dlna_tools", F_OK ) >= 0 )
+		{
+			cmd = "cd ../sbin/; bash dlna_tools -s start" ;
+		}
+		else if( access( "./minidlna-1.1.4/dlna_tools", F_OK ) >= 0 )
+		{
+			cmd = " cd ./minidlna-1.1.4/; bash dlna_tools -s start";
+		}
+		else
+		{
+			qDebug() << " dlna_tools not found!";
+			return ;
+		}
+		qDebug() << cmd;
+		system( cmd.toStdString().c_str() );
 	}
 	else//close LocalShare
 	{
+		if( access("../sbin/dlna_tools", F_OK ) >= 0 )
+		{
+			cmd = "cd ../sbin/;bash dlna_tools -s stop" ;
+		}
+		else if( access( "./minidlna-1.1.4/dlna_tools", F_OK ) >= 0 )
+		{
+			cmd = " cd ./minidlna-1.1.4/;bash dlna_tools -s stop";
+		}
+		else
+		{
+			qDebug() << " dlna_tools not found!";
+			return ;
+		}
+		qDebug() << cmd;
+		system( cmd.toStdString().c_str() );
+		//system( "kill -9 `ps -ef | grep minidlna | grep -v grep | awk '{print $2}'`" );
 	}
 }
 

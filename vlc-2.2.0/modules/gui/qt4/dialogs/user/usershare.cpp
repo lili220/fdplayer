@@ -121,9 +121,21 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	leftSplitter->setMinimumWidth( 100 );
 	leftSplitter->setMaximumWidth( 120 );
 
-	setConfigPath( "~/minidlna.conf" );
+	/*set the localshare(minidlna) config file path */
+	//setConfigPath( "~/minidlna.conf" );
+	if( access("../sbin/minidlna.conf", F_OK ) >= 0 )
+		setConfigPath( "../sbin/minidlna.conf" );
+	else if( access("./minidlna-1.1.4/minidlna.conf", F_OK ) >= 0 )
+		setConfigPath( "./minidlna-1.1.4/minidlna.conf" );
+	else
+		qDebug() << " minidlna.conf not found!";
+
 	qDebug() << getConfigPath();
+
+	/* set the Localshare and netshare path according to localshare config file */
 	setSharePath( getConfigPath() );
+	qDebug() << getSharePath();
+
 	/* Main Windows */
 	localShareTree = initLocalShareTreeView();
 	serverShareTree = initServerShareTreeView();
