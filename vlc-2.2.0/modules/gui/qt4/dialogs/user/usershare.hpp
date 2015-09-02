@@ -51,6 +51,15 @@ class QFileInfo;
 class UserOption;
 class QListWidgetItem;
 
+class UploadArgs
+{
+	public:
+		UploadArgs( int uid, QString& _file, QString& _filepath );
+	int uid;
+	QString file;
+	QString filePath;
+};
+
 class UserShareSelector : public QVLCFrame
 {
     Q_OBJECT
@@ -114,6 +123,7 @@ signals:
 private:
 		virtual ~UserShareDialog();
 
+		pthread_t threadUpload;
 		//UserOption *user;
 		QLabel *title;
 		QSplitter *leftSplitter;

@@ -155,21 +155,6 @@ MainInterface::MainInterface( intf_thread_t *_p_intf ) : QVLCMW( _p_intf )
     /* */
     b_plDocked = getSettings()->value( "MainWindow/pl-dock-status", true ).toBool();
 
-	//userOption = new UserOption( p_intf );//add by lili
-	//printf( "MainInterface:userOption = %p\n", userOption );
-	/*add by lili*/
-	//pythonInterfaceInit();
-#if 0
-	Py_Initialize();
-	if( !Py_IsInitialized() )
-	{
-		printf( "python initialize failed!\n" );
-		exit(-1);
-	}
-	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('.')" );
-	PyRun_SimpleString( "import datetime" );
-#endif
     /**************************
      *  UI and Widgets design
      **************************/

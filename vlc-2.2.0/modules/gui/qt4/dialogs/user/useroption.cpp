@@ -150,6 +150,7 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 
 UserOption::~UserOption()
 {
+	printf("-----------------------%s---------------------------\n", __func__ );
 }
 
 bool UserOption::init()
@@ -431,6 +432,12 @@ void UserOption::toggleLocalShared( bool state )
 
 	printf("state = %d\n", state );
 	printf("b_localShared = %d\n", b_localShared );
+	if( b_localShared )//Open LocalShare
+	{
+	}
+	else//close LocalShare
+	{
+	}
 }
 
 void UserOption::toggleNetShared( bool state )

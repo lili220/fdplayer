@@ -69,9 +69,16 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 #include <assert.h>
+
+UploadArgs::UploadArgs( int _uid, QString& _file, QString& _filepath )
+	: uid( _uid ), file( _file ) , filePath( _filepath )
+{
+
+}
 
 UserShareSelector::UserShareSelector( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 {
@@ -564,6 +571,18 @@ void UserShareDialog::delShareFile( )
 	emit localShareFileChanged();
 }
 
+static void *uploadThread( void *arg )
+{
+	qDebug() << __func__;
+	UploadArgs *upInfo = (UploadArgs *) arg;
+	qDebug() << " userid = " << upInfo->uid;
+	qDebug() << "file = " << upInfo->file;
+	qDebug() << "filePath = " << upInfo->filePath;
+	UserOption *user = UserOption::getInstance();
+	int ret = user->nfschina_upLoad( upInfo->uid, upInfo->file, upInfo->filePath );
+	return (void*) ret;
+}
+
 void UserShareDialog::upLoadShareFile()
 {
 	/*do nothing if currentWidget is not localshare Window */
@@ -582,8 +601,20 @@ void UserShareDialog::upLoadShareFile()
 	UserOption *user = UserOption::getInstance( p_intf );
 	if( user->isLoaded() )
 	{
+		UploadArgs *args = new UploadArgs( user->getLUid(), file, filepath );
+		if( pthread_create( &threadUpload, NULL, uploadThread, (void*)args ) != 0 )
+			qDebug() << "pthread_create err!";
+		qDebug() << "mainthread id = " << pthread_self();
+		void *result;
+		pthread_join( threadUpload, &result );
+		qDebug() << "upload result = " << *(int*)result;
+
+		if( *(int*)result  >= 0 ) //upload success
+			emit serverShareFileChanged();
+#if 0
 		int ret = user->nfschina_upLoad( user->getLUid(), file, filepath );
 		emit serverShareFileChanged();
+#endif
 	}
 }
 
