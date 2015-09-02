@@ -91,8 +91,8 @@ EXTRA_PROGRAMS = vlc-wrapper$(EXEEXT)
 @HAVE_WIN32_FALSE@vlc_DEPENDENCIES = ../lib/libvlc.la \
 @HAVE_WIN32_FALSE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
 @HAVE_WIN32_FALSE@	$(am__DEPENDENCIES_3)
-@HAVE_WIN32_FALSE@am__append_6 = $(LIBDL)
-@HAVE_WIN32_FALSE@am__append_7 = -no-install -static
+@HAVE_WIN32_FALSE@am__append_6 = $(LIBDL) -lpython2.7 -ldl -lutil
+@HAVE_WIN32_FALSE@am__append_7 = -no-install -static -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 @HAVE_WIN32_TRUE@am__append_8 = vlc_win32_rc.$(OBJEXT)
 @HAVE_WIN32_FALSE@vlc_cache_gen_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 @HAVE_WIN32_FALSE@	../compat/libcompat.la ../lib/libvlc.la \
