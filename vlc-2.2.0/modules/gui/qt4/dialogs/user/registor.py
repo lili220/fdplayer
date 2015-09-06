@@ -47,7 +47,10 @@ def nfschina_delete(userid, filename):
 def nfschina_download(userid, filename):
 	global nfschina
 	err = nfschina.service.nfschina_download(userid, filename)
-	return err
+        if len(err) == 0:
+            return []
+        else:
+            return err[0]
 
 def nfschina_logout(userid):
         global nfschina

@@ -122,7 +122,6 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	leftSplitter->setMaximumWidth( 120 );
 
 	/*set the localshare(minidlna) config file path */
-	//setConfigPath( "~/minidlna.conf" );
 	if( access("../sbin/minidlna.conf", F_OK ) >= 0 )
 		setConfigPath( "../sbin/minidlna.conf" );
 	else if( access("./minidlna-1.1.4/minidlna.conf", F_OK ) >= 0 )
@@ -134,6 +133,7 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 
 	/* set the Localshare and netshare path according to localshare config file */
 	setSharePath( getConfigPath() );
+
 	qDebug() << getSharePath();
 
 	/* Main Windows */
@@ -273,10 +273,10 @@ QString UserShareDialog::getSharePath()
 	strcat( cmd, configFile.toStdString().c_str() );
 	strcat( cmd, "  | awk -F, '{print $2}'" );
 	//cmd << "sed -n --silent '/^media_dir=/p' " << configFile << " | awk -F, '{print $2}'";
-	qDebug() << "cmd:" << cmd;
+	//qDebug() << "cmd:" << cmd;
 	QString path;
 	QString cmdbuf = cmd;
-	qDebug() << "cmdbuf:" << cmdbuf;
+	//qDebug() << "cmdbuf:" << cmdbuf;
 	FILE * pathFile= popen( cmdbuf.toStdString().c_str(), "r" );
 	if( !pathFile )
 		return NULL;
@@ -417,8 +417,8 @@ void UserShareDialog::contextMenuEvent(QContextMenuEvent* e)
 	menu->addAction( stopaction );
 #endif
 
-	connect( addaction, SIGNAL(triggered(bool)), this, SLOT(addShareFile()) );
-	connect( delaction, SIGNAL(triggered(bool)), this, SLOT(delShareFile()) );
+	connect( addaction, SIGNAL(triggered(bool)), this, SLOT(addLocalShareFile()) );
+	connect( delaction, SIGNAL(triggered(bool)), this, SLOT(delLocalShareFile()) );
 	connect( uploadaction, SIGNAL(triggered(bool)), this, SLOT(upLoadShareFile()) );
 	connect( downloadaction, SIGNAL(triggered(bool)), this, SLOT(downLoadShareFile()) );
 	connect( remotedelaction, SIGNAL(triggered(bool)), this, SLOT(deleteRemoteShareFile()) );
@@ -441,6 +441,11 @@ void UserShareDialog::playShareFile( const QModelIndex& index )
 
 void UserShareDialog::playShareFile()
 {
+#if 0
+	Open::openMRL( p_intf, "http://192.168.7.88/html/video/baofengyu.mp4", true, true);
+	return;
+#endif
+	/*if any media is playing , stop it */
 	isPlaying = !isPlaying;
 	qDebug() << "isPlaying = " << isPlaying;
 	if( !isPlaying )
@@ -450,6 +455,7 @@ void UserShareDialog::playShareFile()
 		return ;
 	}
 
+	/*if no media is playing, play the selected media file */
 	bool first = true;
 	bool pl = true;
 
@@ -461,11 +467,12 @@ void UserShareDialog::playShareFile()
 		if( !index.isValid() )
 			return ;
 
-		//QStandardItem* currentItem = localShareModel->itemFromIndex( index );
 		QAbstractItemModel *m = (QAbstractItemModel*)index.model();
 		QString file = m->index(index.row(), 4 ).data().toString();
 		QString url = toURI( toNativeSeparators( file ) );
 		qDebug() << "url:" << url ;
+
+		//RecentsMRL::getInstance()->addRecent( url );
 		int ret = Open::openMRL( p_intf, url, first, pl);
 		qDebug() << "open result: " << ret;
 		first = false;
@@ -483,7 +490,6 @@ void UserShareDialog::playShareFile()
 		
 		QString url = user->nfschina_download( user->getLUid(), file );
 
-		//QString url = toURI( toNativeSeparators( file ) );
 		qDebug() << "playing file:" << file ;
 		qDebug() << "url:" << url ;
 		Open::openMRL( p_intf, url, first, pl);
@@ -525,28 +531,35 @@ void UserShareDialog::removeFile( QString file )
 	QFile::remove( file );
 }
 
-void UserShareDialog::addShareFile()
+void UserShareDialog::addLocalShareFile()
 {
-	QStringList files = QFileDialog::getOpenFileNames( this, qtr( "Select one or multiple files" ), "/home/lili") ;
+	if(localShareTree != mainWidget->currentWidget() )
+		return ;
+
+	//QStringList files = QFileDialog::getOpenFileNames( this, qtr( "Select one or multiple files" ), "/home/lili") ;
+	QStringList files = QFileDialog::getOpenFileNames( this, qtr( "Select one or multiple files" ), "~") ;
 	foreach( const QString &file, files )
 	{
-		//qDebug() << QFileInfo( file ).path();
-		//qDebug() << QFileInfo( file ).fileName();
-		//QString dest = "/home/lili/share/" + file.rightRef(file.count() - file.lastIndexOf('/') - 1 ).toString();
-		QString dest = "/home/lili/share/" + QFileInfo( file ).fileName();
+		QString dest;
+		if( getSharePath().endsWith('/') )
+			dest = getSharePath() + QFileInfo( file ).fileName();
+		else
+			dest = getSharePath().append('/') + QFileInfo( file ).fileName();
+		qDebug() << "add file path:" << dest;
 		QFile::link(file, dest );
 	}
 
 	emit localShareFileChanged();
 }
 
-void UserShareDialog::delShareFile( )
+void UserShareDialog::delLocalShareFile( )
 {
+	if( localShareTree != mainWidget->currentWidget() )
+		return ;
+
 	QModelIndex index = localShareTree->currentIndex();
 	if( !index.isValid() )
 		return ;
-
-	//QStandardItem* currentItem = localShareModel->itemFromIndex( index );
 
 	QAbstractItemModel *m = (QAbstractItemModel*)index.model();
 	QString file = m->index(index.row(), 4 ).data().toString();
@@ -605,10 +618,19 @@ void UserShareDialog::upLoadShareFile()
 
 void UserShareDialog::downLoadShareFile()
 {
+	/* if current widget is not serverShare window , return directly*/
+	if(serverShareTree !=  mainWidget->currentWidget() )
+		return ;
+
+	//TODO
 }
 
 void UserShareDialog::deleteRemoteShareFile()
 {
+	/* if current widget is not serverShare window , return directly*/
+	if( serverShareTree != mainWidget->currentWidget() )
+		return ;
+
 	QModelIndex index = serverShareTree->currentIndex();
 	if( !index.isValid() )
 		return ;

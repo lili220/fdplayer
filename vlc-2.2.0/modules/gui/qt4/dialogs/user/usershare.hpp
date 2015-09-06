@@ -103,8 +103,8 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 		void updateServerShareDialog();
 		//void showUserDialog();
 
-		void addShareFile();
-		void delShareFile();
+		void addLocalShareFile();
+		void delLocalShareFile();
 		void upLoadShareFile();
 		void downLoadShareFile();
 		void deleteRemoteShareFile();

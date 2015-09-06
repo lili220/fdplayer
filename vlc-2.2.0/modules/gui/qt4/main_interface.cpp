@@ -617,7 +617,6 @@ void MainInterface::debug()
 #endif
 }
 
-#include <QDebug>
 inline void MainInterface::showVideo() { showTab( videoWidget ); setRaise(); }
 inline void MainInterface::restoreStackOldWidget()
             { showTab( stackCentralOldWidget ); }
@@ -916,7 +915,6 @@ void MainInterface::createPlaylist()
     CONNECT( dialog, visibilityChanged(bool), this, setPlaylistVisibility(bool) );
 }
 
-#include <QDebug>
 void MainInterface::togglePlaylist()
 {
     if( !playlistWidget ) createPlaylist();

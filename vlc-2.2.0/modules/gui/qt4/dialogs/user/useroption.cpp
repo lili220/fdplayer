@@ -413,8 +413,12 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
 
 	pRetValue = PyObject_CallObject( filedownload, pArgs );
-	printf( "get url:%s\n", PyString_AsString( pRetValue ) );
-	return PyString_AsString( pRetValue );
+	int s = PyList_Size( pRetValue );
+	printf( "s = %d\n", s );
+	//int i;
+	//for( i = 0; i < s; i++ )
+	//printf( "get url:%s\n", PyString_AsString( pRetValue ) );
+	return PyString_AsString( PyList_GetItem( pRetValue, 0) );
 #if 0
 	int err = _PyInt_AsInt( pRetValue );
 	printf( "filedownload retvalue:%d\n", err );
