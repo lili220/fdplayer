@@ -137,6 +137,7 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	qDebug() << getSharePath();
 
 	/* Main Windows */
+	isPlaying = false;
 	localShareTree = initLocalShareTreeView();
 	serverShareTree = initServerShareTreeView();
 
@@ -153,7 +154,7 @@ UserShareDialog::UserShareDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf 
 	setLayout( mainLayout );
 
 	connect( selector->getListWidget(), SIGNAL(currentRowChanged(int)), mainWidget, SLOT(setCurrentIndex(int)) );
-	connect( this, SIGNAL( localShareFileChanged() ), this, SLOT(updateUserShareDialog()) );
+	connect( this, SIGNAL( localShareFileChanged() ), this, SLOT(updateLocalShareDialog()) );
 	connect( this, SIGNAL( serverShareFileChanged() ), this, SLOT(updateServerShareDialog()) );
 	connect( localShareTree, SIGNAL(doubleClicked( const QModelIndex )), this, SLOT( playShareFile(const QModelIndex& ) ) );
 }
@@ -338,14 +339,8 @@ QStandardItem* UserShareDialog::addRow( QStandardItemModel* model, const QString
 	return item;
 }
 
-void UserShareDialog::updateUserShareDialog()
+void UserShareDialog::updateLocalShareDialog()
 {
-	if( title )
-	{
-		//title->setText( "欢迎" + UserDialog::getInstance()->getLUsername() );
-		//qDebug() << UserDialog::getInstance()->getLUsername();
-	}
-	
 	if( localShareTree )
 	{
 		mainWidget->removeWidget( localShareTree );
@@ -354,15 +349,6 @@ void UserShareDialog::updateUserShareDialog()
 		mainWidget->insertWidget( 0, localShareTree );
 		mainWidget->setCurrentWidget( localShareTree );
 	}
-
-#if 0
-	if( localShareTree )
-	{
-		QDirModel *model = new QDirModel;
-		localShareTree->setModel( model );
-		localShareTree->setRootIndex( model->index( "/home/lili/share" ) );
-	}
-#endif
 }
 
 void UserShareDialog::updateServerShareDialog()
@@ -378,50 +364,58 @@ void UserShareDialog::updateServerShareDialog()
 	}
 }
 
-#if 0
-void UserShareDialog::showUserDialog()
-{
-	toggleVisible();
-	//UserDialog::getInstance()->setLogin( false );
-	//UserDialog::getInstance()->toggleVisible();
-}
-#endif
-
 void UserShareDialog::contextMenuEvent(QContextMenuEvent* e)
 {
-	//printf("------------------------------func:%s---------------------------------------------------\n", __func__);
 	//TODO 应该在类中增加menu成员，生成menu时先检查是否已生成，如果生成先销毁，再重新生成
 	QMenu *menu = new QMenu();
 	QAction *addaction = new QAction( qtr("增加本地共享文件"), menu );
-	addaction->setCheckable( false );//todo  need to delete
 	menu->addAction( addaction );
+	if( serverShareTree == mainWidget->currentWidget() )
+		addaction->setEnabled( false );
 
 	QAction *delaction = new QAction( qtr("删除本地共享文件"), menu );
 	menu->addAction( delaction );
-
-	menu->addSeparator();
+	if( serverShareTree == mainWidget->currentWidget() )
+		delaction->setEnabled( false );
 
 	QAction *uploadaction = new QAction( qtr("上传为网络共享文件"), menu );
 	menu->addAction( uploadaction );
+	if( serverShareTree == mainWidget->currentWidget() )
+		uploadaction->setEnabled( false );
+
+	menu->addSeparator();
 
 	QAction *downloadaction = new QAction( qtr("下载共享文件到本地"), menu );
 	menu->addAction( downloadaction );
+	if( localShareTree == mainWidget->currentWidget() )
+		downloadaction->setEnabled( false );
 
 	QAction *remotedelaction = new QAction( qtr("删除网络共享文件"), menu );
 	menu->addAction( remotedelaction );
+	if( localShareTree == mainWidget->currentWidget() )
+		remotedelaction->setEnabled( false );
 
 	menu->addSeparator();
 
 	QAction *playaction = new QAction( qtr("播放"), menu );
 	menu->addAction( playaction );
+	if( isPlaying )
+		playaction->setText( qtr("停止") );
+	else
+		playaction->setText( qtr("播放") );
 
 	QAction *pauseaction = new QAction( qtr("暂停"), menu );
 	menu->addAction( pauseaction );
 	if( isPause )
 		pauseaction->setText( qtr("继续") );
-
+	else
+		pauseaction->setText( qtr("暂停") );
+	if( !isPlaying )// if no media is playing this action is unselecteable
+		pauseaction->setEnabled( false );
+#if 0
 	QAction *stopaction = new QAction( qtr("停止"), menu );
 	menu->addAction( stopaction );
+#endif
 
 	connect( addaction, SIGNAL(triggered(bool)), this, SLOT(addShareFile()) );
 	connect( delaction, SIGNAL(triggered(bool)), this, SLOT(delShareFile()) );
@@ -431,7 +425,7 @@ void UserShareDialog::contextMenuEvent(QContextMenuEvent* e)
 
 	connect( playaction, SIGNAL(triggered(bool)), this, SLOT(playShareFile()) );
 	connect( pauseaction, SIGNAL(triggered(bool)), this, SLOT(pausePlaying()) );
-	connect( stopaction, SIGNAL(triggered(bool)), this, SLOT(stopPlaying()) );
+	//connect( stopaction, SIGNAL(triggered(bool)), this, SLOT(stopPlaying()) );
 
 	menu->exec( e->globalPos() );
 }
@@ -447,12 +441,15 @@ void UserShareDialog::playShareFile( const QModelIndex& index )
 
 void UserShareDialog::playShareFile()
 {
-#if 0
-	QString file = "http://192.168.7.88:8200/MediaItems/27.flv";
-	Open::openMRL( UserShareDialog::getInstance()->p_intf, file, true, true);
-#endif
+	isPlaying = !isPlaying;
+	qDebug() << "isPlaying = " << isPlaying;
+	if( !isPlaying )
+	{
+		qDebug() << " stopPlaying...";
+		playlist_Stop( THEPL );
+		return ;
+	}
 
-#if 1
 	bool first = true;
 	bool pl = true;
 
@@ -465,12 +462,12 @@ void UserShareDialog::playShareFile()
 			return ;
 
 		//QStandardItem* currentItem = localShareModel->itemFromIndex( index );
-
 		QAbstractItemModel *m = (QAbstractItemModel*)index.model();
 		QString file = m->index(index.row(), 4 ).data().toString();
 		QString url = toURI( toNativeSeparators( file ) );
 		qDebug() << "url:" << url ;
-		Open::openMRL( p_intf, url, first, pl);
+		int ret = Open::openMRL( p_intf, url, first, pl);
+		qDebug() << "open result: " << ret;
 		first = false;
 	}
 	else if( serverShareTree == mainWidget->currentWidget() )
@@ -492,18 +489,8 @@ void UserShareDialog::playShareFile()
 		Open::openMRL( p_intf, url, first, pl);
 		first = false;
 	}
-#endif
-#if 0
-	bool first = true;
-	bool pl = true;
 
-	toggleVisible();
-	QString file = getFilePath( "/home/lili/share/" );
-	QString url = toURI( toNativeSeparators( file ) );
-	qDebug() << url;
-	Open::openMRL( UserShareDialog::getInstance()->p_intf, url, first, pl);
-	first = false;
-#endif
+	isPause = false;
 }
 
 void UserShareDialog::pausePlaying()
@@ -511,15 +498,17 @@ void UserShareDialog::pausePlaying()
 	qDebug() << "pausePlaying....";
 	//RecentsMRL::getInstance()->addRecent("file:///home/lili/share/baofengyu.mp4");
 	isPause = !isPause;
+	qDebug() << "isPause = " << isPause;
 	playlist_Pause( THEPL );
 
 }
-
+#if 0
 void UserShareDialog::stopPlaying()
 {
 	qDebug() << " stopPlaying...";
 	playlist_Stop( THEPL );
 }
+#endif
 
 QString UserShareDialog::getFilePath( QString basedir )
 {
@@ -563,22 +552,6 @@ void UserShareDialog::delShareFile( )
 	QString file = m->index(index.row(), 4 ).data().toString();
 	qDebug() << "deling file:" << file;
 	removeFile( file );
-
-#if 0
-	QDirModel *model = new QDirModel;
-	if( model->fileInfo( index ).isDir() )
-	{
-		//TODO
-		//model->rmdir( index );
-	}
-	else
-	{
-
-		QString selectedFile = getFilePath( "/home/lili/share/" );
-		removeFile( selectedFile );
-	}
-#endif
-
 
 	emit localShareFileChanged();
 }

@@ -99,7 +99,7 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 
 		virtual void close() { toggleVisible(); }
 
-		void updateUserShareDialog();
+		void updateLocalShareDialog();
 		void updateServerShareDialog();
 		//void showUserDialog();
 
@@ -114,7 +114,7 @@ class UserShareDialog : public QVLCFrame, public Singleton<UserShareDialog>
 	void playShareFile(const QModelIndex& );
 	void playShareFile();
 	void pausePlaying();
-	void stopPlaying();
+	//void stopPlaying();
 
 signals:
 	void localShareFileChanged();
@@ -125,7 +125,7 @@ private:
 
 		pthread_t threadUpload;
 		//UserOption *user;
-		QLabel *title;
+		//QLabel *title;
 		QSplitter *leftSplitter;
 		QSplitter *split;
 		UserShareSelector *selector;
@@ -140,6 +140,7 @@ private:
 		QStandardItemModel *serverShareModel;
 
 		bool isPause;
+		bool isPlaying;
 		/*file share path*/
 		QString configPath;//path for minidlna.conf
 		QString sharePath;//midia_dir's value in minidlna.conf file
