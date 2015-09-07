@@ -595,6 +595,41 @@ static void *downloadThread( void *arg )
 	qDebug() << " download file :" << downInfo->file;
 	qDebug() << " download blocksize:" << downInfo->block;
 
+	PyObject *pName = PyString_FromString( "download" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find download.py\n" );
+		return (void*)false;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from download.py\n" );
+		return (void*)false;
+	}
+
+	PyObject *pFunc = PyDict_GetItemString( pDict, "paxel" );
+	if( !pFunc || !PyCallable_Check( pFunc ) )
+	{
+		printf( "can't find function [paxel]" );
+		return (void*)false;
+	}
+
+	PyObject *pArgs = PyTuple_New( 3 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", downInfo->url.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", downInfo->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", downInfo->block ) );
+
+	PyObject_CallObject( pFunc, pArgs );
+
+	Py_DECREF( pName );
+	Py_DECREF( pArgs );
+	Py_DECREF( pModule );
+
+	Py_Finalize();
+
 	return (void*)true;
 }
 
@@ -666,12 +701,7 @@ void UserShareDialog::downLoadShareFile()
 
 		if( *(int*)result  >= 0 ) //upload success
 			emit serverShareFileChanged();
-#if 0
-		int ret = user->nfschina_upLoad( user->getLUid(), file, filepath );
-		emit serverShareFileChanged();
-#endif
 	}
-
 }
 
 void UserShareDialog::deleteRemoteShareFile()
