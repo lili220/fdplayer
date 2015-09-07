@@ -63,60 +63,6 @@
 
 #include <assert.h>
 
-#if 0
-ThreadKeepAlive::ThreadKeepAlive( intf_thread_t _p_intf, QString ip, int port, int uid, bool share )
-	:p_intf( _p_intf ), userid( uid ), b_share( share ), localIp( ip ), localPort( port )
-{
-	stopped = false;
-	Py_Initialize();
-	if( !Py_IsInitialized() )
-	{
-		printf( "Python initialize failed! \n" );
-		return ;
-	}
-
-	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
-	PyRun_SimpleString( "sys.path.append('.')" );
-
-	pModule = PyImport_ImportModule( "registor" );
-	if( pModule  == NULL )
-	{
-		printf( "Can't Import registor! \n" );
-		return ;
-	}
-
-	keepalive = PyObject_GetAttrString(pModule, "SocketClient");
-	if(keepalive == NULL)
-	{
-		printf( "keepalive is NULL\n" );
-		return ;
-	}
-}
-
-void ThreadKeepAlive::run()
-{
-	UserOption *user = UserOption::getInstance( p_intf );
-
-	printf( "----------------------%s-----------------------\n", __func__ );
-	//printf( "userid = %d, is_share = %d, serverUrl = %s\n", userid, is_share, ServerUrl.toStdString().c_str() );
-	pArgs = PyTuple_New( 5 );
-	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", localIp.toStdString().c_str() ) );
-	//PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", localPort.toStdString().c_str() ) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", localPort ) );
-	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", userid ) );
-	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "i", is_share ) );
-	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", user->getServerUrl().toStdString().c_str() ) );
-
-	pRetValue = PyObject_CallObject( keepalive, pArgs );
-}
-
-void ThreadKeepAlive::stop()
-{
-	stopped = true;
-}
-#endif
-
 UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 {
 	/*Initialize PyObjects */

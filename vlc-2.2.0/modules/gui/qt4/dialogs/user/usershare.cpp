@@ -80,6 +80,12 @@ UploadArgs::UploadArgs( int _uid, QString& _file, QString& _filepath )
 
 }
 
+DownloadArgs::DownloadArgs( QString& _url, QString& _file, int _block )
+	: url( _url ), file( _file ), block( _block )
+{
+
+}
+
 UserShareSelector::UserShareSelector( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 {
 	setContentsMargins( 0, 3, 0, 3 );
@@ -581,6 +587,17 @@ static void *uploadThread( void *arg )
 	return (void*) ret;
 }
 
+static void *downloadThread( void *arg )
+{
+	qDebug() << __func__;
+	DownloadArgs *downInfo = (DownloadArgs *) arg;
+	qDebug() << "download url : " << downInfo->url;
+	qDebug() << " download file :" << downInfo->file;
+	qDebug() << " download blocksize:" << downInfo->block;
+
+	return (void*)true;
+}
+
 void UserShareDialog::upLoadShareFile()
 {
 	/*do nothing if currentWidget is not localshare Window */
@@ -622,7 +639,39 @@ void UserShareDialog::downLoadShareFile()
 	if(serverShareTree !=  mainWidget->currentWidget() )
 		return ;
 
-	//TODO
+	QModelIndex index = serverShareTree->currentIndex();
+	if( !index.isValid() )
+		return ;
+
+	QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+	QString file = m->index(index.row(), 0 ).data().toString();
+	UserOption *user = UserOption::getInstance( p_intf );
+	QString url = user->nfschina_download( user->getLUid(), file );
+
+	//QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+	//QString file = m->index(index.row(), 0 ).data().toString();
+	//QString filepath = m->index(index.row(), 4 ).data().toString();
+	qDebug() << "upload file:" << file;
+	qDebug() << "upload url:" << url;
+	//UserOption *user = UserOption::getInstance( p_intf );
+	if( user->isLoaded() )
+	{
+		DownloadArgs *args = new DownloadArgs( url, file, 4 );
+		if( pthread_create( &threadDownload, NULL, downloadThread, (void*)args ) != 0 )
+			qDebug() << "pthread_create err!";
+		qDebug() << "mainthread id = " << pthread_self();
+		void *result;
+		pthread_join( threadDownload, &result );
+		qDebug() << "upload result = " << *(int*)result;
+
+		if( *(int*)result  >= 0 ) //upload success
+			emit serverShareFileChanged();
+#if 0
+		int ret = user->nfschina_upLoad( user->getLUid(), file, filepath );
+		emit serverShareFileChanged();
+#endif
+	}
+
 }
 
 void UserShareDialog::deleteRemoteShareFile()
