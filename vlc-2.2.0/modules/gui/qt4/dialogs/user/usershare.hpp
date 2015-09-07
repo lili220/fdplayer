@@ -60,6 +60,15 @@ class UploadArgs
 	QString filePath;
 };
 
+class DownloadArgs
+{
+	public:
+		DownloadArgs( QString& _url, QString& _file,  int block = 8 );
+		QString url;
+		QString file;
+		int block;
+};
+
 class UserShareSelector : public QVLCFrame
 {
     Q_OBJECT
@@ -124,6 +133,7 @@ private:
 		virtual ~UserShareDialog();
 
 		pthread_t threadUpload;
+		pthread_t threadDownload;
 		//UserOption *user;
 		//QLabel *title;
 		QSplitter *leftSplitter;

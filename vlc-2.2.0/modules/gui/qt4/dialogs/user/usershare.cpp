@@ -80,6 +80,12 @@ UploadArgs::UploadArgs( int _uid, QString& _file, QString& _filepath )
 
 }
 
+DownloadArgs::DownloadArgs( QString& _url, QString& _file, int _block )
+	: url( _url ), file( _file ), block( _block )
+{
+
+}
+
 UserShareSelector::UserShareSelector( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 {
 	setContentsMargins( 0, 3, 0, 3 );
@@ -581,6 +587,52 @@ static void *uploadThread( void *arg )
 	return (void*) ret;
 }
 
+static void *downloadThread( void *arg )
+{
+	qDebug() << __func__;
+	DownloadArgs *downInfo = (DownloadArgs *) arg;
+	qDebug() << "download url : " << downInfo->url;
+	qDebug() << " download file :" << downInfo->file;
+	qDebug() << " download blocksize:" << downInfo->block;
+
+	PyObject *pName = PyString_FromString( "download" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find download.py\n" );
+		return (void*)false;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from download.py\n" );
+		return (void*)false;
+	}
+
+	PyObject *pFunc = PyDict_GetItemString( pDict, "paxel" );
+	if( !pFunc || !PyCallable_Check( pFunc ) )
+	{
+		printf( "can't find function [paxel]" );
+		return (void*)false;
+	}
+
+	PyObject *pArgs = PyTuple_New( 3 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", downInfo->url.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", downInfo->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", downInfo->block ) );
+
+	PyObject_CallObject( pFunc, pArgs );
+
+	Py_DECREF( pName );
+	Py_DECREF( pArgs );
+	Py_DECREF( pModule );
+
+	Py_Finalize();
+
+	return (void*)true;
+}
+
 void UserShareDialog::upLoadShareFile()
 {
 	/*do nothing if currentWidget is not localshare Window */
@@ -622,7 +674,34 @@ void UserShareDialog::downLoadShareFile()
 	if(serverShareTree !=  mainWidget->currentWidget() )
 		return ;
 
-	//TODO
+	QModelIndex index = serverShareTree->currentIndex();
+	if( !index.isValid() )
+		return ;
+
+	QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+	QString file = m->index(index.row(), 0 ).data().toString();
+	UserOption *user = UserOption::getInstance( p_intf );
+	QString url = user->nfschina_download( user->getLUid(), file );
+
+	//QAbstractItemModel *m = (QAbstractItemModel*)index.model();
+	//QString file = m->index(index.row(), 0 ).data().toString();
+	//QString filepath = m->index(index.row(), 4 ).data().toString();
+	qDebug() << "upload file:" << file;
+	qDebug() << "upload url:" << url;
+	//UserOption *user = UserOption::getInstance( p_intf );
+	if( user->isLoaded() )
+	{
+		DownloadArgs *args = new DownloadArgs( url, file, 4 );
+		if( pthread_create( &threadDownload, NULL, downloadThread, (void*)args ) != 0 )
+			qDebug() << "pthread_create err!";
+		qDebug() << "mainthread id = " << pthread_self();
+		void *result;
+		pthread_join( threadDownload, &result );
+		qDebug() << "upload result = " << *(int*)result;
+
+		if( *(int*)result  >= 0 ) //upload success
+			emit serverShareFileChanged();
+	}
 }
 
 void UserShareDialog::deleteRemoteShareFile()
