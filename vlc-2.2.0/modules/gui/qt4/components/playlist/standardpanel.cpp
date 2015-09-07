@@ -237,35 +237,59 @@ bool StandardPLPanel::popup( const QPoint &point )
     menu.addSeparator();
 
     /* Playlist sorting */
-    if ( model->isSupportedAction( VLCModelSubInterface::ACTION_SORT, index ) )
-    {
-        QMenu *sortingMenu = new QMenu( qtr( "Sort by" ) );
-        /* Choose what columns to show in sorting menu, not sure if this should be configurable*/
-        QList<int> sortingColumns;
-        sortingColumns << COLUMN_TITLE << COLUMN_ARTIST << COLUMN_ALBUM << COLUMN_TRACK_NUMBER << COLUMN_URI;
-        container.action = VLCModelSubInterface::ACTION_SORT;
-        foreach( int Column, sortingColumns )
-        {
-            action = sortingMenu->addAction( qfu( psz_column_title( Column ) ) + " " + qtr("Ascending") );
-            container.column = model->columnFromMeta(Column) + 1;
-            action->setData( QVariant::fromValue( container ) );
+    /*wangpei*/
+    // if ( model->isSupportedAction( VLCModelSubInterface::ACTION_SORT, index ) )
+    // {
+    //     QMenu *sortingMenu = new QMenu( qtr( "Sort by" ) );
+    //     /* Choose what columns to show in sorting menu, not sure if this should be configurable*/
+    //     QList<int> sortingColumns;
+    //     sortingColumns << COLUMN_TITLE << COLUMN_ARTIST << COLUMN_ALBUM << COLUMN_TRACK_NUMBER << COLUMN_URI;
+    //     container.action = VLCModelSubInterface::ACTION_SORT;
+    //     foreach( int Column, sortingColumns )
+    //     {
+    //         action = sortingMenu->addAction( qfu( psz_column_title( Column ) ) + " " + qtr("Ascending") );
+    //         container.column = model->columnFromMeta(Column) + 1;
+    //         action->setData( QVariant::fromValue( container ) );
 
-            action = sortingMenu->addAction( qfu( psz_column_title( Column ) ) + " " + qtr("Descending") );
-            container.column = -1 * (model->columnFromMeta(Column)+1);
-            action->setData( QVariant::fromValue( container ) );
-        }
-        menu.addMenu( sortingMenu );
-    }
+    //         action = sortingMenu->addAction( qfu( psz_column_title( Column ) ) + " " + qtr("Descending") );
+    //         container.column = -1 * (model->columnFromMeta(Column)+1);
+    //         action->setData( QVariant::fromValue( container ) );
+    //     }
+    //     menu.addMenu( sortingMenu );
+    // }
 
     /* Zoom */
-    QMenu *zoomMenu = new QMenu( qtr( "Display size" ) );
-    zoomMenu->addAction( qtr( "Increase" ), this, SLOT( increaseZoom() ) );
-    zoomMenu->addAction( qtr( "Decrease" ), this, SLOT( decreaseZoom() ) );
-    menu.addMenu( zoomMenu );
+    /*wangpei*/
+    // QMenu *zoomMenu = new QMenu( qtr( "Display size" ) );
+    // zoomMenu->addAction( qtr( "Increase" ), this, SLOT( increaseZoom() ) );
+    // zoomMenu->addAction( qtr( "Decrease" ), this, SLOT( decreaseZoom() ) );
+    // menu.addMenu( zoomMenu );
+
+    /*wangpei*/
+    if (p_selector->getCurrentItemCategory() == LOCALSHARE )
+    {
+        menu.addAction( qtr( "ADD LOCAL SHARE" ), this, SLOT( increaseZoom() ) );
+        menu.addAction( qtr( "DELETE LOCAL SHARE" ), this, SLOT( increaseZoom() ) );
+    }
+    if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
+    {
+        menu.addAction( qtr( "ADD CLOUD SHARE" ), this, SLOT( increaseZoom() ) );
+        menu.addAction( qtr( "DELETE ClOUD SHARE" ), this, SLOT( increaseZoom() ) );
+    }
+    if (p_selector->getCurrentItemCategory() == LANSHARE )
+    {
+        menu.addAction( qtr( "ADD LAN SHARE" ), this, SLOT( increaseZoom() ) );
+        menu.addAction( qtr( "DELETE LAN SHARE" ), this, SLOT( increaseZoom() ) );
+    }
+    if (p_selector->getCurrentItemCategory() == REMOTESHARE )
+    {
+        menu.addAction( qtr( "ADD REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
+        menu.addAction( qtr( "DELETE REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
+    }
 
     CONNECT( &menu, triggered( QAction * ), this, popupAction( QAction * ) );
 
-    menu.addMenu( StandardPLPanel::viewSelectionMenu( this ) );
+    // menu.addMenu( StandardPLPanel::viewSelectionMenu( this ) );      /*wangpei*/
 
     /* Display and forward the result */
     if( !menu.isEmpty() )

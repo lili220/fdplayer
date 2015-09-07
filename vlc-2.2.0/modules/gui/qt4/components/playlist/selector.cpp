@@ -43,6 +43,7 @@
 #include <QScrollBar>
 #include <QResource>
 #include <assert.h>
+#include <QDebug>
 
 #include <vlc_playlist.h>
 #include <vlc_services_discovery.h>
@@ -245,12 +246,15 @@ void PLSelector::createItems()
     QTreeWidgetItem *devices = addItem( CATEGORY_TYPE, N_("Devices"), false, true )->treeItem();
     QTreeWidgetItem *lan = addItem( CATEGORY_TYPE, N_("Local Network"), false, true )->treeItem();
     QTreeWidgetItem *internet = addItem( CATEGORY_TYPE, N_("Internet"), false, true )->treeItem();
+    /*wangpei*/
+    QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("Media Share"), false, true )->treeItem();
 
 #define NOT_SELECTABLE(w) w->setFlags( w->flags() ^ Qt::ItemIsSelectable );
     NOT_SELECTABLE( mycomp );
     NOT_SELECTABLE( devices );
     NOT_SELECTABLE( lan );
     NOT_SELECTABLE( internet );
+    NOT_SELECTABLE( share );    /* wangpei */
 #undef NOT_SELECTABLE
 
     /* SD subnodes */
@@ -265,35 +269,36 @@ void PLSelector::createItems()
     for( ; *ppsz_name; ppsz_name++, ppsz_longname++, p_category++ )
     {
         //msg_Dbg( p_intf, "Adding a SD item: %s", *ppsz_longname );
-
+        // qDebug()<<*ppsz_longname<<endl;
         PLSelItem *selItem;
         QIcon icon;
         QString name( *ppsz_name );
         switch( *p_category )
         {
         case SD_CAT_INTERNET:
-            {
-            selItem = addItem( SD_TYPE, *ppsz_longname, false, false, internet );
-            if( name.startsWith( "podcast" ) )
-            {
-                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_PODCAST ) );
-                selItem->addAction( ADD_ACTION, qtr( "Subscribe to a podcast" ) );
-                CONNECT( selItem, action( PLSelItem* ), this, podcastAdd( PLSelItem* ) );
-                podcastsParent = selItem->treeItem();
-                icon = QIcon( ":/sidebar/podcast" );
-            }
-            else if ( name.startsWith( "lua{" ) )
-            {
-                int i_head = name.indexOf( "sd='" ) + 4;
-                int i_tail = name.indexOf( '\'', i_head );
-                QString iconname = QString( ":/sidebar/sd/%1" ).arg( name.mid( i_head, i_tail - i_head ) );
-                QResource resource( iconname );
-                if ( !resource.isValid() )
-                    icon = QIcon( ":/sidebar/network" );
-                else
-                    icon = QIcon( iconname );
-            }
-            }
+            /*wangpei*/
+            // {
+            // selItem = addItem( SD_TYPE, *ppsz_longname, false, false, internet );
+            // if( name.startsWith( "podcast" ) )
+            // {
+            //     selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_PODCAST ) );
+            //     selItem->addAction( ADD_ACTION, qtr( "Subscribe to a podcast" ) );
+            //     CONNECT( selItem, action( PLSelItem* ), this, podcastAdd( PLSelItem* ) );
+            //     podcastsParent = selItem->treeItem();
+            //     icon = QIcon( ":/sidebar/podcast" );
+            // }
+            // else if ( name.startsWith( "lua{" ) )
+            // {
+            //     int i_head = name.indexOf( "sd='" ) + 4;
+            //     int i_tail = name.indexOf( '\'', i_head );
+            //     QString iconname = QString( ":/sidebar/sd/%1" ).arg( name.mid( i_head, i_tail - i_head ) );
+            //     QResource resource( iconname );
+            //     if ( !resource.isValid() )
+            //         icon = QIcon( ":/sidebar/network" );
+            //     else
+            //         icon = QIcon( iconname );
+            // }
+            // }
             break;
         case SD_CAT_DEVICES:
             name = name.mid( 0, name.indexOf( '{' ) );
@@ -308,20 +313,40 @@ void PLSelector::createItems()
                 icon = QIcon( ":/sidebar/capture" );
             break;
         case SD_CAT_LAN:
-            selItem = addItem( SD_TYPE, *ppsz_longname, false, false, lan );
-            icon = QIcon( ":/sidebar/lan" );
+            // selItem = addItem( SD_TYPE, *ppsz_longname, false, false, lan );     /*wangpei*/
+            // icon = QIcon( ":/sidebar/lan" );
             break;
         case SD_CAT_MYCOMPUTER:
             name = name.mid( 0, name.indexOf( '{' ) );
             selItem = addItem( SD_TYPE, *ppsz_longname, false, false, mycomp );
             if ( name == "video_dir" )
                 icon = QIcon( ":/sidebar/movie" );
-            else if ( name == "audio_dir" )
+            else if ( name == "audio_dir" )  
                 icon = QIcon( ":/sidebar/music" );
             else if ( name == "picture_dir" )
                 icon = QIcon( ":/sidebar/pictures" );
             else
                 icon = QIcon( ":/sidebar/movie" );
+            break;
+        /* wangpei */
+        case SD_CAT_SHARE:
+            selItem = addItem( SD_TYPE, *ppsz_longname, false, false, share );
+            if (name.startsWith( "localshare" ))
+            {
+                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_LS ) );
+            }
+            else if (name.startsWith("upnp"))
+            {
+                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_LANS ) );
+            }
+            else if (name.startsWith("remoteshare"))
+            {
+                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_RS ) );
+            }
+            else if (name.startsWith("cloudshare"))
+            {
+                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_CS ) );
+            }
             break;
         default:
             selItem = addItem( SD_TYPE, *ppsz_longname );
@@ -343,6 +368,7 @@ void PLSelector::createItems()
     if( devices->childCount() == 0 ) delete devices;
     if( lan->childCount() == 0 ) delete lan;
     if( internet->childCount() == 0 ) delete internet;
+    if( share->childCount() == 0 ) delete share;
 }
 
 void PLSelector::setSource( QTreeWidgetItem *item )
@@ -408,8 +434,8 @@ void PLSelector::setSource( QTreeWidgetItem *item )
     {
         emit categoryActivated( pl_item, false );
         int i_cat = item->data( 0, SD_CATEGORY_ROLE ).toInt();
-        emit SDCategorySelected( i_cat == SD_CAT_INTERNET
-                                 || i_cat == SD_CAT_LAN );
+        // emit SDCategorySelected( i_cat == SD_CAT_INTERNET
+        //                          || i_cat == SD_CAT_LAN );       /*wangpei*/
     }
 }
 

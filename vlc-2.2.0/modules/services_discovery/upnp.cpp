@@ -61,14 +61,14 @@ struct services_discovery_sys_t
  */
 static int Open( vlc_object_t* );
 static void Close( vlc_object_t* );
-VLC_SD_PROBE_HELPER( "upnp", "Universal Plug'n'Play", SD_CAT_LAN )
+VLC_SD_PROBE_HELPER( "upnp", "LAN Share", SD_CAT_SHARE )        /*wangpei*/
 
 /*
  * Module descriptor
  */
 vlc_module_begin();
-    set_shortname( "UPnP" );
-    set_description( N_( "Universal Plug'n'Play" ) );
+    set_shortname( "UPnP" );                /*wangpei*/
+    set_description( N_( "LAN Share" ) );       /*wangpei*/
     set_category( CAT_PLAYLIST );
     set_subcategory( SUBCAT_PLAYLIST_SD );
     set_capability( "services_discovery", 0 );

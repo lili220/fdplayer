@@ -48,17 +48,17 @@
     static int  Open ( vlc_object_t * );
     static void Close( vlc_object_t * );
 
-VLC_SD_PROBE_HELPER("bonjour", "Bonjour services", SD_CAT_LAN)
+// VLC_SD_PROBE_HELPER("bonjour", "Bonjour services", SD_CAT_LAN)
 
 vlc_module_begin ()
-    set_shortname( "Bonjour" )
-    set_description( N_("Bonjour services") )
-    set_category( CAT_PLAYLIST )
-    set_subcategory( SUBCAT_PLAYLIST_SD )
-    set_capability( "services_discovery", 0 )
-    set_callbacks( Open, Close )
+    // set_shortname( "Bonjour" )
+    // set_description( N_("Bonjour services") )
+    // set_category( CAT_PLAYLIST )
+    // set_subcategory( SUBCAT_PLAYLIST_SD )
+    // set_capability( "services_discovery", 0 )
+    // set_callbacks( Open, Close )
 
-    VLC_SD_PROBE_SUBMODULE
+    // VLC_SD_PROBE_SUBMODULE
 vlc_module_end ()
 
 /*****************************************************************************

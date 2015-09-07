@@ -718,7 +718,7 @@ static int vlc_sd_probe_Open( vlc_object_t *obj )
             }
             free( psz_file_esc );
             free( psz_longname_esc );
-            vlc_sd_probe_Add( probe, psz_name, psz_longname, SD_CAT_INTERNET );
+            // vlc_sd_probe_Add( probe, psz_name, psz_longname, SD_CAT_INTERNET );  /*wangpei*/
             free( psz_name );
             free( psz_longname );
             free( psz_filename );

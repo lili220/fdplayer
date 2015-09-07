@@ -334,6 +334,7 @@ static VLCMainWindow *_o_sharedInstance = nil;
     SideBarItem *devicesItem = [SideBarItem itemWithTitle:_NS("DEVICES") identifier:@"devices"];
     SideBarItem *lanItem = [SideBarItem itemWithTitle:_NS("LOCAL NETWORK") identifier:@"localnetwork"];
     SideBarItem *internetItem = [SideBarItem itemWithTitle:_NS("INTERNET") identifier:@"internet"];
+    SideBarItem *shareItem = [SideBarItem itemWithTitle:_NS("SHARE") identifier:@"share"];  /*wangpei*/
 
     /* SD subnodes, inspired by the Qt4 intf */
     char **ppsz_longnames = NULL;
@@ -347,15 +348,24 @@ static VLCMainWindow *_o_sharedInstance = nil;
     NSMutableArray *devicesItems = [[NSMutableArray alloc] init];
     NSMutableArray *lanItems = [[NSMutableArray alloc] init];
     NSMutableArray *mycompItems = [[NSMutableArray alloc] init];
+    NSMutableArray *shareItems = [[NSMutableArray alloc] init];        /*wangpei*/
     NSString *o_identifier;
     for (; ppsz_name && *ppsz_name; ppsz_name++, ppsz_longname++, p_category++) {
         o_identifier = [NSString stringWithCString: *ppsz_name encoding: NSUTF8StringEncoding];
         switch (*p_category) {
             case SD_CAT_INTERNET:
-                [internetItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
-                [[internetItems lastObject] setIcon: imageFromRes(@"sidebar-podcast")];
-                [[internetItems lastObject] setSdtype: SD_CAT_INTERNET];
-                [[internetItems lastObject] setUntranslatedTitle: [NSString stringWithUTF8String:*ppsz_longname]];
+                /*wangpei*/
+                // [internetItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
+                // [[internetItems lastObject] setIcon: imageFromRes(@"sidebar-podcast")];
+                // [[internetItems lastObject] setSdtype: SD_CAT_INTERNET];
+                // [[internetItems lastObject] setUntranslatedTitle: [NSString stringWithUTF8String:*ppsz_longname]];
+                break;
+            /*wangpei*/
+            case SD_CAT_SHARE:
+                [shareItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
+                [[shareItems lastObject] setIcon: imageFromRes(@"sidebar-podcast")];
+                [[shareItems lastObject] setSdtype: SD_CAT_SHARE];
+                [[shareItems lastObject] setUntranslatedTitle: [NSString stringWithUTF8String:*ppsz_longname]];
                 break;
             case SD_CAT_DEVICES:
                 [devicesItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
@@ -364,10 +374,11 @@ static VLCMainWindow *_o_sharedInstance = nil;
                 [[devicesItems lastObject] setUntranslatedTitle: [NSString stringWithUTF8String:*ppsz_longname]];
                 break;
             case SD_CAT_LAN:
-                [lanItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
-                [[lanItems lastObject] setIcon: imageFromRes(@"sidebar-local")];
-                [[lanItems lastObject] setSdtype: SD_CAT_LAN];
-                [[lanItems lastObject] setUntranslatedTitle: [NSString stringWithUTF8String:*ppsz_longname]];
+                /*wangpei*/
+                // [lanItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
+                // [[lanItems lastObject] setIcon: imageFromRes(@"sidebar-local")];
+                // [[lanItems lastObject] setSdtype: SD_CAT_LAN];
+                // [[lanItems lastObject] setUntranslatedTitle: [NSString stringWithUTF8String:*ppsz_longname]];
                 break;
             case SD_CAT_MYCOMPUTER:
                 [mycompItems addObject: [SideBarItem itemWithTitle: _NS(*ppsz_longname) identifier: o_identifier]];
@@ -394,10 +405,12 @@ static VLCMainWindow *_o_sharedInstance = nil;
     [devicesItem setChildren: [NSArray arrayWithArray: devicesItems]];
     [lanItem setChildren: [NSArray arrayWithArray: lanItems]];
     [internetItem setChildren: [NSArray arrayWithArray: internetItems]];
+    [shareItem setChildren: [NSArray arrayWithArray: shareItems]];  /*wangpei*/
     [mycompItems release];
     [devicesItems release];
     [lanItems release];
     [internetItems release];
+    [shareItems release];   /*wangpei*/
     free(ppsz_names);
     free(ppsz_longnames);
     free(p_categories);
@@ -412,6 +425,8 @@ static VLCMainWindow *_o_sharedInstance = nil;
         [o_sidebaritems addObject: lanItem];
     if ([internetItem hasChildren])
         [o_sidebaritems addObject: internetItem];
+    if ([shareItem hasChildren])                /*wangpei*/
+        [o_sidebaritems addObject: shareItem];  /*wangpei*/
 
     [o_sidebar_view reloadData];
     [o_sidebar_view setDropItem:playlistItem dropChildIndex:NSOutlineViewDropOnItemIndex];

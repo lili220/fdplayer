@@ -4,6 +4,23 @@ sd_LTLIBRARIES =
 libmediadirs_plugin_la_SOURCES = services_discovery/mediadirs.c
 sd_LTLIBRARIES += libmediadirs_plugin.la
 
+###############################################################################
+# wangpei
+###############################################################################
+
+liblocalshare_plugin_la_SOURCES = services_discovery/localshare.c
+sd_LTLIBRARIES += liblocalshare_plugin.la
+
+libcloudshare_plugin_la_SOURCES = services_discovery/cloudshare.c
+sd_LTLIBRARIES += libcloudshare_plugin.la
+
+libremoteshare_plugin_la_SOURCES = services_discovery/remoteshare.c
+sd_LTLIBRARIES += libremoteshare_plugin.la
+###############################################################################
+# wangpei
+###############################################################################
+
+
 libpodcast_plugin_la_SOURCES = services_discovery/podcast.c
 libpodcast_plugin_la_LIBADD = $(LIBPTHREAD)
 sd_LTLIBRARIES += libpodcast_plugin.la

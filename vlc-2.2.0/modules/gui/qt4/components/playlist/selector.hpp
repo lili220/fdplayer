@@ -45,12 +45,22 @@ enum SelectorItemType {
     SD_TYPE,
     PL_ITEM_TYPE,
     SQL_ML_TYPE,
+    /*wangpei*/
+    CLOUDSHARE,
+    LOCALSHARE,
+    LANSHARE,
+    REMOTESHARE
 };
 
 enum SpecialData {
     IS_PODCAST = 1,
     IS_PL,
-    IS_ML
+    IS_ML,
+    /*wangpei*/
+    IS_CS,
+    IS_LS,
+    IS_LANS,
+    IS_RS
 };
 
 enum {

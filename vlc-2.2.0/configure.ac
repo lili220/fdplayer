@@ -4008,6 +4008,21 @@ PKG_ENABLE_MODULES_VLC([UPNP], [upnp], [libupnp], [Intel UPNP SDK],[auto])
 
 EXTEND_HELP_STRING([Misc options:])
 
+dnl 
+dnl    localshare
+dnl 
+PKG_ENABLE_MODULES_VLC([localshare], [localshare], [liblocalshare], [],[auto])
+
+dnl 
+dnl    cloudshare
+dnl 
+PKG_ENABLE_MODULES_VLC([cloudshare], [cloudshare], [libcloudshare], [],[auto])
+
+dnl 
+dnl    remoteshare
+dnl 
+PKG_ENABLE_MODULES_VLC([remoteshare], [remoteshare], [libremoteshare], [],[auto])
+
 dnl
 dnl  libxml2 module
 dnl

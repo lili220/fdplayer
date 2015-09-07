@@ -49,25 +49,26 @@
 static int  Open ( vlc_object_t * );
 static void Close( vlc_object_t * );
 
-VLC_SD_PROBE_HELPER("podcast", "Podcasts", SD_CAT_INTERNET)
+// VLC_SD_PROBE_HELPER("podcast", "Podcasts", SD_CAT_INTERNET)  /*wangpei*/
 
 #define URLS_TEXT N_("Podcast URLs list")
 #define URLS_LONGTEXT N_("Enter the list of podcasts to retrieve, " \
                          "separated by '|' (pipe)." )
 
 vlc_module_begin ()
-    set_shortname( "Podcast")
-    set_description( N_("Podcasts") )
-    set_category( CAT_PLAYLIST )
-    set_subcategory( SUBCAT_PLAYLIST_SD )
+    /*wangpei*/
+    // set_shortname( "Podcast")
+    // set_description( N_("Podcasts") )
+    // set_category( CAT_PLAYLIST )
+    // set_subcategory( SUBCAT_PLAYLIST_SD )
 
-    add_string( "podcast-urls", NULL,
-                URLS_TEXT, URLS_LONGTEXT, false )
+    // add_string( "podcast-urls", NULL,
+    //             URLS_TEXT, URLS_LONGTEXT, false )
 
-    set_capability( "services_discovery", 0 )
-    set_callbacks( Open, Close )
+    // set_capability( "services_discovery", 0 )
+    // set_callbacks( Open, Close )
 
-    VLC_SD_PROBE_SUBMODULE
+    // VLC_SD_PROBE_SUBMODULE
 
 vlc_module_end ()
 
