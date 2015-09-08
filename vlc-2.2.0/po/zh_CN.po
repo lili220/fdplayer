@@ -22637,6 +22637,26 @@ msgstr "未知类型"
 msgid "Universal Plug'n'Play"
 msgstr "局域网共享"
 
+#modules/services_discovery/upnp.c:64
+#modules/services_discovery/upnp.c:71
+msgid "LAN Share"
+msgstr "局域网共享"
+
+#modules/services_discovery/localshare.c:31
+#modules/services_discovery/localshare.c:38
+msgid "Local Share"
+msgstr "本地共享"
+
+#modules/services_discovery/cloudshare.c:31
+#modules/services_discovery/cloudshare.c:38
+msgid "Cloud Share"
+msgstr "云端共享"
+
+#modules/services_discovery/remoteshare.c:31
+#modules/services_discovery/remoteshare.c:38
+msgid "Remote Share"
+msgstr "远端共享"
+
 #: modules/services_discovery/xcb_apps.c:48
 #: modules/services_discovery/xcb_apps.c:49
 #: modules/services_discovery/xcb_apps.c:86

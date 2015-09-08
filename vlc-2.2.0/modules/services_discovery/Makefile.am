@@ -8,7 +8,10 @@ sd_LTLIBRARIES += libmediadirs_plugin.la
 # wangpei
 ###############################################################################
 
-liblocalshare_plugin_la_SOURCES = services_discovery/localshare.c
+liblocalshare_plugin_la_SOURCES = services_discovery/localshare.cpp services_discovery/user.cpp services_discovery/user.hpp 
+liblocalshare_plugin_la_CXXFLAGS = $(AM_CXXFLAGS) $(UPNP_CFLAGS) $(QT_CFLAGS) $(CXXFLAGS_qt4)
+liblocalshare_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(sddir)'
+liblocalshare_plugin_la_LIBADD = $(UPNP_LIBS) $(QT_LIBS) $(LIBS_qt4)
 sd_LTLIBRARIES += liblocalshare_plugin.la
 
 libcloudshare_plugin_la_SOURCES = services_discovery/cloudshare.c

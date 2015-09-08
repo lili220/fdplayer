@@ -21,6 +21,11 @@ typedef xcb_atom_t Atom;
 #endif
 #include <poll.h>
 
+#include "user.hpp"
+
+#include <QDebug>
+#include <QDir>
+
 /*
  * VLC callback prototypes
  */
@@ -69,15 +74,44 @@ static void Close( vlc_object_t *p_this )
 static void AddDesktop(services_discovery_t *sd)
 {
     printf("AddDesktop\n");
-    input_item_t *item,*item1;
+	User user;
+	printf( "local sharepath == [%s]\n", user.getSharePath().toStdString().c_str() );
 
-    item1 = input_item_NewWithType ("file:///home/wp/下载/女儿情.mp3", _("wo"),
-                                   0, NULL, 0, -1, ITEM_TYPE_CARD);
-    item = input_item_NewWithType ("http://192.168.7.82/static/paomo.mp3", _("wodezhuomian"),
-                                    0, NULL, 0, -1, ITEM_TYPE_CARD);
-    if (item == NULL)
-        return;
+	QString path = user.getSharePath();
+	QDir *dir = new QDir( path );
 
-    services_discovery_AddItem (sd, item, NULL);
-    services_discovery_AddItem (sd, item1, NULL);
+	QFileInfoList entries = dir->entryInfoList();
+	foreach(const QFileInfo &file, entries )
+	{
+		if( file.isDir() )
+		{
+			qDebug() << "dir :" << file.fileName();
+		}
+		else
+		{
+			input_item_t *item;
+			QString url = "file://";
+			//item = input_item_NewWithType ( url.append( path ).append('/').append( file ).toStdString().c_str(), _(file.toStdString().c_str() ),
+			//printf( "file:[%s]\n", url.append(file.absoluteFilePath()).toStdString().c_str());
+			item = input_item_NewWithType ( url.append(file.absoluteFilePath()).toStdString().c_str(), _(file.fileName().toStdString().c_str() ),
+					0, NULL, 0, -1, ITEM_TYPE_CARD);
+			if (item == NULL)
+				continue;
+			services_discovery_AddItem (sd, item, NULL);
+		}
+	}
+
+#if 0
+	input_item_t *item,*item1;
+
+	item1 = input_item_NewWithType ("file:///home/wp/下载/女儿情.mp3", _("wo"),
+			0, NULL, 0, -1, ITEM_TYPE_CARD);
+	item = input_item_NewWithType ("http://192.168.7.82/static/paomo.mp3", _("wodezhuomian"),
+			0, NULL, 0, -1, ITEM_TYPE_CARD);
+	if (item == NULL)
+		return;
+
+	services_discovery_AddItem (sd, item, NULL);
+	services_discovery_AddItem (sd, item1, NULL);
+#endif
 }

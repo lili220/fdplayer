@@ -182,7 +182,6 @@ QTreeView* UserShareDialog::initLocalShareTreeView()
 
 	QString path = getSharePath();
 	QDir *dir = new QDir( path );
-	//QDir *dir = new QDir("/home/lili/share/");
 
 	QFileInfoList entries = dir->entryInfoList();
 	foreach(const QFileInfo &file, entries)
