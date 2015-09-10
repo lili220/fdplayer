@@ -131,6 +131,9 @@ public:
     void getCurrentItemInfos( int *type, bool *delayedSearch, QString *name );
     int getCurrentItemCategory();
 
+	/*add by lili*/
+	QTreeWidgetItem  *getCurrentItem(){ return curItem; }
+
 protected:
     virtual void drawBranches ( QPainter *, const QRect &, const QModelIndex & ) const;
     virtual void dragMoveEvent ( QDragMoveEvent * event );

@@ -74,6 +74,10 @@
 #define I_POP_STREAM N_("Stream...")
 #define I_POP_SAVE N_("Save...")
 
+/*add by lili*/
+#define I_POP_DELLOCAL N_("Remove LocalShare")
+#define I_POP_ADDLOCAL N_("Add LocalShare")
+
 /*************** Playlist *************/
 
 #define I_PL_LOOP       N_("Repeat All")

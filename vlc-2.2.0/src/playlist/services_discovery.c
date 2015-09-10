@@ -93,6 +93,12 @@ char **vlc_sd_GetNames (vlc_object_t *obj, char ***pppsz_longnames, int **pp_cat
     return names;
 }
 
+/*add by lili*/
+void *vlc_sd_GetModule ( const char *shortcut )
+{
+	return (void*)vlc_get_module( shortcut );
+}
+
 
 static void services_discovery_Destructor ( vlc_object_t *p_obj );
 

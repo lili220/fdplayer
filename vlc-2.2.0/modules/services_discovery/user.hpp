@@ -31,7 +31,7 @@
 #include <vlc_common.h>
 #include <QString>
 #include <QList>
-#include <python2.7/Python.h>
+//#include <python2.7/Python.h>
 
 #define qtr( i ) QString::fromUtf8( vlc_gettext(i) )
 
@@ -41,6 +41,7 @@ class User
 public:
     User();
     virtual ~User();
+#if 0
 	bool init();
 	bool isLoaded(){ return b_load == true; }
 	bool isLogin(){ return b_login == true; }
@@ -73,6 +74,7 @@ public:
 	void setNetShared( bool state ){ b_netShared = state; }
 	bool getLocalShared(){ return b_localShared == true; }
 	bool getNetShared(){ return b_netShared == true; }
+#endif
 
 	void setConfigPath( QString path = "../sbin/minidlna.conf"){ configPath = path; }
 	QString getConfigPath(){ return configPath; }
@@ -91,6 +93,7 @@ protected:
 #endif
 
 private:
+#if 0
 	bool b_load;//python module is Loaded successfull
 	bool b_login;//user is login
 	QList<QString> fileList;
@@ -104,10 +107,12 @@ private:
 	QString serverIp;
 	int  serverPort;
 	QString serverUrl;
+#endif
 
 	QString configPath;
 	QString sharePath;
 
+#if 0
 	PyObject *pArgs;
 	PyObject *pRetValue;
 
@@ -121,6 +126,7 @@ private:
 	PyObject *listmyfile;
 	PyObject *filedelete;
 	PyObject *filedownload;
+#endif
 
 };
 

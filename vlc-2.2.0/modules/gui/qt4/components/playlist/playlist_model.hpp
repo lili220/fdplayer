@@ -92,6 +92,7 @@ public:
     /*** VLCModelSubInterface subclassing ***/
     virtual void rebuild( playlist_item_t * p = NULL );
     virtual void doDelete( QModelIndexList selected );
+    virtual void deleteLocalShare( QModelIndexList selected );//add by lili
     virtual void createNode( QModelIndex index, QString name );
     virtual void renameNode( QModelIndex index, QString name );
     virtual void removeAll();

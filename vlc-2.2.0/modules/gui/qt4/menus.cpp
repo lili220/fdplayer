@@ -808,13 +808,17 @@ QMenu *VLCMenuBar::UserMenu( intf_thread_t *p_intf,  QWidget *parent )
 
 	QAction *action = menu->addAction( qtr( "局域网共享" ) );
 	action->setCheckable( true );
+#if 0
 	UserOption *userOption = UserOption::getInstance( p_intf );
 	action->setChecked( userOption->getLocalShared() );
+#endif
+	action->setChecked( false );
 	CONNECT( action, triggered( bool ), UserOption::getInstance( p_intf ), toggleLocalShared( bool ) );
 
 	action = menu->addAction( qtr( "广域网共享" ) );
 	action->setCheckable( true );
-	action->setChecked( UserOption::getInstance( p_intf )->getNetShared() );
+	//action->setChecked( UserOption::getInstance( p_intf )->getNetShared() );
+	action->setChecked( false );
 	CONNECT( action, triggered( bool ), UserOption::getInstance( p_intf ), toggleNetShared( bool ) );
 
     menu->addSeparator();

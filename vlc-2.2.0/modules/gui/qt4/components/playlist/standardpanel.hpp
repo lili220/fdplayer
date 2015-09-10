@@ -134,6 +134,9 @@ private slots:
     void decreaseZoom() { updateZoom( i_zoom - 1 ); };
     void toggleColumnShown( int );
 
+	/*add by lili*/
+	void addLocalShareFile();
+
     void cycleViews();
     void updateViewport(); /* spinner */
 

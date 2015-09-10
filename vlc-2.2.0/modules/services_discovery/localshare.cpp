@@ -41,6 +41,7 @@ VLC_SD_PROBE_HELPER( "localshare", "Local Share", SD_CAT_SHARE )
 vlc_module_begin();
     set_shortname( "localshare" );
     set_description( N_( "Local Share" ) );
+	add_shortcut("localshare");
     set_category( CAT_PLAYLIST );
     set_subcategory( SUBCAT_PLAYLIST_SD );
     set_capability( "services_discovery", 0 );
@@ -49,12 +50,12 @@ vlc_module_begin();
     VLC_SD_PROBE_SUBMODULE
 vlc_module_end();
 
-
 /*****************************************************************************
  * Open: 初始化接口
  *****************************************************************************/
 static int Open( vlc_object_t *p_this )
 {
+	printf( "----------------------------func:%s------------------------------------\n", __func__) ;
     services_discovery_t *sd = (services_discovery_t *)p_this;
     
     AddDesktop (sd);
@@ -91,8 +92,6 @@ static void AddDesktop(services_discovery_t *sd)
 		{
 			input_item_t *item;
 			QString url = "file://";
-			//item = input_item_NewWithType ( url.append( path ).append('/').append( file ).toStdString().c_str(), _(file.toStdString().c_str() ),
-			//printf( "file:[%s]\n", url.append(file.absoluteFilePath()).toStdString().c_str());
 			item = input_item_NewWithType ( url.append(file.absoluteFilePath()).toStdString().c_str(), _(file.fileName().toStdString().c_str() ),
 					0, NULL, 0, -1, ITEM_TYPE_CARD);
 			if (item == NULL)

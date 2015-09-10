@@ -94,7 +94,10 @@ public:
         ACTION_ENQUEUEFILE,
         ACTION_ENQUEUEDIR,
         ACTION_ENQUEUEGENERIC,
-        ACTION_SAVETOPLAYLIST
+        ACTION_SAVETOPLAYLIST,
+		/*add by lili*/
+        ACTION_DELLOCAL,
+        ACTION_ADDLOCAL
     };
     struct actionsContainerType
     {
