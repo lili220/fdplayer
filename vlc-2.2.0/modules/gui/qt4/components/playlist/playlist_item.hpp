@@ -77,6 +77,7 @@ public:
     virtual ~PLItem();
     bool hasSameParent( PLItem *other ) { return parent() == other->parent(); }
     bool operator< ( AbstractPLItem& );
+	static PLItem *makePLItem( playlist_item_t *item ) { PLItem *plitem = new PLItem(item); return plitem; }//add by lili
 
 private:
     /* AbstractPLItem */

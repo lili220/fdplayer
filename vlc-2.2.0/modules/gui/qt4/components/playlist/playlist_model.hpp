@@ -92,6 +92,8 @@ public:
     /*** VLCModelSubInterface subclassing ***/
     virtual void rebuild( playlist_item_t * p = NULL );
     virtual void doDelete( QModelIndexList selected );
+    virtual void deleteLocalShare( QModelIndexList selected );//add by lili
+	void addLocalShare(int position, int rows, PLItem *item ){ addItem( position, rows, item ); }//add by lili
     virtual void createNode( QModelIndex index, QString name );
     virtual void renameNode( QModelIndex index, QString name );
     virtual void removeAll();
@@ -126,6 +128,7 @@ private:
     /* Shallow actions (do not affect core playlist) */
     void updateTreeItem( PLItem * );
     void removeItem ( PLItem * );
+	void addItem(int position, int rows, PLItem *item );//add by lili
     void recurseDelete( QList<AbstractPLItem*> children, QModelIndexList *fullList );
     void takeItem( PLItem * ); //will not delete item
     void insertChildren( PLItem *node, QList<PLItem*>& items, int i_pos );

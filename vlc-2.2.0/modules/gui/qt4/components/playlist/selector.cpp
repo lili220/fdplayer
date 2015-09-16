@@ -247,7 +247,8 @@ void PLSelector::createItems()
     QTreeWidgetItem *lan = addItem( CATEGORY_TYPE, N_("Local Network"), false, true )->treeItem();
     QTreeWidgetItem *internet = addItem( CATEGORY_TYPE, N_("Internet"), false, true )->treeItem();
     /*wangpei*/
-    QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("Media Share"), false, true )->treeItem();
+    //QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("Media Share"), false, true )->treeItem();
+    QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("媒体共享"), false, true )->treeItem();
 
 #define NOT_SELECTABLE(w) w->setFlags( w->flags() ^ Qt::ItemIsSelectable );
     NOT_SELECTABLE( mycomp );
@@ -321,7 +322,7 @@ void PLSelector::createItems()
             selItem = addItem( SD_TYPE, *ppsz_longname, false, false, mycomp );
             if ( name == "video_dir" )
                 icon = QIcon( ":/sidebar/movie" );
-            else if ( name == "audio_dir" )  
+            else if ( name == "audio_dir" )
                 icon = QIcon( ":/sidebar/music" );
             else if ( name == "picture_dir" )
                 icon = QIcon( ":/sidebar/pictures" );

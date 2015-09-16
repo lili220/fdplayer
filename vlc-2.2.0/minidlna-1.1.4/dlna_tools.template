@@ -48,6 +48,7 @@ elif [ $switch == stop ];then
 	fi
 	pid=`cat $pid_file`
 	kill -9 $pid
+	rm -f $pid_file
 else
 	echo "__ERR: switch isn't start/stop"
 	exit -2

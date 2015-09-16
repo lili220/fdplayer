@@ -676,6 +676,7 @@ void PLModel::insertChildren( PLItem *node, QList<PLItem*>& items, int i_pos )
 
 void PLModel::removeItem( PLItem *item )
 {
+	//printf( "item->getTitle:%s\n", (item->getTitle()).toStdString().c_str() );
     if( !item ) return;
 
     if( item->parent() ) {
@@ -692,6 +693,17 @@ void PLModel::removeItem( PLItem *item )
         rootItem = NULL;
         rebuild( p_playlist->p_playing );
     }
+}
+
+/*add by lili*/
+void PLModel::addItem(int position, int rows,  PLItem *item )
+{
+	beginInsertRows( QModelIndex(), position, position+rows-1 );
+	for( int row = 0; row < rows; ++row )
+	{
+		rootItem->children.insert(position, item );
+	}
+	endInsertRows();
 }
 
 /* This function must be entered WITH the playlist lock */
@@ -729,7 +741,33 @@ void PLModel::updateTreeItem( PLItem *item )
  */
 void PLModel::doDelete( QModelIndexList selected )
 {
+	printf( "----------------------%s--------------------------\n", __func__ );
     if( !canEdit() ) return;
+
+    while( !selected.isEmpty() )
+    {
+        QModelIndex index = selected[0];
+        selected.removeAt( 0 );
+
+        if( index.column() != 0 ) continue;
+
+        PLItem *item = getItem( index );
+        if( item->childCount() )
+            recurseDelete( item->children, &selected );
+
+        PL_LOCK;
+        playlist_DeleteFromInput( p_playlist, item->inputItem(), pl_Locked );
+        PL_UNLOCK;
+
+        removeItem( item );
+    }
+}
+
+/*add by lili*/
+void PLModel::deleteLocalShare( QModelIndexList selected )
+{
+	//printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
+    //if( !canEdit() ) return;
 
     while( !selected.isEmpty() )
     {
@@ -888,6 +926,7 @@ void PLModel::renameNode( QModelIndex index, QString name )
 
 bool PLModel::action( QAction *action, const QModelIndexList &indexes )
 {
+	printf( "----------------------%s--------------------------\n", __func__ );
     QModelIndex index;
     actionsContainerType a = action->data().value<actionsContainerType>();
 
@@ -918,6 +957,18 @@ bool PLModel::action( QAction *action, const QModelIndexList &indexes )
 
     case ACTION_REMOVE:
         doDelete( indexes );
+        return true;
+
+		/*add by lili*/
+    case ACTION_DELLOCAL:
+        deleteLocalShare( indexes );
+        return true;
+
+		/*add by lili*/
+    case ACTION_ADDLOCAL:
+		//addItem( 0, 1, rootIndex() );
+
+        //addLocalShare( indexes );
         return true;
 
     case ACTION_SORT:
@@ -978,6 +1029,10 @@ bool PLModel::isSupportedAction( actions action, const QModelIndex &index ) cons
     case ACTION_INFO:
     case ACTION_REMOVE:
         return index.isValid() && index != rootIndex();
+    case ACTION_DELLOCAL://add by lili
+    case ACTION_ADDLOCAL://add by lili
+		printf( " ACTION_DELLOCAL || ACTION_ADDLOCAL \n" );
+		return true;
     case ACTION_EXPLORE:
         if( index.isValid() )
             return getURI( index ).startsWith( "file://" );

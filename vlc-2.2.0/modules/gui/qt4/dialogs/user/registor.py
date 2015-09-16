@@ -3,7 +3,7 @@ import requests
 from suds.client import Client
 
 global nfschina
-nfschina = Client('http://192.168.7.96:8000/nfschina/service/?wsdl')
+nfschina = Client('http://192.168.7.97/haha/service/?wsdl')
 
 
 def nfschina_register(username, password):

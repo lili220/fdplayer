@@ -52,3 +52,8 @@ void *vlc_probe (vlc_object_t *obj,
     vlc_object_release (probe);
     return ret;
 }
+
+void *vlc_get_module ( const char *shortcut )
+{
+	return (void*)module_find ( shortcut );
+}

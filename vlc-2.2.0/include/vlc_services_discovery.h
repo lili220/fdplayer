@@ -132,6 +132,10 @@ VLC_API char ** vlc_sd_GetNames( vlc_object_t *, char ***, int ** ) VLC_USED;
 #define vlc_sd_GetNames(obj, pln, pcat ) \
         vlc_sd_GetNames(VLC_OBJECT(obj), pln, pcat)
 
+/* ---------------------------Add by lili----------------------------------------- */
+VLC_API void* vlc_sd_GetModule( const char *shortcut ) VLC_USED;
+/* ---------------------------End by lili----------------------------------------- */
+
 /* Creation of a services_discovery object */
 VLC_API services_discovery_t * vlc_sd_Create( vlc_object_t *, const char * ) VLC_USED;
 VLC_API bool vlc_sd_Start( services_discovery_t * );
