@@ -14,7 +14,10 @@ sd_LTLIBRARIES += liblocalshare_plugin.la
 libcloudshare_plugin_la_SOURCES = services_discovery/cloudshare.c
 sd_LTLIBRARIES += libcloudshare_plugin.la
 
-libremoteshare_plugin_la_SOURCES = services_discovery/remoteshare.c
+libremoteshare_plugin_la_SOURCES = services_discovery/remoteshare.cpp
+libremoteshare_plugin_la_CXXFLAGS = $(AM_CXXFLAGS) $(REMOTESHARE_CFLAGS)
+libremoteshare_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(sddir)'
+libremoteshare_plugin_la_LIBADD = $(REMOTESHARE_LIBS)
 sd_LTLIBRARIES += libremoteshare_plugin.la
 ###############################################################################
 # wangpei
