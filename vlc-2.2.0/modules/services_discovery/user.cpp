@@ -57,10 +57,10 @@ User::User()
 		setConfigPath( "./minidlna-1.1.4/minidlna.conf" );
 	else
 		qDebug() << " minidlna.conf not found!";
-	qDebug() << getConfigPath();
+	//qDebug() << getConfigPath();
 
 	setSharePath( getConfigPath() );
-	qDebug() << getSharePath();
+	//qDebug() << getSharePath();
 }
 
 User::~User()
@@ -78,7 +78,7 @@ QString User::getSharePath()
 	cmd.append( "  | awk -F, '{print $2}'" );
 
 	QString path;
-	qDebug() << "cmd:" << cmd;
+	//qDebug() << "cmd:" << cmd;
 	FILE * pathFile= popen( cmd.toStdString().c_str(), "r" );
 	if( !pathFile )
 		return NULL;

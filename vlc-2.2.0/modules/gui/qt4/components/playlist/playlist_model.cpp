@@ -676,6 +676,7 @@ void PLModel::insertChildren( PLItem *node, QList<PLItem*>& items, int i_pos )
 
 void PLModel::removeItem( PLItem *item )
 {
+	//printf( "item->getTitle:%s\n", (item->getTitle()).toStdString().c_str() );
     if( !item ) return;
 
     if( item->parent() ) {
@@ -692,6 +693,17 @@ void PLModel::removeItem( PLItem *item )
         rootItem = NULL;
         rebuild( p_playlist->p_playing );
     }
+}
+
+/*add by lili*/
+void PLModel::addItem(int position, int rows,  PLItem *item )
+{
+	beginInsertRows( QModelIndex(), position, position+rows-1 );
+	for( int row = 0; row < rows; ++row )
+	{
+		rootItem->children.insert(position, item );
+	}
+	endInsertRows();
 }
 
 /* This function must be entered WITH the playlist lock */
@@ -732,7 +744,6 @@ void PLModel::doDelete( QModelIndexList selected )
 	printf( "----------------------%s--------------------------\n", __func__ );
     if( !canEdit() ) return;
 
-	printf( "-------------------line:%d-----------------------\n", __LINE__ );
     while( !selected.isEmpty() )
     {
         QModelIndex index = selected[0];
@@ -755,10 +766,9 @@ void PLModel::doDelete( QModelIndexList selected )
 /*add by lili*/
 void PLModel::deleteLocalShare( QModelIndexList selected )
 {
-	printf( "----------------------%s--------------------------\n", __func__ );
+	//printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     //if( !canEdit() ) return;
 
-	printf( "-------------------line:%d-----------------------\n", __LINE__ );
     while( !selected.isEmpty() )
     {
         QModelIndex index = selected[0];
@@ -951,18 +961,14 @@ bool PLModel::action( QAction *action, const QModelIndexList &indexes )
 
 		/*add by lili*/
     case ACTION_DELLOCAL:
-		printf( "ACTION_DELLOCAL\n" );
         deleteLocalShare( indexes );
         return true;
 
 		/*add by lili*/
     case ACTION_ADDLOCAL:
-		printf( "ACTION_ADDLOCAL\n" );
-#if 0
-        foreach( const QString &uri, a.uris )
-            Open::openMRL( p_intf, uri.toLatin1().constData(),
-                           false, getPLRootType() == ROOTTYPE_CURRENT_PLAYING );
-#endif
+		//addItem( 0, 1, rootIndex() );
+
+        //addLocalShare( indexes );
         return true;
 
     case ACTION_SORT:
