@@ -645,7 +645,9 @@ void PLModel::rebuild( playlist_item_t *p_root )
 
     /* And signal the view */
     endResetModel();
+	printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     if( p_root ) emit rootIndexChanged();
+	printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
 }
 
 void PLModel::takeItem( PLItem *item )
@@ -685,25 +687,33 @@ void PLModel::removeItem( PLItem *item )
         item->parent()->children.removeAt(i);
         delete item;
         endRemoveRows();
+		printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     }
-    else delete item;
+    else
+	{
+		printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
+		delete item;
+	}
 
     if(item == rootItem)
     {
         rootItem = NULL;
         rebuild( p_playlist->p_playing );
+		printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     }
 }
 
 /*add by lili*/
-void PLModel::addItem(int position, int rows,  PLItem *item )
+void PLModel::addItem( QModelIndex index, int position, int rows,  PLItem *item )
 {
-	beginInsertRows( QModelIndex(), position, position+rows-1 );
+    beginInsertRows( index.parent(), position, position + rows - 1 );
 	for( int row = 0; row < rows; ++row )
 	{
-		rootItem->children.insert(position, item );
+		getItem( index.parent() )->children.append( item );
+		item->parentItem = getItem( index.parent() );
 	}
 	endInsertRows();
+
 }
 
 /* This function must be entered WITH the playlist lock */
@@ -766,7 +776,6 @@ void PLModel::doDelete( QModelIndexList selected )
 /*add by lili*/
 void PLModel::deleteLocalShare( QModelIndexList selected )
 {
-	//printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     //if( !canEdit() ) return;
 
     while( !selected.isEmpty() )
@@ -911,6 +920,22 @@ void PLModel::createNode( QModelIndex index, QString name )
     PL_UNLOCK;
 }
 
+/*add by lili*/
+void PLModel::addItem( QModelIndex index, QString name )//add by lili
+{
+    if( name.isEmpty() || !index.isValid() ) return;
+
+    PL_LOCK;
+    index = index.parent();
+    if ( !index.isValid() ) index = rootIndex();
+    playlist_item_t *p_item = playlist_ItemGetById( p_playlist, itemId( index, PLAYLIST_ID ) );
+    if( p_item )
+        //playlist_NodeCreate( p_playlist, qtu( name ), p_item, PLAYLIST_END, 0, NULL );
+        playlist_ItemAdd( p_playlist, qtu( name ), p_item, PLAYLIST_END, 0, NULL );
+    PL_UNLOCK;
+
+}
+
 void PLModel::renameNode( QModelIndex index, QString name )
 {
     if( name.isEmpty() || !index.isValid() ) return;
@@ -1031,7 +1056,7 @@ bool PLModel::isSupportedAction( actions action, const QModelIndex &index ) cons
         return index.isValid() && index != rootIndex();
     case ACTION_DELLOCAL://add by lili
     case ACTION_ADDLOCAL://add by lili
-		printf( " ACTION_DELLOCAL || ACTION_ADDLOCAL \n" );
+		//printf( " ACTION_DELLOCAL || ACTION_ADDLOCAL \n" );
 		return true;
     case ACTION_EXPLORE:
         if( index.isValid() )

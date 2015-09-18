@@ -140,6 +140,7 @@ void StandardPLPanel::gotoPlayingItem()
 
 void StandardPLPanel::handleExpansion( const QModelIndex& index )
 {
+	printf( "%s\n", __func__ );
     assert( currentView );
     if( currentRootIndexPLId != -1 && currentRootIndexPLId != model->itemId( index.parent(), PLAYLIST_ID ) )
         browseInto( index.parent() );
@@ -453,7 +454,6 @@ void StandardPLPanel::popupAction( QAction *action )
 
 			/*add by lili*/
 		case VLCModelSubInterface::ACTION_DELLOCAL:
-			//printf( "dellocalshare\n" );
 			printf("del file %s\n", index.data().toString().toStdString().c_str());
 			char file[1024] ;
 			memset( file, 0, sizeof(file));
@@ -461,7 +461,6 @@ void StandardPLPanel::popupAction( QAction *action )
 			strcat( file, index.data().toString().toStdString().c_str() );
 			QFile::remove( file );
 			model->action( action, list );
-	printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
 			break;
 
 		case VLCModelSubInterface::ACTION_ADDLOCAL:
@@ -472,19 +471,8 @@ void StandardPLPanel::popupAction( QAction *action )
 			{
 				a.uris << qtu( toURI( toNativeSeparators( file ) ) );
 				action->setData( QVariant::fromValue( a ) );
-#if 1
-				char dest[1024];
-				memset( dest, 0, sizeof(dest) );
-				sprintf( dest, "%s/", sharePath );
-				printf( "cut file:%s\n", file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str() );
-				strcat( dest, file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str() );
-				
-				printf( "dest:[%s]\n", dest );
-				printf( "add file:%s\n",  file.toStdString().c_str() );
-				QFile::link(file.toStdString().c_str(), dest );
-#endif
-#if 0
-				printf( "file[%s]\n", file.toStdString().c_str() );
+
+				/*copy selected file to share dir */
 				QString filename = file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str();
 				QString cmd = "link ";
 				cmd.append(file);
@@ -494,22 +482,38 @@ void StandardPLPanel::popupAction( QAction *action )
 				cmd.append( filename );
 				system( cmd.toStdString().c_str() );
 
-#endif
 				/*update Window items */
-				input_item_t *item ;
-				input_item_t *item = input_item_NewWithType ( file.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
-				//item = input_item_NewWithType ( file.toStdString().c_str(), file.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+				QString url = "file://";
+				url.append( sharePath );
+				url.append( "/" );
+				url.append( filename );
+				//model->createNode( index, filename );
+				model->addItem( index, filename );
+				//model->action( action, list );
+#if 0
+				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+
 				playlist_item_t *p_playlist = new playlist_item_t;
 				p_playlist->p_input = item;
 
 				PLItem *plitem = PLItem::makePLItem( p_playlist );
 				PLModel *plmodel = PLModel::getPLModel( p_intf );
-				plmodel->addLocalShare(1, 1, plitem );
-				//plmodel->addLocalShare(index.row(), 1, plitem );
+
+				printf( "-------------line:%d----------------\n", __LINE__ );
+				playlist_AddInput( p_intf->p_sys->p_playlist, item, 0, PLAYLIST_END, true, true );
+				if( p_intf->p_sys->p_playlist->p_root->pp_children[0] == NULL )
+				{
+					printf( "children is NULL\n" );
+				}
+				else
+					printf( "children is not NULL \n" );
+
+				//plmodel->addLocalShare( currentView->currentIndex().row(), 1, plitem );
+				plmodel->addLocalShare( currentView->currentIndex(), currentView->currentIndex().row(), 1, plitem );
+#endif
 			}
 			break;
 		default:
-			printf( "default\n" );
 			model->action( action, list );
 	}
 }
@@ -567,10 +571,6 @@ void StandardPLPanel::toggleColumnShown( int i )
 	treeView->setColumnHidden( i, !treeView->isColumnHidden( i ) );
 }
 
-void StandardPLPanel::addLocalShareFile( )
-{
-}
-
 /* Search in the playlist */
 void StandardPLPanel::search( const QString& searchText )
 {
@@ -609,6 +609,7 @@ void StandardPLPanel::searchDelayed( const QString& searchText )
 /* This activated by the selector selection */
 void StandardPLPanel::setRootItem( playlist_item_t *p_item, bool b )
 {
+	printf( "----------%s:%s:%d--------------\n", __FILE__, __func__, __LINE__ );
 	Q_UNUSED( b );
 	model->rebuild( p_item );
 }

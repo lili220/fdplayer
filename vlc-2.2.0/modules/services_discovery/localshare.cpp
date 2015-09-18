@@ -63,7 +63,7 @@ static int Open( vlc_object_t *p_this )
 {
 	printf( "----------------------------func:%s------------------------------------\n", __func__) ;
     services_discovery_t *sd = (services_discovery_t *)p_this;
-	services_discovery_sys_t *p_sys = molloc( sizeof(*p_sys) );
+	services_discovery_sys_t *p_sys = malloc( sizeof(*p_sys) );
 	if( p_sys == NULL )
 		return VLC_ENOMEM;
 	sd->p_sys = p_sys;

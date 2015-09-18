@@ -64,6 +64,7 @@ public:
     virtual void rebuild( playlist_item_t * p = NULL ) = 0;
     virtual void doDelete( QModelIndexList ) = 0;
     virtual void createNode( QModelIndex, QString ) = 0;
+    virtual void addItem( QModelIndex, QString ) = 0;//add by lili
     virtual void renameNode( QModelIndex, QString ) = 0;
     virtual void removeAll() = 0;
 

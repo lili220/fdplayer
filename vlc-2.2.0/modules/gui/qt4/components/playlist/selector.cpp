@@ -386,12 +386,15 @@ void PLSelector::setSource( QTreeWidgetItem *item )
     if( i_type == SD_TYPE )
     {
         QString qs = item->data( 0, NAME_ROLE ).toString();
+		printf( "-------------------qs:%s-----------------------\n", qs.toStdString().c_str() );//add by lili
         sd_loaded = playlist_IsServicesDiscoveryLoaded( THEPL, qtu( qs ) );
         if( !sd_loaded )
         {
+			printf( "----------------%s:%d--------------------\n", __func__, __LINE__ );
             if ( playlist_ServicesDiscoveryAdd( THEPL, qtu( qs ) ) != VLC_SUCCESS )
                 return ;
 
+			printf( "----------------%s:%d--------------------\n", __func__, __LINE__ );
             services_discovery_descriptor_t *p_test = new services_discovery_descriptor_t;
             int i_ret = playlist_ServicesDiscoveryControl( THEPL, qtu( qs ), SD_CMD_DESCRIPTOR, p_test );
             if( i_ret == VLC_SUCCESS && p_test->i_capabilities & SD_CAP_SEARCH )
@@ -413,6 +416,7 @@ void PLSelector::setSource( QTreeWidgetItem *item )
         pl_item = playlist_ChildSearchName( THEPL->p_root,
                       qtu( item->data(0, LONGNAME_ROLE ).toString() ) );
 
+		printf( "item->data(0, LONGNAME_ROLE).toUtf8 == %s\n", qtu(item->data(0, LONGNAME_ROLE).toString()));//add by lili
         /* Podcasts */
         if( item->data( 0, SPECIAL_ROLE ).toInt() == IS_PODCAST )
         {
@@ -426,7 +430,10 @@ void PLSelector::setSource( QTreeWidgetItem *item )
         }
     }
     else
+	{
         pl_item = item->data( 0, PL_ITEM_ROLE ).value<playlist_item_t*>();
+		printf( "in else branch \n" );//add by lili
+	}
 
     playlist_Unlock( THEPL );
 
