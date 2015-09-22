@@ -174,6 +174,8 @@ am__libqt4_plugin_la_SOURCES_DIST = qt4.cpp qt4.hpp menus.cpp \
 	dialogs/user/registor.cpp dialogs/user/registor.hpp \
 	dialogs/user/useroption.cpp dialogs/user/useroption.hpp \
 	dialogs/user/usershare.cpp dialogs/user/usershare.hpp \
+	dialogs/user/thread_pool.c dialogs/user/thread_pool.h \
+	dialogs/user/wan_share.c dialogs/user/wan_share.h \
 	dialogs/gototime.cpp dialogs/gototime.hpp dialogs/toolbar.cpp \
 	dialogs/toolbar.hpp dialogs/open.cpp dialogs/open.hpp \
 	dialogs/openurl.cpp dialogs/openurl.hpp dialogs/vlm.cpp \
@@ -262,6 +264,7 @@ am_libqt4_plugin_la_OBJECTS = libqt4_plugin_la-qt4.lo \
 	dialogs/user/libqt4_plugin_la-registor.lo \
 	dialogs/user/libqt4_plugin_la-useroption.lo \
 	dialogs/user/libqt4_plugin_la-usershare.lo \
+	dialogs/user/thread_pool.lo dialogs/user/wan_share.lo \
 	dialogs/libqt4_plugin_la-gototime.lo \
 	dialogs/libqt4_plugin_la-toolbar.lo \
 	dialogs/libqt4_plugin_la-open.lo \
@@ -409,20 +412,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autotools/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-AM_V_CXX = $(am__v_CXX_@AM_V@)
-am__v_CXX_ = $(am__v_CXX_@AM_DEFAULT_V@)
-am__v_CXX_0 = @echo "  CXX     " $@;
-am__v_CXX_1 = 
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
-am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
-am__v_CXXLD_0 = @echo "  CXXLD   " $@;
-am__v_CXXLD_1 = 
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
@@ -437,6 +426,20 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+AM_V_CXX = $(am__v_CXX_@AM_V@)
+am__v_CXX_ = $(am__v_CXX_@AM_DEFAULT_V@)
+am__v_CXX_0 = @echo "  CXX     " $@;
+am__v_CXX_1 = 
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
+am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
+am__v_CXXLD_0 = @echo "  CXXLD   " $@;
+am__v_CXXLD_1 = 
 SOURCES = $(libqt4_plugin_la_SOURCES) \
 	$(nodist_libqt4_plugin_la_SOURCES)
 DIST_SOURCES = $(am__libqt4_plugin_la_SOURCES_DIST)
@@ -1305,7 +1308,9 @@ libqt4_plugin_la_SOURCES = qt4.cpp qt4.hpp menus.cpp menus.hpp \
 	dialogs/user/login.hpp dialogs/user/registor.cpp \
 	dialogs/user/registor.hpp dialogs/user/useroption.cpp \
 	dialogs/user/useroption.hpp dialogs/user/usershare.cpp \
-	dialogs/user/usershare.hpp dialogs/gototime.cpp \
+	dialogs/user/usershare.hpp dialogs/user/thread_pool.c \
+	dialogs/user/thread_pool.h dialogs/user/wan_share.c \
+	dialogs/user/wan_share.h dialogs/gototime.cpp \
 	dialogs/gototime.hpp dialogs/toolbar.cpp dialogs/toolbar.hpp \
 	dialogs/open.cpp dialogs/open.hpp dialogs/openurl.cpp \
 	dialogs/openurl.hpp dialogs/vlm.cpp dialogs/vlm.hpp \
@@ -1597,7 +1602,7 @@ all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .asm .ui .h .hpp .moc.cpp .cpp .lo .o .obj
+.SUFFIXES: .asm .ui .h .hpp .moc.cpp .c .cpp .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/modules/common.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -1732,6 +1737,10 @@ dialogs/user/libqt4_plugin_la-useroption.lo:  \
 	dialogs/user/$(DEPDIR)/$(am__dirstamp)
 dialogs/user/libqt4_plugin_la-usershare.lo:  \
 	dialogs/user/$(am__dirstamp) \
+	dialogs/user/$(DEPDIR)/$(am__dirstamp)
+dialogs/user/thread_pool.lo: dialogs/user/$(am__dirstamp) \
+	dialogs/user/$(DEPDIR)/$(am__dirstamp)
+dialogs/user/wan_share.lo: dialogs/user/$(am__dirstamp) \
 	dialogs/user/$(DEPDIR)/$(am__dirstamp)
 dialogs/libqt4_plugin_la-gototime.lo: dialogs/$(am__dirstamp) \
 	dialogs/$(DEPDIR)/$(am__dirstamp)
@@ -2207,6 +2216,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dialogs/user/$(DEPDIR)/libqt4_plugin_la-useroption.moc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dialogs/user/$(DEPDIR)/libqt4_plugin_la-usershare.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dialogs/user/$(DEPDIR)/libqt4_plugin_la-usershare.moc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dialogs/user/$(DEPDIR)/thread_pool.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dialogs/user/$(DEPDIR)/wan_share.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@managers/$(DEPDIR)/libqt4_plugin_la-addons_manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@managers/$(DEPDIR)/libqt4_plugin_la-addons_manager.moc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@styles/$(DEPDIR)/libqt4_plugin_la-seekstyle.Plo@am__quote@
@@ -2236,6 +2247,30 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@util/buttons/$(DEPDIR)/libqt4_plugin_la-DeckButtonsLayout.moc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@util/buttons/$(DEPDIR)/libqt4_plugin_la-RoundButton.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@util/buttons/$(DEPDIR)/libqt4_plugin_la-RoundButton.moc.Plo@am__quote@
+
+.c.o:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
+
+.c.obj:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.c.lo:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

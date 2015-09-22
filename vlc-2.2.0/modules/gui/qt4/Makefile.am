@@ -62,6 +62,8 @@ libqt4_plugin_la_SOURCES = \
 	dialogs/user/registor.cpp dialogs/user/registor.hpp \
 	dialogs/user/useroption.cpp dialogs/user/useroption.hpp \
 	dialogs/user/usershare.cpp dialogs/user/usershare.hpp \
+	dialogs/user/thread_pool.c dialogs/user/thread_pool.h \
+	dialogs/user/wan_share.c dialogs/user/wan_share.h \
 	dialogs/gototime.cpp dialogs/gototime.hpp \
 	dialogs/toolbar.cpp dialogs/toolbar.hpp \
 	dialogs/open.cpp dialogs/open.hpp \
