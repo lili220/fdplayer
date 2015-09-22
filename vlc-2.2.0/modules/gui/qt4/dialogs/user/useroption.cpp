@@ -29,6 +29,9 @@
 #include "qt4.hpp"
 #include "dialogs/user/useroption.hpp"
 #include "util/qt_dirs.hpp"
+extern "C" {
+#include "dialogs/user/wan_share.h"
+}
 
 #include <vlc_about.h>
 #include <vlc_intf_strings.h>
@@ -428,14 +431,22 @@ void UserOption::toggleNetShared( bool state )
 	printf( "----------------------%s-----------------------\n", __func__ );
 	if( b_netShared == state )
 		return;
-	b_netShared = state;
 
 	printf("state = %d\n", state );
 	printf("b_netShared = %d\n", b_netShared );
 	if( isLogin() )
 	{
-		printf("line:%d\n", __LINE__);
-		nfschina_keepalive("0.0.0.0", 8000, getLUid(), state, getServerUrl() );
+		if (state == 1)
+		{
+			open_wan_share(getLUid());
+			qDebug() << "open wan share!";
+		} else {
+			close_wan_share();
+			qDebug() << "close wan share!";
+		}
+		b_netShared = state;
+	//	printf("line:%d\n", __LINE__);
+	//	nfschina_keepalive("0.0.0.0", 8000, getLUid(), state, getServerUrl() );
 	//	nfschina_keeponline( getLUid(), getNetShared() );
 	}
 	printf("line:%d\n", __LINE__);
