@@ -517,7 +517,8 @@ void StandardPLPanel::popupAction( QAction *action )
 					//playlist_NodeCreate( THEPL, filename.toStdString().c_str(), p_playlist, PLAYLIST_APPEND, PLAYLIST_EXPANDED_FLAG |PLAYLIST_SAVE_FLAG, NULL );
 					//playlist_AddInput( THEPL, item, 0, PLAYLIST_END, true, false);
 					//playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_INSERT, PLAYLIST_END, false, false );
-#if 1
+					playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+#if 0
 					printf( "url:%s\n",  url.toStdString().c_str());
 					playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, PLAYLIST_EXPANDED_FLAG , item );
 					playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_APPEND, PLAYLIST_END, true, true );
