@@ -480,18 +480,19 @@ void StandardPLPanel::popupAction( QAction *action )
 				action->setData( QVariant::fromValue( a ) );
 
 				/*copy selected file to share dir */
-				QString filename = file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str();
+				//QString filename = file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str();
+				QString filename = qtu(QString(file.right( file.count() - file.lastIndexOf("/") - 1 )));
 				QString cmd = "link ";
 				cmd.append(file);
 				cmd.append( " " );
-				cmd.append( sharePath );
+				cmd.append( qtu(QString(sharePath)) );
 				cmd.append( "/");
 				cmd.append( filename );
 				system( cmd.toStdString().c_str() );
 
 				/*update Window items */
 				QString url = "file://";
-				url.append( sharePath );
+				url.append( qtu(QString(sharePath)) );
 				url.append( "/" );
 				url.append( filename );
 				//model->createNode( index, filename );
@@ -512,11 +513,15 @@ void StandardPLPanel::popupAction( QAction *action )
 				else
 				{
 					//PLItem *plitem = PLItem::makePLItem( p_playlist );
-					//playlist_NodeAppend( THEPL, p_playlist, play_item->p_parent );
-					//playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, PLAYLIST_EXPANDED_FLAG |PLAYLIST_SAVE_FLAG, NULL );
-					//playlist_AddInput( THEPL, item, 0, PLAYLIST_END, true, true);
-					//playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_END, PLAYLIST_END, true, false );
-					playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, 0, item );
+					//playlist_NodeAppend( THEPL, play_item, play_item->p_parent );
+					//playlist_NodeCreate( THEPL, filename.toStdString().c_str(), p_playlist, PLAYLIST_APPEND, PLAYLIST_EXPANDED_FLAG |PLAYLIST_SAVE_FLAG, NULL );
+					//playlist_AddInput( THEPL, item, 0, PLAYLIST_END, true, false);
+					//playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_INSERT, PLAYLIST_END, false, false );
+#if 1
+					printf( "url:%s\n",  url.toStdString().c_str());
+					playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, PLAYLIST_EXPANDED_FLAG , item );
+					playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_APPEND, PLAYLIST_END, true, true );
+#endif
 					//play_item->i_children += 1;
 					//play_item->pp_children[play_item->i_children - 1] = p_playlist;
 					//setRootItem( play_item, false );
