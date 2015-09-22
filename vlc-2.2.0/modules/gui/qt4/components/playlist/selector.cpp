@@ -440,6 +440,7 @@ void PLSelector::setSource( QTreeWidgetItem *item )
     /* */
     if( pl_item )
     {
+		printf( "-----------------emit categoryActivated------------------\n" );
         emit categoryActivated( pl_item, false );
         int i_cat = item->data( 0, SD_CATEGORY_ROLE ).toInt();
         // emit SDCategorySelected( i_cat == SD_CAT_INTERNET

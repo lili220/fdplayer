@@ -143,7 +143,11 @@ void StandardPLPanel::handleExpansion( const QModelIndex& index )
 	printf( "%s\n", __func__ );
     assert( currentView );
     if( currentRootIndexPLId != -1 && currentRootIndexPLId != model->itemId( index.parent(), PLAYLIST_ID ) )
+	{
+		printf( "-----------------line:%d---------------------\n", __LINE__ );
         browseInto( index.parent() );
+	}
+	printf( "-----------------line:%d---------------------\n", __LINE__ );
     currentView->scrollTo( index );
 }
 
@@ -275,7 +279,8 @@ bool StandardPLPanel::popup( const QPoint &point )
         //menu.addAction( qtr( "增加本地共享文件" ), this, SLOT( addLocalShareFile() ) );
         //menu.addAction( qtr( "DELETE LOCAL SHARE" ), this, SLOT( increaseZoom() ) );
 #if 1
-		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr(I_POP_ADDLOCAL),
+		//ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr(I_POP_ADDLOCAL),
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("增加本地共享文件"),
 				VLCModelSubInterface::ACTION_ADDLOCAL );
 		//ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr(I_POP_DELLOCAL),
 		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("删除本地共享文件"),
@@ -464,6 +469,8 @@ void StandardPLPanel::popupAction( QAction *action )
 			break;
 
 		case VLCModelSubInterface::ACTION_ADDLOCAL:
+        //pl_item = playlist_ChildSearchName( THEPL->p_root, qtu( item->data(0, LONGNAME_ROLE ).toString() ) );
+
 			uris = THEDP->showSimpleOpen();
 			if ( uris.isEmpty() ) return;
 			uris.sort();
@@ -488,28 +495,41 @@ void StandardPLPanel::popupAction( QAction *action )
 				url.append( "/" );
 				url.append( filename );
 				//model->createNode( index, filename );
-				model->addItem( index, filename );
-				//model->action( action, list );
-#if 0
+				//model->addItem( index, filename );
+
+				//AbstractPLItem *abs_item = model->getPLItem( index );
+
+#if 1
 				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
 
-				playlist_item_t *p_playlist = new playlist_item_t;
-				p_playlist->p_input = item;
+				//playlist_item_t *p_playlist = new playlist_item_t;
+				//p_playlist->p_input = item;
 
+				//playlist_item_t *play_item = playlist_ChildSearchName( THEPL->p_root, "Local share" );
+				playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+				if( play_item == NULL )
+					printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+				else
+				{
+					//PLItem *plitem = PLItem::makePLItem( p_playlist );
+					//playlist_NodeAppend( THEPL, p_playlist, play_item->p_parent );
+					//playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, PLAYLIST_EXPANDED_FLAG |PLAYLIST_SAVE_FLAG, NULL );
+					//playlist_AddInput( THEPL, item, 0, PLAYLIST_END, true, true);
+					//playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_END, PLAYLIST_END, true, false );
+					playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, 0, item );
+					//play_item->i_children += 1;
+					//play_item->pp_children[play_item->i_children - 1] = p_playlist;
+					//setRootItem( play_item, false );
+					//model->rebuild( play_item );
+					printf( "---------line:%d:play_item is not NULL and i_children = %d\n", __LINE__, play_item->i_children );
+				}
+#if 0
 				PLItem *plitem = PLItem::makePLItem( p_playlist );
 				PLModel *plmodel = PLModel::getPLModel( p_intf );
 
-				printf( "-------------line:%d----------------\n", __LINE__ );
-				playlist_AddInput( p_intf->p_sys->p_playlist, item, 0, PLAYLIST_END, true, true );
-				if( p_intf->p_sys->p_playlist->p_root->pp_children[0] == NULL )
-				{
-					printf( "children is NULL\n" );
-				}
-				else
-					printf( "children is not NULL \n" );
-
 				//plmodel->addLocalShare( currentView->currentIndex().row(), 1, plitem );
 				plmodel->addLocalShare( currentView->currentIndex(), currentView->currentIndex().row(), 1, plitem );
+#endif
 #endif
 			}
 			break;
@@ -616,6 +636,7 @@ void StandardPLPanel::setRootItem( playlist_item_t *p_item, bool b )
 
 void StandardPLPanel::browseInto( const QModelIndex &index )
 {
+	printf( "%s\n", __func__ );
 	if( currentView == iconView || currentView == listView || currentView == picFlowView )
 	{
 
@@ -640,6 +661,7 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 
 void StandardPLPanel::browseInto()
 {
+	printf( "-------------%s-------------\n", __func__ );
 	browseInto( (currentRootIndexPLId != -1 && currentView != treeView) ?
 			model->indexByPLID( currentRootIndexPLId, 0 ) :
 			QModelIndex() );

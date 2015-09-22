@@ -160,6 +160,14 @@ AbstractPLItem *VLCModel::getItem( const QModelIndex &index ) const
     else return NULL;
 }
 
+/*add by lili*/
+AbstractPLItem *VLCModel::getPLItem( const QModelIndex &index ) const
+{
+    if( index.isValid() )
+        return static_cast<AbstractPLItem*>( index.internalPointer() );
+    else return NULL;
+}
+
 QString VLCModel::getURI( const QModelIndex &index ) const
 {
     AbstractPLItem *item = getItem( index );

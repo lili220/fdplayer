@@ -34,6 +34,7 @@ static void Close( vlc_object_t* );
 static int vlc_sd_probe_Open( vlc_object_t * );
 static void AddDesktop(services_discovery_t *);
 static int onNewFileAdded( vlc_object_t*, char const *, vlc_value_t, vlc_value_t, void *);
+static void *Run( void *data );
 VLC_SD_PROBE_HELPER( "localshare", "Local Share", SD_CAT_SHARE )
 
 /*
@@ -63,7 +64,7 @@ static int Open( vlc_object_t *p_this )
 {
 	printf( "----------------------------func:%s------------------------------------\n", __func__) ;
     services_discovery_t *sd = (services_discovery_t *)p_this;
-	services_discovery_sys_t *p_sys = malloc( sizeof(*p_sys) );
+	services_discovery_sys_t *p_sys = (services_discovery_sys_t *)malloc( sizeof(*p_sys) );
 	if( p_sys == NULL )
 		return VLC_ENOMEM;
 	sd->p_sys = p_sys;
@@ -132,7 +133,7 @@ static int onNewFileAdded( vlc_object_t *p_this, char const *psz_var, vlc_value_
 static void *Run( void *data )
 {
 	printf( "------------------%s-------------------\n", __func__ );
-	services_discovery_t *sd = data;
+	services_discovery_t *sd = (services_discovery_t *)data;
 	services_discovery_sys_t *p_sys = sd->p_sys;
 
 	AddDesktop( sd );

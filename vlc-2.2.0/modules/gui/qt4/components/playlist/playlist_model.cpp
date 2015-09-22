@@ -645,9 +645,7 @@ void PLModel::rebuild( playlist_item_t *p_root )
 
     /* And signal the view */
     endResetModel();
-	printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     if( p_root ) emit rootIndexChanged();
-	printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
 }
 
 void PLModel::takeItem( PLItem *item )
@@ -728,6 +726,7 @@ void PLModel::updateChildren( playlist_item_t *p_node, PLItem *root )
 {
     for( int i = 0; i < p_node->i_children ; i++ )
     {
+		printf( "-------------i=%d------------------\n", i );//add by lili
         if( p_node->pp_children[i]->i_flags & PLAYLIST_DBL_FLAG ) continue;
         PLItem *newItem =  new PLItem( p_node->pp_children[i], root );
         root->appendChild( newItem );
@@ -928,10 +927,13 @@ void PLModel::addItem( QModelIndex index, QString name )//add by lili
     PL_LOCK;
     index = index.parent();
     if ( !index.isValid() ) index = rootIndex();
-    playlist_item_t *p_item = playlist_ItemGetById( p_playlist, itemId( index, PLAYLIST_ID ) );
-    if( p_item )
+    playlist_item_t *pl_item = playlist_ItemGetById( p_playlist, itemId( index, PLAYLIST_ID ) );
+    if( pl_item )
+	{
+		printf( "pl_item is not NULL\n " );
+        //playlist_ItemAdd( p_playlist, qtu( name ), pl_item, PLAYLIST_END, 0, NULL );
         //playlist_NodeCreate( p_playlist, qtu( name ), p_item, PLAYLIST_END, 0, NULL );
-        playlist_ItemAdd( p_playlist, qtu( name ), p_item, PLAYLIST_END, 0, NULL );
+	}
     PL_UNLOCK;
 
 }

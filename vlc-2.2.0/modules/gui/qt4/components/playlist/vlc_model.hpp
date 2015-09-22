@@ -143,6 +143,8 @@ public:
     static QString getMeta( const QModelIndex & index, int meta );
     static QPixmap getArtPixmap( const QModelIndex & index, const QSize & size );
 
+	/*add by lili */
+    virtual AbstractPLItem *getPLItem( const QModelIndex & index ) const;//add by lili
 public slots:
     /* slots handlers */
     virtual void ensureArtRequested( const QModelIndex &index );
