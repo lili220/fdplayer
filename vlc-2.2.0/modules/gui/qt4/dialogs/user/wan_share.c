@@ -16,9 +16,9 @@
 #include <fcntl.h>
 #include <linux/tcp.h>
 
+#include "ini.h"
 #include "wan_share.h"
 #include "thread_pool.h"
-
 
 #define DEBUG 1
 #define DEBUG_DEEP 0
@@ -37,13 +37,15 @@ struct task_t {
 	char host[PATH_SIZE];
 };
 
-char server_ip[] = "192.168.7.88";
-int server_port = 8090;
+//配置文件中读取的参数
+char *server_ip;
+int server_port;
 int heartbeat_interval = 30;
 int max_thread_num = 5;
-time_t select_timeout = 1;
-char share_path[] = "/home/zhangwanchun/";
+char *share_path;
 
+
+time_t select_timeout = 1;
 pthread_mutex_t wan_share_switch_mutex;
 
 //正则表达式
@@ -678,12 +680,39 @@ err1:
 	pthread_exit(NULL);
 }
 
+static int init_config(void)
+{
+	ini_t *conf = ini_load("vlc.conf");
+	if (conf == NULL) { 
+		printf("init_config(): %s(errno: %d)\n", strerror(errno), errno);
+		return -1;
+	}
+	ini_read_str(conf, "wan_share", "server_ip", &server_ip, NULL);
+	ini_read_int(conf, "wan_share", "server_port", &server_port, 0);
+	ini_read_int(conf, "wan_share", "heartbeat_interval", &heartbeat_interval, 0);
+	ini_read_int(conf, "wan_share", "max_thread_num", &max_thread_num, 0);
+	ini_read_str(conf, "wan_share", "share_path", &share_path, NULL);
+#if DEBUG
+	printf("init_config(): server_ip: [%s]\n", server_ip);
+	printf("init_config(): server_port: [%d]\n", server_port);
+	printf("init_config(): heartbeat_interval: [%d]\n", heartbeat_interval);
+	printf("init_config(): max_thread_num: [%d]\n", max_thread_num);
+	printf("init_config(): share_path: [%s]\n", share_path);
+#endif
+	ini_free(conf);
+	return 0;
+}
+
 int open_wan_share(int uid)
 {
+	if (init_config() < 0) {
+		return -1;
+	}
+
 	pthread_t wan_share_tid;
 	if (pthread_mutex_init(&wan_share_switch_mutex, NULL) != 0) {
 		printf("init wan_share_switch_mutex error: %s(errno: %d)\n", strerror(errno), errno);
-		return -1;
+		goto err;
 	}
 	pthread_mutex_lock(&wan_share_switch_mutex);
 	WAN_SHARE_SWITCH = 1;
@@ -692,13 +721,16 @@ int open_wan_share(int uid)
 	Uid = uid;
 	if (pthread_create(&wan_share_tid, NULL, wan_share, NULL) != 0) {
 		printf("Create wan_share thread failed\n");
-		return -1;
+		goto err;
 	}
 	if (pthread_detach(wan_share_tid) != 0) {
 		printf("Detach wan_share thread failed\n");
-		return -1;
+		goto err;
 	}
 	return 0;
+
+err:
+	return -1;
 }
 
 void close_wan_share(void)
