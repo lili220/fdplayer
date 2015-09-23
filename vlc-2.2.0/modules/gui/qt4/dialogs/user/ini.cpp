@@ -14,7 +14,7 @@
 # include <ctype.h>
 # include <arpa/inet.h>
 
-# include "ini.h"
+# include "ini.hpp"
 
 static bool is_comment(char **line)
 {
@@ -63,7 +63,7 @@ static ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
             while (*n < need_len)
                 *n *= 2;
 
-            *lineptr = realloc(*lineptr, *n);
+            *lineptr = (char *)realloc(*lineptr, *n);
             if (*lineptr == NULL)
             {
                 free(_line);
@@ -152,7 +152,7 @@ static void ini_print(ini_t *handler)
 
 static struct ini_section *create_section(struct ini_section *head, char *name)
 {
-    struct ini_section *p = calloc(1, sizeof(struct ini_section));
+    struct ini_section *p = (ini_section*)calloc(1, sizeof(struct ini_section));
 
     if (p == NULL)
     {
@@ -188,7 +188,7 @@ static struct ini_section *find_section(struct ini_section *head, char *name)
 
 static struct ini_arg *create_arg(struct ini_section *head, char *name, char *value)
 {
-    struct ini_arg *p = calloc(1, sizeof(struct ini_arg));
+    struct ini_arg *p = (ini_arg*)calloc(1, sizeof(struct ini_arg));
 
     if (p == NULL)
     {
@@ -359,7 +359,7 @@ ini_t *ini_load(char *path)
 
     if (head == NULL)
     {
-        if ((head = calloc(1, sizeof(struct ini_section))) == NULL)
+        if ((head = (ini_section*)calloc(1, sizeof(struct ini_section))) == NULL)
             return NULL;
     }
 

@@ -16,9 +16,9 @@
 #include <fcntl.h>
 #include <linux/tcp.h>
 
-#include "ini.h"
-#include "wan_share.h"
-#include "thread_pool.h"
+#include "ini.hpp"
+#include "wan_share.hpp"
+#include "thread_pool.hpp"
 
 #define DEBUG 1
 #define DEBUG_DEEP 0

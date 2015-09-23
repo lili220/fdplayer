@@ -62,9 +62,9 @@ libqt4_plugin_la_SOURCES = \
 	dialogs/user/registor.cpp dialogs/user/registor.hpp \
 	dialogs/user/useroption.cpp dialogs/user/useroption.hpp \
 	dialogs/user/usershare.cpp dialogs/user/usershare.hpp \
-	dialogs/user/ini.c dialogs/user/ini.h \
-	dialogs/user/thread_pool.c dialogs/user/thread_pool.h \
-	dialogs/user/wan_share.c dialogs/user/wan_share.h \
+	dialogs/user/ini.cpp dialogs/user/ini.hpp \
+	dialogs/user/thread_pool.cpp dialogs/user/thread_pool.hpp \
+	dialogs/user/wan_share.cpp dialogs/user/wan_share.hpp \
 	dialogs/gototime.cpp dialogs/gototime.hpp \
 	dialogs/toolbar.cpp dialogs/toolbar.hpp \
 	dialogs/open.cpp dialogs/open.hpp \
@@ -168,6 +168,9 @@ nodist_libqt4_plugin_la_SOURCES = \
 	dialogs/user/registor.moc.cpp \
 	dialogs/user/useroption.moc.cpp \
 	dialogs/user/usershare.moc.cpp \
+	dialogs/user/ini.moc.cpp \
+	dialogs/user/thread_pool.moc.cpp \
+	dialogs/user/wan_share.moc.cpp \
 	dialogs/gototime.moc.cpp \
 	dialogs/toolbar.moc.cpp \
 	dialogs/open.moc.cpp \

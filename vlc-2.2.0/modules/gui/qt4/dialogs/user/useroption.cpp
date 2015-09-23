@@ -29,9 +29,9 @@
 #include "qt4.hpp"
 #include "dialogs/user/useroption.hpp"
 #include "util/qt_dirs.hpp"
-extern "C" {
-#include "dialogs/user/wan_share.h"
-}
+//extern "C" {
+#include "dialogs/user/wan_share.hpp"
+//}
 
 #include <vlc_about.h>
 #include <vlc_intf_strings.h>
