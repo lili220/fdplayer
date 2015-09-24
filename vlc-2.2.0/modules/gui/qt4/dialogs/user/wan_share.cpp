@@ -580,7 +580,9 @@ static int receive_task(const int sockfd)
 				return -1;
 			}
 #if DEBUG
-			printf("receive_task(): \n%s", recv_pkg);
+			printf("-------------------receive task pkg------------------\n");
+			printf("%s\n", recv_pkg);
+			printf("-------------------receive task pkg------------------\n");
 #endif
 			//解析服务器发来的通知 & 初始化参数arg
 			struct task_t arg;
@@ -628,7 +630,7 @@ static int check_wan_share_switch(void)
 	}
 }
 
-static void* wan_share(void* arg)
+static int wan_share(void* arg)
 {
 	//登录
 	int cmd_sockfd;
@@ -679,17 +681,36 @@ static void* wan_share(void* arg)
 
 		//如果广域网共享关闭，则断开和服务器的连接、销毁线程池、退出线程
 		if (check_wan_share_switch() < 0) {
-			goto end;
+			goto exit;
 		}
 	}
-end:
 err2:
 	tpool_destroy();
 err1:
 	pthread_mutex_destroy(&wan_share_switch_mutex);
 	close(cmd_sockfd);
 	close_wan_share();
-	pthread_exit(NULL);
+	return 0;
+exit:
+	tpool_destroy();
+	pthread_mutex_destroy(&wan_share_switch_mutex);
+	close(cmd_sockfd);
+	close_wan_share();
+	return -1;
+}
+
+static void* wan_share_keep(void* arg)
+{
+	int ret;
+	while(1) {
+		ret = wan_share(arg);
+		if (ret == 0) {
+			sleep(5);
+			continue;
+		} else if (ret == -1) {
+			pthread_exit(NULL);
+		}
+	}
 }
 
 static int init_config(void)
@@ -715,34 +736,25 @@ static int init_config(void)
 	return 0;
 }
 
-int open_wan_share(int uid)
+void open_wan_share(int uid)
 {
-	if (init_config() < 0) {
-		return -1;
-	}
+	init_config();
 
 	pthread_t wan_share_tid;
 	if (pthread_mutex_init(&wan_share_switch_mutex, NULL) != 0) {
 		printf("init wan_share_switch_mutex error: %s(errno: %d)\n", strerror(errno), errno);
-		goto err;
 	}
 	pthread_mutex_lock(&wan_share_switch_mutex);
 	WAN_SHARE_SWITCH = 1;
 	pthread_mutex_unlock(&wan_share_switch_mutex);
 
 	Uid = uid;
-	if (pthread_create(&wan_share_tid, NULL, wan_share, NULL) != 0) {
+	if (pthread_create(&wan_share_tid, NULL, wan_share_keep, NULL) != 0) {
 		printf("Create wan_share thread failed\n");
-		goto err;
 	}
 	if (pthread_detach(wan_share_tid) != 0) {
 		printf("Detach wan_share thread failed\n");
-		goto err;
 	}
-	return 0;
-
-err:
-	return -1;
 }
 
 void close_wan_share(void)
@@ -765,9 +777,7 @@ int main()
 {
 //	printf("%s", HTTP_LOGIN);
 
-	if (open_wan_share(1103) < 0) {
-		exit(-1);
-	}
+	open_wan_share(1103);
 	sleep(9999999);
 
 	close_wan_share();
