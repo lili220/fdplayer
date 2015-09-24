@@ -48,6 +48,16 @@ char *share_path;
 time_t select_timeout = 1;
 pthread_mutex_t wan_share_switch_mutex;
 
+#define EXPANDED_NAME 10
+char media_file_flag[][EXPANDED_NAME] = {
+"wmv", "avi", "mpg", "mp4", "3gp", "wma", "rmvb", "rm", 	//视频
+"gif", "mkv", "vob", "mov", "flv", "swf", "dv", "asf",		//视频
+"ts", "dat", "f4v", "webm", 					//视频
+"mp3", "wma", "ape", "flac", "aac", "mmf", "amr", "m4a", 	//音频
+"m4r", "ogg", "wav", "mp2", "ac3", "ra", "au", 			//音频
+"jpg", "png", "ico", "bmp", "gif", "tif", "pcx", "tga",		//图片
+};
+
 //正则表达式
 char notify_re[] = "\\(NTFY\\) / HTTP/1.1\r\n.*\r\n.*\r\nUid: \\([0-9]*\\)\r\nForUid: *\\([0-9]*\\)\r\nFid: *\\([0-9]*\\)\r\nServerHost: \\(.*\\)\r\nServerPort: \\([0-9]*\\)\r\n.*";
 char get_re[] = "\\(GET\\) /\\([a-z]*\\)/\\([0-9]*\\)/\\([0-9]*\\)\\(/.*\\) HTTP";
@@ -159,7 +169,6 @@ static void init_servaddr(struct sockaddr_in *addr, char *server_ip, int server_
 	addr->sin_port = htons(server_port);
 	if( inet_pton(AF_INET, server_ip, &(addr->sin_addr)) <= 0){
 		printf("inet_pton error for %s\n", server_ip);
-//		exit(0);
 	}
 }
 
@@ -268,10 +277,30 @@ static void free_dirent(struct dirent **ent, int n)
 
 static int filter(const struct dirent *dir)
 {
-	if (dir->d_name[0] == '.') {
+	struct stat buf;
+	char absolute_path[PATH_SIZE];
+	snprintf(absolute_path, PATH_SIZE, "%s/%s", share_path, dir->d_name);
+	lstat(absolute_path, &buf);
+	if (S_ISDIR(buf.st_mode)) {
 		return 0;
 	}
-	return 1;
+	char *en = NULL;
+	int i;
+	char file_name[128];
+	strcpy(file_name, dir->d_name);
+	en = strrchr(file_name, '.');
+	if ( en == NULL ) {
+		return 0;
+	} else {
+		en = en + 1;
+		for (i = 0; i < (sizeof(media_file_flag) / EXPANDED_NAME); i++) {
+			if (strcmp(en, media_file_flag[i]) == 0) {
+				return 1;
+			}
+		}
+	}
+//		printf("%s\n", tmp_path_name);
+	return 0;
 }
 
 static int browse_media_file(int sockfd, char *path)
@@ -542,23 +571,6 @@ static int receive_task(const int sockfd)
 	FD_ZERO(&fds);
 	FD_SET(sockfd, &fds);
 
-//测试parse_notify & parse_get & browse_media_file & transfer_media_file
-#if 0
-	int foruid;
-	int fid;
-	char host[PKG_MAX];
-	int port;
-	parse_notify(TEST_NTFY, &foruid, &fid, host, &port);
-	char path[PATH_SIZE];
-	long range;
-//	parse_get(TEST_BROWSE, path, &range);
-//	browse_media_file(sockfd, path);
-//	parse_get(TEST_DOWNLOAD, path, &range);
-//	transfer_media_file(sockfd, path, range);
-	sleep(10);
-	exit(0);
-#endif
-
 	if (select(maxfd, &fds, NULL, NULL, &timeout) > 0) {
 		if(FD_ISSET(sockfd, &fds))
 		{
@@ -753,7 +765,7 @@ int main()
 {
 //	printf("%s", HTTP_LOGIN);
 
-	if (open_wan_share(1102) < 0) {
+	if (open_wan_share(1103) < 0) {
 		exit(-1);
 	}
 	sleep(9999999);
