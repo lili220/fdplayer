@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 
-extern int open_wan_share(int uid);
+extern void open_wan_share(int uid);
 
 extern void close_wan_share(void);
 
