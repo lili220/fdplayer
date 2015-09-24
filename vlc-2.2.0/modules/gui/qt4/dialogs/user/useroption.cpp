@@ -73,6 +73,7 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 	pRetValue = NULL;
 
 	pModule = NULL;
+	pModule1 = NULL;
 	regist = NULL;
 	login = NULL;
 	logout = NULL;
@@ -94,7 +95,8 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 
 	//readSettings();//read localshare state and netshare state
 	b_login = false;
-	b_load = init();
+	//b_load = init();
+	b_load = initialize();
 }
 
 UserOption::~UserOption()
@@ -182,6 +184,49 @@ bool UserOption::init()
 	if(keepalive == NULL)
 	{
 		printf( "keepalive is NULL\n" );
+		return false;
+	}
+
+	return true;
+}
+bool UserOption::initialize()
+{
+	printf( "---------------%s---------------\n", __func__ );
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return false;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return false;
+	}
+
+	regist = PyObject_GetAttrString(pModule,"nfschina_register");
+	if(regist == NULL)
+	{
+		printf("regist is NULL\n");
+		return false;
+	}
+
+	pModule1 = PyImport_ImportModule( "clientlg" );
+	if( pModule1  == NULL )
+	{
+		printf( "Can't Import clientlg! \n" );
+		return false;
+	}
+	login = PyObject_GetAttrString(pModule1,"nfschina_login");
+	if(login == NULL)
+	{
+		printf("login is NULL\n");
 		return false;
 	}
 

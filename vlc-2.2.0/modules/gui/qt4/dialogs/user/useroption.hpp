@@ -72,6 +72,7 @@ public:
     UserOption( intf_thread_t * _p_intf );
     virtual ~UserOption();
 	bool init();
+	bool initialize();//new
 	bool isLoaded(){ return b_load == true; }
 	bool isLogin(){ return b_login == true; }
 	void setLogin( bool state ){ b_login = state; }
@@ -132,6 +133,7 @@ private:
 	PyObject *pRetValue;
 
 	PyObject *pModule;
+	PyObject *pModule1;
 	PyObject *regist;
 	PyObject *login;
 	PyObject *logout;

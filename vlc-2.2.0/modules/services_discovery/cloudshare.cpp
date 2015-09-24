@@ -52,7 +52,7 @@ static int Open( vlc_object_t *p_this )
 {
     services_discovery_t *sd = (services_discovery_t *)p_this;
     
-    AddDesktop (sd);
+    //AddDesktop (sd);
 
     return 0;
 }

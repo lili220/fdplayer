@@ -14,7 +14,10 @@ liblocalshare_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(sddir)'
 liblocalshare_plugin_la_LIBADD = $(UPNP_LIBS) $(QT_LIBS) $(LIBS_qt4)
 sd_LTLIBRARIES += liblocalshare_plugin.la
 
-libcloudshare_plugin_la_SOURCES = services_discovery/cloudshare.c
+libcloudshare_plugin_la_SOURCES = services_discovery/cloudshare.cpp
+libcloudshare_plugin_la_CXXFLAGS = $(AM_CXXFLAGS) $(UPNP_CFLAGS) $(QT_CFLAGS) $(CXXFLAGS_qt4)
+libcloudshare_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(sddir)'
+libcloudshare_plugin_la_LIBADD = $(UPNP_LIBS) $(QT_LIBS) $(LIBS_qt4)
 sd_LTLIBRARIES += libcloudshare_plugin.la
 
 libremoteshare_plugin_la_SOURCES = services_discovery/remoteshare.cpp
