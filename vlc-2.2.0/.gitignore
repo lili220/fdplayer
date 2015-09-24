@@ -3,6 +3,8 @@
 *.la
 *.deps
 *.libs
+*.pyc
+*.moc.*
 
 Makefile
 bin/.deps/
