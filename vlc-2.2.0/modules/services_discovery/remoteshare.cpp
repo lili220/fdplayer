@@ -73,7 +73,7 @@ static int Open( vlc_object_t *p_this )
 
     
     AddDesktop (sd);
-    AddChildItem (sd);
+    //AddChildItem (sd);
 
     return 0;
 }
