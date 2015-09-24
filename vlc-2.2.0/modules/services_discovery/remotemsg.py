@@ -38,9 +38,8 @@ def nfschina_msg(userid,max_items):
     a = p1.findall(msg)
     tmp = []
     for i in range(0, len(a)):
-        # b = a[i].split()[]
-        tmp.append(str( a[i].split()[2]))
-    return tmp
+        tmp.append(str( a[i].split()[0])+" "+str( a[i].split()[1])+" "+str( a[i].split()[4]))
+    return a
 
 
 

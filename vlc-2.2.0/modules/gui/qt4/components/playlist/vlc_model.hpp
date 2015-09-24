@@ -98,7 +98,8 @@ public:
         ACTION_SAVETOPLAYLIST,
 		/*add by lili*/
         ACTION_DELLOCAL,
-        ACTION_ADDLOCAL
+        ACTION_ADDLOCAL,
+        ACTION_ADDSHARE
     };
     struct actionsContainerType
     {

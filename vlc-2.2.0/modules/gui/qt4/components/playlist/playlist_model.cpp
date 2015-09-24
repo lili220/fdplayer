@@ -998,6 +998,9 @@ bool PLModel::action( QAction *action, const QModelIndexList &indexes )
         //addLocalShare( indexes );
         return true;
 
+    case ACTION_ADDSHARE:
+        return true;
+
     case ACTION_SORT:
         if ( indexes.empty() ) break;
         index = indexes.first().parent();
@@ -1060,6 +1063,8 @@ bool PLModel::isSupportedAction( actions action, const QModelIndex &index ) cons
     case ACTION_ADDLOCAL://add by lili
 		//printf( " ACTION_DELLOCAL || ACTION_ADDLOCAL \n" );
 		return true;
+    case ACTION_ADDSHARE:
+        return true;
     case ACTION_EXPLORE:
         if( index.isValid() )
             return getURI( index ).startsWith( "file://" );

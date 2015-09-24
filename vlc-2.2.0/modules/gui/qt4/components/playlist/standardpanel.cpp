@@ -73,6 +73,9 @@
 
 #include <vlc_modules.h>
 
+#include <python2.7/Python.h>
+
+typedef list<string> LISTSTRING; 
 /* local helper */
 inline QModelIndex popupIndex( QAbstractItemView *view );
 
@@ -301,6 +304,8 @@ bool StandardPLPanel::popup( const QPoint &point )
     {
         menu.addAction( qtr( "ADD REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
         menu.addAction( qtr( "DELETE REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
+        ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("get user share"),
+                VLCModelSubInterface::ACTION_ADDSHARE );
     }
 
     CONNECT( &menu, triggered( QAction * ), this, popupAction( QAction * ) );
@@ -539,6 +544,88 @@ void StandardPLPanel::popupAction( QAction *action )
 #endif
 			}
 			break;
+        case VLCModelSubInterface::ACTION_ADDSHARE:
+            {
+                printf("%d\n", __LINE__);
+                if(model->rootIndex() == index.parent())
+                    printf("index is root index\n");
+                else
+                    return;
+                PyObject *pName1,*pModule1,*msg1,*pRetValue1,*pArgs1;
+                printf("%d\n", __LINE__);
+                // QString name = model->getTitle( index );
+
+                printf(" name = %s\n", index.data().toString().toStdString().c_str());
+                // Py_Initialize();
+                // printf("%d\n", __LINE__);
+                // if( !Py_IsInitialized() )
+                // {
+                //     printf( "Python initialize failed! \n" );
+                //     return ;
+                // }
+
+                PyRun_SimpleString( "import sys" );
+                PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
+                printf("%d\n", __LINE__);
+                pName1 = PyString_FromString("sharefile");
+                pModule1 = PyImport_Import(pName1);
+                printf("%d\n", __LINE__);
+
+                msg1 = PyObject_GetAttrString(pModule1,"getfile");
+                
+                if(msg1 == NULL)
+                {
+                    printf("msg is NULL\n");
+                    return;
+                }
+
+                pArgs1 = PyTuple_New( 3 );
+                PyTuple_SetItem( pArgs1, 0, Py_BuildValue( "s", "192.168.7.88:8090") );
+                PyTuple_SetItem( pArgs1, 1, Py_BuildValue( "s", "1001" ) );
+                PyTuple_SetItem( pArgs1, 2, Py_BuildValue( "s", "1102" ) );
+
+                pRetValue1 = PyObject_CallObject( msg1, pArgs1 );
+                if(pRetValue1 == NULL)
+                {
+                   printf("%d:pRetValue1 is NULL\n",__LINE__); 
+                   return;
+                }
+                int s = PyList_Size( pRetValue1 );
+                printf("%d\n", __LINE__);
+                // list<string> msgList;
+                LISTSTRING msgList1;
+                msgList1.clear();
+                LISTSTRING::iterator ii1; 
+                for( int i = 0; i < s; i++ )
+                {
+                    msgList1.push_back(PyString_AsString( PyList_GetItem( pRetValue1, i ) ) );
+                }
+
+                 printf("msgList1.size = %d\n", msgList1.size());
+                for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
+                {
+                    printf("%s\n", (*ii1).c_str());
+                    QString shareurl = "http://192.168.7.88:8090/transfer/1001/1102/";
+                    shareurl.append( (*ii1).c_str() );
+                    printf("shareurl:%s\n", shareurl.toStdString().c_str());
+                    input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+                    printf("%d\n", __LINE__);
+                    playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+
+                    if( play_item == NULL )
+                        return;
+                    else
+                    {
+                        printf("play_item->i_id = %d\n", play_item->i_id);
+                        
+
+                        playlist_item_t * newchilid=playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
+                        //playlist_NodeAddInput( THEPL, item , newchilid, PLAYLIST_APPEND, PLAYLIST_END, false );
+                        
+                    }
+                } 
+            }
+            break;  
 		default:
 			model->action( action, list );
 	}
