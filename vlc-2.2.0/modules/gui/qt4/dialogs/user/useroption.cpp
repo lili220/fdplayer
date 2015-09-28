@@ -323,8 +323,10 @@ int UserOption::nfschina_keeponline( int userid, bool b_share )
 	return err;
 }
 
-int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
+//int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
+int UserOption::nfschina_upLoad( int userid, const char* filename, const char* filepath )
 {
+	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
 	if( !isLogin() )
 	{
 		QMessageBox msgBox( QMessageBox::Information,
@@ -338,11 +340,14 @@ int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath 
 	}
 	pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
-	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", filepath.toStdString().c_str() ) );
+	//PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
+	//PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", filepath.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", filepath ) );
 
 	pRetValue = PyObject_CallObject( fileupload, pArgs );
-	int err = _PyInt_AsInt( pRetValue );
+	int err =0;
+	err = _PyInt_AsInt( pRetValue );
 
 	printf( "upload retvalue: %d \n", err );
 	
@@ -362,6 +367,7 @@ void UserOption::nfschina_listMyFile( int userid )
 
 		return ;
 	}
+
 	pArgs = PyTuple_New ( 1 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 
@@ -394,6 +400,33 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 
 		return filelist;
 	}
+
+#if 1//此处和远端模块由冲突，所以重新初始化python模块，能够正常
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return filelist;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return filelist;
+	}
+	listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
+	if(listmyfile == NULL)
+	{
+		printf("listmyfile is NULL\n");
+		return filelist;
+	}
+#endif
+
 	pArgs = PyTuple_New ( 1 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 

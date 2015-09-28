@@ -582,7 +582,8 @@ static void *uploadThread( void *arg )
 	qDebug() << "file = " << upInfo->file;
 	qDebug() << "filePath = " << upInfo->filePath;
 	UserOption *user = UserOption::getInstance();
-	int ret = user->nfschina_upLoad( upInfo->uid, upInfo->file, upInfo->filePath );
+	//int ret = user->nfschina_upLoad( upInfo->uid, upInfo->file, upInfo->filePath );
+	int ret = user->nfschina_upLoad( upInfo->uid, upInfo->file.toStdString().c_str(), upInfo->filePath.toStdString().c_str() );//to delete
 	return (void*) ret;
 }
 

@@ -547,9 +547,16 @@ void StandardPLPanel::popupAction( QAction *action )
 
 					/*upload selected file*/
 					printf( "before upload: %s\n", file.toStdString().c_str() );
+					printf( "filename:%s\n", filename.toStdString().c_str());
+					QString upfile = filename;
 					/*continue if upload failed*/
-					if( user->nfschina_upLoad( uid, filename, file ) == 0 )
-						continue;
+					printf( "upfile:%s\n", upfile.toStdString().c_str());
+					//if( user->nfschina_upLoad( uid, "yydd.mp3", "/home/lili/share/uudd.mp3" ) == 0 )
+					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) == 0 )
+					{
+						printf( "upload file %s failed!!!\n", filename.toStdString().c_str() );
+						break;
+					}
 
 					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
 					playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
@@ -558,6 +565,11 @@ void StandardPLPanel::popupAction( QAction *action )
 					else
 						playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
 				}
+			}
+			break;
+		case VLCModelSubInterface::ACTION_DELCLOUD:
+			{
+				printf( "delete cloud files\n" );
 			}
 			break;
         case VLCModelSubInterface::ACTION_ADDSHARE:
@@ -770,6 +782,7 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 	/* add by lili */
     if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
 	{
+		printf( "--------%s:%d------------\n", __func__, __LINE__ );
 		createCloudItems( index );
 	}
 }
@@ -777,7 +790,7 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 /* add by lili */
 void StandardPLPanel::createCloudItems( const QModelIndex &index )
 {
-	printf( "-------------%s--------------\n", __func__ );
+	printf( "--------%s:%d------------\n", __func__, __LINE__ );
 	UserOption *user = UserOption::getInstance( p_intf );
 	if( user == NULL )
 	{
