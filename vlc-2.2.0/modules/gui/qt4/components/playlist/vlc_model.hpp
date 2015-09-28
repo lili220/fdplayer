@@ -99,7 +99,10 @@ public:
 		/*add by lili*/
         ACTION_DELLOCAL,
         ACTION_ADDLOCAL,
-        ACTION_ADDSHARE
+        ACTION_ADDCLOUD,
+        ACTION_DELCLOUD,
+        ACTION_DWNCLOUD,
+        ACTION_ADDSHARE,
     };
     struct actionsContainerType
     {
