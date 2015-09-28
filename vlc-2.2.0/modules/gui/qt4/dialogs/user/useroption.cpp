@@ -28,6 +28,7 @@
 
 #include "qt4.hpp"
 #include "dialogs/user/useroption.hpp"
+#include "dialogs/user/login.hpp"
 #include "util/qt_dirs.hpp"
 //extern "C" {
 #include "dialogs/user/wan_share.hpp"
@@ -524,6 +525,11 @@ void UserOption::toggleLocalShared( bool state )
 	}
 }
 
+void UserOption::private_login()
+{
+	LoginDialog::getInstance( p_intf )->toggleVisible();
+}
+
 void UserOption::toggleNetShared( bool state )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
@@ -532,7 +538,11 @@ void UserOption::toggleNetShared( bool state )
 
 	printf("state = %d\n", state );
 	printf("b_netShared = %d\n", b_netShared );
-	if( isLogin() )
+	if( !isLogin() )
+	{
+		private_login();
+	}
+	if ( isLogin() )
 	{
 		if (state == 1)
 		{
@@ -543,10 +553,10 @@ void UserOption::toggleNetShared( bool state )
 			qDebug() << "close wan share!";
 		}
 		b_netShared = state;
+	}
 	//	printf("line:%d\n", __LINE__);
 	//	nfschina_keepalive("0.0.0.0", 8000, getLUid(), state, getServerUrl() );
 	//	nfschina_keeponline( getLUid(), getNetShared() );
-	}
 	printf("line:%d\n", __LINE__);
 }
 
