@@ -498,7 +498,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				//QString filename = file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str();
 				QString filename = qtu(QString(file.right( file.count() - file.lastIndexOf("/") - 1 )));
 				QString cmd = "link ";
-				cmd.append(file);
+				cmd.append(qtu(file));
 				cmd.append( " " );
 				cmd.append( qtu(QString(sharePath)) );
 				cmd.append( "/");
