@@ -73,6 +73,8 @@ public:
 
     static QMenu *viewSelectionMenu(StandardPLPanel *obj);
 
+	void createCloudItems( const QModelIndex &index); //add by lili
+
 protected:
     VLCModel *model;
     virtual void wheelEvent( QWheelEvent *e );

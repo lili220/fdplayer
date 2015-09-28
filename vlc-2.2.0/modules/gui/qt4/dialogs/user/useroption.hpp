@@ -84,6 +84,7 @@ public:
 	void nfschina_keepalive(QString localIp, int localPort, int userid, bool is_share, QString ServerUrl);
 	int nfschina_upLoad( int userid, QString filename, QString filepath );
 	void nfschina_listMyFile( int userid );
+	QList<QString> nfschina_GetFileList( int userid );
 	int nfschina_delete( int userid, QString filename );
 	QString nfschina_download( int userid, QString filename );
 

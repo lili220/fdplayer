@@ -68,10 +68,9 @@ static int Open( vlc_object_t *p_this )
     
     // PyRun_SimpleString( "sys.path.append('.')" );
     printf("%s:%s:%d\n", __FILE__, __func__, __LINE__);
-    
-
-    
+#if 1 //comment by lili
     AddDesktop (sd);
+#endif
 
     return 0;
 }

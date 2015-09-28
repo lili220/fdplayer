@@ -44,6 +44,8 @@
 #include <vlc_services_discovery.h>               /* SD_CMD_SEARCH */
 #include <vlc_intf_strings.h>                     /* POP_ */
 
+#include "dialogs/user/useroption.hpp"                   /* add by lili */
+
 #define I_NEW_DIR \
     I_DIR_OR_FOLDER( N_("Create Directory"), N_( "Create Folder" ) )
 #define I_NEW_DIR_NAME \
@@ -75,7 +77,7 @@
 
 #include <python2.7/Python.h>
 
-typedef list<string> LISTSTRING; 
+typedef list<string> LISTSTRING;
 /* local helper */
 inline QModelIndex popupIndex( QAbstractItemView *view );
 
@@ -290,11 +292,19 @@ bool StandardPLPanel::popup( const QPoint &point )
 				VLCModelSubInterface::ACTION_DELLOCAL );
 #endif
     }
+
     if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
     {
-        menu.addAction( qtr( "ADD CLOUD SHARE" ), this, SLOT( increaseZoom() ) );
-        menu.addAction( qtr( "DELETE ClOUD SHARE" ), this, SLOT( increaseZoom() ) );
+        //menu.addAction( qtr( "ADD CLOUD SHARE" ), this, SLOT( increaseZoom() ) );
+        //menu.addAction( qtr( "DELETE ClOUD SHARE" ), this, SLOT( increaseZoom() ) );
+
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("上传云共享文件"), VLCModelSubInterface::ACTION_ADDCLOUD );
+
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("下载云共享文件"), VLCModelSubInterface::ACTION_DWNCLOUD );
+
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("删除云共享文件"), VLCModelSubInterface::ACTION_DELCLOUD );
     }
+
     if (p_selector->getCurrentItemCategory() == LANSHARE )
     {
         menu.addAction( qtr( "ADD LAN SHARE" ), this, SLOT( increaseZoom() ) );
@@ -500,16 +510,8 @@ void StandardPLPanel::popupAction( QAction *action )
 				url.append( qtu(QString(sharePath)) );
 				url.append( "/" );
 				url.append( filename );
-				//model->createNode( index, filename );
-				//model->addItem( index, filename );
 
-				//AbstractPLItem *abs_item = model->getPLItem( index );
-
-#if 1
 				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
-
-				//playlist_item_t *p_playlist = new playlist_item_t;
-				//p_playlist->p_input = item;
 
 				//playlist_item_t *play_item = playlist_ChildSearchName( THEPL->p_root, "Local share" );
 				playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
@@ -517,31 +519,45 @@ void StandardPLPanel::popupAction( QAction *action )
 					printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
 				else
 				{
-					//PLItem *plitem = PLItem::makePLItem( p_playlist );
-					//playlist_NodeAppend( THEPL, play_item, play_item->p_parent );
-					//playlist_NodeCreate( THEPL, filename.toStdString().c_str(), p_playlist, PLAYLIST_APPEND, PLAYLIST_EXPANDED_FLAG |PLAYLIST_SAVE_FLAG, NULL );
-					//playlist_AddInput( THEPL, item, 0, PLAYLIST_END, true, false);
-					//playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_INSERT, PLAYLIST_END, false, false );
 					playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-#if 0
-					printf( "url:%s\n",  url.toStdString().c_str());
-					playlist_NodeCreate( THEPL, filename.toStdString().c_str(), play_item, PLAYLIST_END, PLAYLIST_EXPANDED_FLAG , item );
-					playlist_Add( THEPL, url.toStdString().c_str(), filename.toStdString().c_str(), PLAYLIST_APPEND, PLAYLIST_END, true, true );
-#endif
-					//play_item->i_children += 1;
-					//play_item->pp_children[play_item->i_children - 1] = p_playlist;
-					//setRootItem( play_item, false );
-					//model->rebuild( play_item );
-					printf( "---------line:%d:play_item is not NULL and i_children = %d\n", __LINE__, play_item->i_children );
+					printf( "---------i_children = %d\n", play_item->i_children );
 				}
-#if 0
-				PLItem *plitem = PLItem::makePLItem( p_playlist );
-				PLModel *plmodel = PLModel::getPLModel( p_intf );
+			}
+			break;
+		case VLCModelSubInterface::ACTION_ADDCLOUD:
+			{
+				UserOption *user = UserOption::getInstance( p_intf );
+				int uid = user->getLUid();
+				QString uidstr; uidstr.setNum( uid );
 
-				//plmodel->addLocalShare( currentView->currentIndex().row(), 1, plitem );
-				plmodel->addLocalShare( currentView->currentIndex(), currentView->currentIndex().row(), 1, plitem );
-#endif
-#endif
+				uris = THEDP->showSimpleOpen();
+				if ( uris.isEmpty() ) return;
+				uris.sort();
+				foreach( const QString &file, uris )
+				{
+					a.uris << qtu( toURI( toNativeSeparators( file ) ) );
+					action->setData( QVariant::fromValue( a ) );
+
+					/* Get local file information */
+					QString filename = qtu(QString(file.right( file.count() - file.lastIndexOf("/") - 1 )));
+					QString url = "http://192.168.7.97/download/";
+					url.append( uidstr );
+					url.append( "/" );
+					url.append( filename );
+
+					/*upload selected file*/
+					printf( "before upload: %s\n", file.toStdString().c_str() );
+					/*continue if upload failed*/
+					if( user->nfschina_upLoad( uid, filename, file ) == 0 )
+						continue;
+
+					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+					playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+					if( play_item == NULL )
+						printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+					else
+						playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+				}
 			}
 			break;
         case VLCModelSubInterface::ACTION_ADDSHARE:
@@ -623,7 +639,7 @@ void StandardPLPanel::popupAction( QAction *action )
                         //playlist_NodeAddInput( THEPL, item , newchilid, PLAYLIST_APPEND, PLAYLIST_END, false );
                         
                     }
-                } 
+                }
             }
             break;  
 		default:
@@ -750,6 +766,51 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 	}
 
 	emit viewChanged( index );
+
+	/* add by lili */
+    if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
+	{
+		createCloudItems( index );
+	}
+}
+
+/* add by lili */
+void StandardPLPanel::createCloudItems( const QModelIndex &index )
+{
+	printf( "-------------%s--------------\n", __func__ );
+	UserOption *user = UserOption::getInstance( p_intf );
+	if( user == NULL )
+	{
+		printf( "Failed to UerOption::getInstance\n" );
+		return;
+	}
+
+	if( !user->isLogin() )
+	{
+		printf( "Please login first!\n" );
+		return ;
+	}
+
+	int uid = user->getLUid();
+	QList<QString> files = user->nfschina_GetFileList( uid );
+	foreach( const QString& file, files )
+	{
+		printf( "file:%s\n", file.toStdString().c_str() );
+		QString url = "http://192.168.7.97/download/";
+		QString uidstr; uidstr.setNum( uid );
+		url.append( uidstr );
+		url.append( "/" );
+		url.append( qtu(file) );
+		printf( "url:%s\n", url.toStdString().c_str() );
+		input_item_t *item = input_item_NewWithType ( qtu(url), qtu(file), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+		playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+		if( play_item == NULL )
+			printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+		else
+		{
+			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+		}
+	}
 }
 
 void StandardPLPanel::browseInto()

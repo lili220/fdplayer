@@ -386,15 +386,24 @@ void PLSelector::setSource( QTreeWidgetItem *item )
     if( i_type == SD_TYPE )
     {
         QString qs = item->data( 0, NAME_ROLE ).toString();
-		printf( "-------------------qs:%s-----------------------\n", qs.toStdString().c_str() );//add by lili
+		printf( "-----------qs:%s----------\n", qs.toStdString().c_str() );//add by lili
         sd_loaded = playlist_IsServicesDiscoveryLoaded( THEPL, qtu( qs ) );
+#if 1
+		if( sd_loaded )
+		{
+			 if( !qs.startsWith("upnp") )
+			 {
+				 playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+				 sd_loaded = false;
+			 }
+		}
+#endif
+
         if( !sd_loaded )
         {
-			printf( "----------------%s:%d--------------------\n", __func__, __LINE__ );
             if ( playlist_ServicesDiscoveryAdd( THEPL, qtu( qs ) ) != VLC_SUCCESS )
                 return ;
 
-			printf( "----------------%s:%d--------------------\n", __func__, __LINE__ );
             services_discovery_descriptor_t *p_test = new services_discovery_descriptor_t;
             int i_ret = playlist_ServicesDiscoveryControl( THEPL, qtu( qs ), SD_CMD_DESCRIPTOR, p_test );
             if( i_ret == VLC_SUCCESS && p_test->i_capabilities & SD_CAP_SEARCH )

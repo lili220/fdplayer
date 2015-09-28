@@ -216,17 +216,32 @@ bool UserOption::initialize()
 		printf("regist is NULL\n");
 		return false;
 	}
-
+#if 0
 	pModule1 = PyImport_ImportModule( "clientlg" );
 	if( pModule1  == NULL )
 	{
 		printf( "Can't Import clientlg! \n" );
 		return false;
 	}
-	login = PyObject_GetAttrString(pModule1,"nfschina_login");
+#endif
+	login = PyObject_GetAttrString(pModule,"nfschina_login");
 	if(login == NULL)
 	{
 		printf("login is NULL\n");
+		return false;
+	}
+
+	listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
+	if(listmyfile == NULL)
+	{
+		printf("listmyfile is NULL\n");
+		return false;
+	}
+
+	fileupload = PyObject_GetAttrString(pModule,"nfschina_upload");
+	if(fileupload == NULL)
+	{
+		printf("fileupload is NULL\n");
 		return false;
 	}
 
@@ -362,6 +377,44 @@ void UserOption::nfschina_listMyFile( int userid )
 	printf( "s = %d, fileList count = %d\n", s, fileList.count() );
 
 	return ;
+}
+
+QList<QString> UserOption::nfschina_GetFileList( int userid )
+{
+	QList<QString> filelist;
+	filelist.clear();
+	if( !isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "获取共享文件" ),
+				qtr( "您还未登陆，不能获取共享文件列表！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+
+		return filelist;
+	}
+	pArgs = PyTuple_New ( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
+
+	pRetValue = PyObject_CallObject( listmyfile, pArgs );
+	if( pRetValue == NULL )
+	{
+		printf( "pRetValue for nfschina_GetFileList is NULL\n" );
+		return filelist;
+	}
+
+	int s = PyList_Size( pRetValue );
+
+	//filelist.clear(); int i = 0;
+	for( int i = 0; i < s; i++ )
+	{
+		printf( "file[%d]:%s\n", i,  PyString_AsString( PyList_GetItem( pRetValue, i ) ));
+		filelist << PyString_AsString( PyList_GetItem( pRetValue, i ) );
+	}
+	printf( "s = %d, fileList count = %d\n", s, filelist.count() );
+
+	return filelist;
 }
 
 int UserOption::nfschina_delete( int userid, QString filename )

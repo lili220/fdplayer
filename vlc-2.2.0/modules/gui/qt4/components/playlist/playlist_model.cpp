@@ -676,7 +676,6 @@ void PLModel::insertChildren( PLItem *node, QList<PLItem*>& items, int i_pos )
 
 void PLModel::removeItem( PLItem *item )
 {
-	//printf( "item->getTitle:%s\n", (item->getTitle()).toStdString().c_str() );
     if( !item ) return;
 
     if( item->parent() ) {
@@ -685,19 +684,14 @@ void PLModel::removeItem( PLItem *item )
         item->parent()->children.removeAt(i);
         delete item;
         endRemoveRows();
-		printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     }
     else
-	{
-		printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
 		delete item;
-	}
 
     if(item == rootItem)
     {
         rootItem = NULL;
         rebuild( p_playlist->p_playing );
-		printf( "----------------------%s:%s:%d--------------------------\n", __FILE__, __func__, __LINE__ );
     }
 }
 
@@ -726,7 +720,6 @@ void PLModel::updateChildren( playlist_item_t *p_node, PLItem *root )
 {
     for( int i = 0; i < p_node->i_children ; i++ )
     {
-		printf( "-------------i=%d------------------\n", i );//add by lili
         if( p_node->pp_children[i]->i_flags & PLAYLIST_DBL_FLAG ) continue;
         PLItem *newItem =  new PLItem( p_node->pp_children[i], root );
         root->appendChild( newItem );
@@ -1061,7 +1054,10 @@ bool PLModel::isSupportedAction( actions action, const QModelIndex &index ) cons
         return index.isValid() && index != rootIndex();
     case ACTION_DELLOCAL://add by lili
     case ACTION_ADDLOCAL://add by lili
-		//printf( " ACTION_DELLOCAL || ACTION_ADDLOCAL \n" );
+		return true;
+    case ACTION_ADDCLOUD://add by lili
+    case ACTION_DWNCLOUD://add by lili
+    case ACTION_DELCLOUD://add by lili
 		return true;
     case ACTION_ADDSHARE:
         return true;
