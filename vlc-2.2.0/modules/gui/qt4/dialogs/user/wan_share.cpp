@@ -174,6 +174,7 @@ static void init_servaddr(struct sockaddr_in *addr, char *server_ip, int server_
 
 static void init_login_pkg(char *pkg, char *pkg_template, int foruid, int fid)
 {
+	memset(pkg, 0, PKG_MAX);
 	snprintf(pkg, PKG_MAX, pkg_template, server_ip, server_port, Uid, foruid, fid);
 #if DEBUG
 	printf("init_login_pkg(): \n%s", pkg);
@@ -446,10 +447,11 @@ static int deal_task(struct task_t *arg)
 		goto end;
 	}
 #if DEBUG
-	printf("deal_task(): send LOGIN: send_len: [%ld]\n", send_len);
+	printf("deal_task(): send LOGIN: socket: [%d], send_len: [%ld]\n", sockfd, send_len);
 #endif
 
 	char recv_pkg[PKG_MAX];
+	memset(recv_pkg, 0, PKG_MAX);
 	if((len = recv(sockfd, recv_pkg, PKG_MAX, 0)) == -1) {
 		printf("deal_task(): recv error: %s(errno: %d)\n", \
 			strerror(errno), errno);
@@ -571,17 +573,20 @@ static int receive_task(const int sockfd)
 	FD_ZERO(&fds);
 	FD_SET(sockfd, &fds);
 
+	memset(recv_pkg, 0, PKG_MAX);
 	if (select(maxfd, &fds, NULL, NULL, &timeout) > 0) {
 		if(FD_ISSET(sockfd, &fds))
 		{
-			if((len = recv(sockfd, recv_pkg, PKG_MAX,0)) == -1) {
-				printf("receive_task(): recv error: %s(errno: %d)\n", \
+			if((len = recv(sockfd, recv_pkg, PKG_MAX, 0)) <= 0) {
+				printf("receive_task(): recv_len: [%d], sockfd: [%d], \
+					recv error: %s(errno: %d)\n", len, sockfd,
 					strerror(errno), errno);
 				return -1;
 			}
 #if DEBUG
 			printf("-------------------receive task pkg------------------\n");
 			printf("%s\n", recv_pkg);
+			printf("recv pkg's len :[%d]\n", len);
 			printf("-------------------receive task pkg------------------\n");
 #endif
 			//解析服务器发来的通知 & 初始化参数arg
@@ -602,6 +607,7 @@ static int heartbeat(int sockfd, time_t* last_heartbeat_time)
 	time_t current_time = time(NULL);
 	if (current_time - *last_heartbeat_time > heartbeat_interval) {
 		char heartbeat_pkg[PKG_MAX];
+		memset(heartbeat_pkg, 0, PKG_MAX);
 		snprintf(heartbeat_pkg, PKG_MAX, HTTP_HEARTBEAT, Uid);
 		long send_len = 0;
 		if( (send_len = send(sockfd, heartbeat_pkg, strlen(heartbeat_pkg), 0) ) < 0) {
@@ -659,7 +665,7 @@ static int wan_share(void* arg)
 		goto err1;
 	}
 #if DEBUG
-	printf("wan_share(): send LOGIN: send_len: [%ld]\n", send_len);
+	printf("wan_share(): send LOGIN: socket: [%d], send_len: [%ld]\n", cmd_sockfd, send_len);
 #endif
 
 	//初始化线程池
@@ -687,15 +693,12 @@ static int wan_share(void* arg)
 err2:
 	tpool_destroy();
 err1:
-	pthread_mutex_destroy(&wan_share_switch_mutex);
 	close(cmd_sockfd);
-	close_wan_share();
 	return 0;
 exit:
 	tpool_destroy();
 	pthread_mutex_destroy(&wan_share_switch_mutex);
 	close(cmd_sockfd);
-	close_wan_share();
 	return -1;
 }
 
@@ -705,7 +708,10 @@ static void* wan_share_keep(void* arg)
 	while(1) {
 		ret = wan_share(arg);
 		if (ret == 0) {
-			sleep(5);
+#if DEBUG
+			printf("wan_share_keep(): restart wan share\n");
+#endif
+			
 			continue;
 		} else if (ret == -1) {
 			pthread_exit(NULL);
@@ -777,7 +783,7 @@ int main()
 {
 //	printf("%s", HTTP_LOGIN);
 
-	open_wan_share(1103);
+	open_wan_share(1102);
 	sleep(9999999);
 
 	close_wan_share();
