@@ -29,19 +29,23 @@ def nfschina_msg(userid,max_items):
     webservice.send(SoapMessage)
     # get the response
     statuscode, statusmessage, header = webservice.getreply()
-    # print "Response: ", statuscode, statusmessage
+    print "Response: ", statuscode, statusmessage
     # print "headers: ", header
     # return webservice.getfile().read()
-    # print webservice.getfile().read()
+    #print webservice.getfile().read()
     msg = webservice.getfile().read()
+    '''<s0:string>192.168.7.88 8090 2337 1102 1102 192.168.7.88 33611</s0:string>'''
     p1=re.compile(r'(?<=<tns:string>)(.*?)(?=</tns:string>)')
+    p2=re.compile(r'(?<=<s0:string>)(.*?)(?=</s0:string>)')
     a = p1.findall(msg)
+    print a
     tmp = []
     for i in range(0, len(a)):
-        tmp.append(str( a[i].split()[0])+" "+str( a[i].split()[1])+" "+str( a[i].split()[4]))
-    return a
+        tmp.append(str( a[i].split()[0])+" "+str( a[i].split()[1])+" "+str( a[i].split()[4])+" "+str( a[i].split()[5])+" "+str( a[i].split()[6]))
+    print tmp
+    return tmp
 
 
 
-# if __name__ == "__main__":
-# 	print(nfschina_login(34,2))[1]
+#if __name__ == "__main__":
+#    print(nfschina_msg(34,2))

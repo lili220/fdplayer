@@ -587,13 +587,15 @@ void StandardPLPanel::popupAction( QAction *action )
                 PyObject *pName1,*pModule1,*msg1,*pRetValue1,*pArgs1;
 	  	  UserOption *user = NULL;
 
+		  QString serverip = model->getURI( index);
+
 		  int mid = 0;
 		  char user_info[128] = {0};
 		  char service_ip[128] = {0};
 		  char cmid[128] = {0};
 		  char sid[128] = {0};
 		  char *p = NULL;
-		  memcpy(user_info,  index.data().toString().toStdString().c_str(), strlen(index.data().toString().toStdString().c_str()));
+		  memcpy(user_info,  serverip.toStdString().c_str(), strlen(serverip.toStdString().c_str()));
                 printf("get share user info = %s\n", user_info);
 
 		  p = strrchr(user_info, 32);
@@ -649,7 +651,11 @@ void StandardPLPanel::popupAction( QAction *action )
                 for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
                 {
                     printf("%s\n", (*ii1).c_str());
-                    QString shareurl = "http://192.168.7.88:8090/transfer/1001/1102/";
+                    QString shareurl = "http://192.168.7.88:8090/transfer/";
+		      shareurl.append( cmid );
+		      shareurl.append( "/" );
+                    shareurl.append( sid);
+		      shareurl.append( "/" );
                     shareurl.append( (*ii1).c_str() );
                     printf("shareurl:%s\n", shareurl.toStdString().c_str());
                     input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_CARD);
@@ -900,8 +906,24 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
        for (ii = msgList.begin(); ii != msgList.end(); ++ii)
        {
             printf("msgList = %s\n", (*ii).c_str());
+	     
+     	     char *p = NULL;
+     	     char *p1 = NULL;
+     	     char buf[128] = {0};
+     	     char serviceip[128] = {0};
+     	     char userip[128] = {0};
+     	     strcpy(buf, (*ii).c_str());
+     	     p = strchr(buf, 32);
+     	     p = strchr(p+1, 32);
+     	     p = strchr(p+1, 32);
+     	     memcpy(serviceip, buf, p-buf);
+	     strcpy(userip, p+1);
+
+     	     printf("serviceip = %s\n", serviceip);
+	     printf("userip = %s\n", userip);
+
             input_item_t *item;
-            item = input_item_NewWithType ("", _((*ii).c_str()),
+            item = input_item_NewWithType (serviceip, userip,
                                   0, NULL, 0, -1, ITEM_TYPE_DIRECTORY);
             if (item == NULL)
         	    return;
