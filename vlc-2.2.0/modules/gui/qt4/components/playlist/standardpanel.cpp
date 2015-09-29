@@ -568,24 +568,27 @@ void StandardPLPanel::popupAction( QAction *action )
                 else
                     return;
                 PyObject *pName1,*pModule1,*msg1,*pRetValue1,*pArgs1;
-                printf("%d\n", __LINE__);
-                // QString name = model->getTitle( index );
+	  	  UserOption *user = NULL;
 
-                printf(" name = %s\n", index.data().toString().toStdString().c_str());
-                // Py_Initialize();
-                // printf("%d\n", __LINE__);
-                // if( !Py_IsInitialized() )
-                // {
-                //     printf( "Python initialize failed! \n" );
-                //     return ;
-                // }
+		  int mid = 0;
+		  char user_info[128] = {0};
+		  char service_ip[128] = {0};
+		  char cmid[128] = {0};
+		  char sid[128] = {0};
+		  char *p = NULL;
+		  memcpy(user_info,  index.data().toString().toStdString().c_str(), strlen(index.data().toString().toStdString().c_str()));
+                printf("get share user info = %s\n", user_info);
+
+		  p = strrchr(user_info, 32);
+		  memcpy(sid, p+1, strlen(p));
+		  memcpy(service_ip, user_info, p-user_info);
+		  p = strrchr(service_ip, 32);
+                *p = ':';
 
                 PyRun_SimpleString( "import sys" );
                 PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
-                printf("%d\n", __LINE__);
                 pName1 = PyString_FromString("sharefile");
                 pModule1 = PyImport_Import(pName1);
-                printf("%d\n", __LINE__);
 
                 msg1 = PyObject_GetAttrString(pModule1,"getfile");
                 
@@ -595,10 +598,18 @@ void StandardPLPanel::popupAction( QAction *action )
                     return;
                 }
 
+	         user = UserOption::getInstance( p_intf );
+                if(user)
+                {
+                	mid = user->getLUid();
+			sprintf(cmid, "%d", mid);
+		  }
+	         printf("service_ip = %s, cmid = %s, sid = %s\n", service_ip, cmid, sid);
+
                 pArgs1 = PyTuple_New( 3 );
-                PyTuple_SetItem( pArgs1, 0, Py_BuildValue( "s", "192.168.7.88:8090") );
-                PyTuple_SetItem( pArgs1, 1, Py_BuildValue( "s", "1001" ) );
-                PyTuple_SetItem( pArgs1, 2, Py_BuildValue( "s", "1102" ) );
+                PyTuple_SetItem( pArgs1, 0, Py_BuildValue( "s", service_ip) );
+                PyTuple_SetItem( pArgs1, 1, Py_BuildValue( "s", cmid) );
+                PyTuple_SetItem( pArgs1, 2, Py_BuildValue( "s", sid ) );
 
                 pRetValue1 = PyObject_CallObject( msg1, pArgs1 );
                 if(pRetValue1 == NULL)
@@ -617,7 +628,7 @@ void StandardPLPanel::popupAction( QAction *action )
                     msgList1.push_back(PyString_AsString( PyList_GetItem( pRetValue1, i ) ) );
                 }
 
-                 printf("msgList1.size = %d\n", msgList1.size());
+                printf("msgList1.size = %ld\n", msgList1.size());
                 for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
                 {
                     printf("%s\n", (*ii1).c_str());
@@ -633,11 +644,7 @@ void StandardPLPanel::popupAction( QAction *action )
                     else
                     {
                         printf("play_item->i_id = %d\n", play_item->i_id);
-                        
-
-                        playlist_item_t * newchilid=playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
-                        //playlist_NodeAddInput( THEPL, item , newchilid, PLAYLIST_APPEND, PLAYLIST_END, false );
-                        
+                        playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
                     }
                 }
             }
@@ -768,9 +775,13 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 	emit viewChanged( index );
 
 	/* add by lili */
-    if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
+       if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
 	{
 		createCloudItems( index );
+	}
+	if (p_selector->getCurrentItemCategory() == REMOTESHARE )
+	{
+		createRemoteShareItems( index );
 	}
 }
 
@@ -811,6 +822,80 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
 		}
 	}
+}
+
+void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
+{
+	PyObject *pName,*pModule,*msg,*pRetValue,*pArgs;
+       UserOption *user = NULL;
+	int mid = 0;
+
+       printf("createRemoteShareItems\n");
+	user = UserOption::getInstance( p_intf );
+	if( user == NULL )
+	{
+		printf( "Failed to UerOption::getInstance\n" );
+		return;
+	}
+
+	if( !user->isLogin() )
+	{
+		printf( "Please login first!\n" );
+		return ;
+	}
+
+	mid = user->getLUid();
+
+	Py_Initialize();
+
+	if( !Py_IsInitialized() )
+	{
+	      printf( "Python initialize failed! \n" );
+	      return ;
+	}
+       PyRun_SimpleString( "import sys" );
+       PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
+       pName = PyString_FromString("remotemsg");
+       pModule = PyImport_Import(pName);
+
+       msg = PyObject_GetAttrString(pModule,"nfschina_msg");
+       if(msg == NULL)
+       {
+            printf("msg is NULL\n");
+            return;
+       }
+
+       pArgs = PyTuple_New( 2 );
+       PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", mid) );
+       PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", 100 ) );
+       pRetValue = PyObject_CallObject( msg, pArgs );
+       int s = PyList_Size( pRetValue );
+
+	LISTSTRING msgList;
+	msgList.clear();
+	LISTSTRING::iterator ii; 
+	for( int i = 0; i < s; i++ )
+	{
+	     msgList.push_back(PyString_AsString( PyList_GetItem( pRetValue, i ) ) );
+	}
+
+       printf("msgList.size = %d\n", msgList.size());
+       for (ii = msgList.begin(); ii != msgList.end(); ++ii)
+       {
+            printf("msgList = %s\n", (*ii).c_str());
+            input_item_t *item;
+            item = input_item_NewWithType ("", _((*ii).c_str()),
+                                  0, NULL, 0, -1, ITEM_TYPE_DIRECTORY);
+            if (item == NULL)
+        	    return;
+	     playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+	     if( play_item == NULL )
+		    printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+	     else
+	     {
+		     playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+	     }
+        }
 }
 
 void StandardPLPanel::browseInto()
