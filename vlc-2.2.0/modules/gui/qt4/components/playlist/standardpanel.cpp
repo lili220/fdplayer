@@ -474,13 +474,29 @@ void StandardPLPanel::popupAction( QAction *action )
 
 			/*add by lili*/
 		case VLCModelSubInterface::ACTION_DELLOCAL:
-			printf("del file %s\n", index.data().toString().toStdString().c_str());
+			{
+			QString file = " rm ";
+			file.append(qtu(QString(sharePath)));
+			file.append("/");
+			file.append( qtu(index.data().toString()) );
+			printf("qtu index.data:%s\n", qtu(index.data().toString()));
+			printf( "del file:%s\n", qtu(file) );
+			printf("file no qtu:%s\n", file.toStdString().c_str() );
+			system( file.toStdString().c_str() );
+
+			
+#if 0		
 			char file[1024] ;
 			memset( file, 0, sizeof(file));
-			sprintf( file, "%s/", sharePath );
-			strcat( file, index.data().toString().toStdString().c_str() );
-			QFile::remove( file );
+			sprintf( file, "%s/", qtu(QString(sharePath)) );
+			//strcat( file, index.data().toString().toStdString().c_str() );
+			strcat( file, qtu(index.data().toString()) );
+			printf("del file %s\n", qtu(QString(file)));
+#endif
+			//QFile::remove( file.toStdString().c_str()  );
+			
 			model->action( action, list );
+			}
 			break;
 
 		case VLCModelSubInterface::ACTION_ADDLOCAL:
@@ -498,7 +514,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				//QString filename = file.right( file.count() - file.lastIndexOf("/") - 1 ).toStdString().c_str();
 				QString filename = qtu(QString(file.right( file.count() - file.lastIndexOf("/") - 1 )));
 				QString cmd = "link ";
-				cmd.append(file);
+				cmd.append(qtu(file));
 				cmd.append( " " );
 				cmd.append( qtu(QString(sharePath)) );
 				cmd.append( "/");
@@ -519,8 +535,9 @@ void StandardPLPanel::popupAction( QAction *action )
 					printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
 				else
 				{
+					printf( "---------i_children = %d addr=[%p] proot=[%p]\n", play_item->i_children,play_item,THEPL->p_root );
 					playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-					printf( "---------i_children = %d\n", play_item->i_children );
+
 				}
 			}
 			break;
