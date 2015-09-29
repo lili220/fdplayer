@@ -610,7 +610,13 @@ void StandardPLPanel::popupAction( QAction *action )
 					printf( "can't get root item for cloudshare module!\n" );
 				else
 					playlist_NodeDelete( THEPL, play_item, true , true );
-				printf( "delete cloud files\n" );
+			}
+			break;
+
+		case VLCModelSubInterface::ACTION_DWNCLOUD:
+			{
+				QString file = index.data().toString();
+				printf( "down cloud file:%s\n", file.toStdString().c_str());
 			}
 			break;
         case VLCModelSubInterface::ACTION_ADDSHARE:
@@ -863,7 +869,9 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	}
 
 	int uid = user->getLUid();
+	printf("-----%s:uid=%d-----------\n", __func__, uid );
 	QList<QString> files = user->nfschina_GetFileList( uid );
+	printf( "---------------%s:%d-----------------\n", __func__, __LINE__ );
 	foreach( const QString& file, files )
 	{
 		printf( "file:%s\n", file.toStdString().c_str() );
