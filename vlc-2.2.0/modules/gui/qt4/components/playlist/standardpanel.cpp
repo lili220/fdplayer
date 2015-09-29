@@ -683,6 +683,12 @@ void StandardPLPanel::popupAction( QAction *action )
                     msgList1.push_back(PyString_AsString( PyList_GetItem( pRetValue1, i ) ) );
                 }
 
+		  playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+                if( play_item == NULL )
+                    return;
+	         if(play_item->i_children > 0)
+		      return;
+
                 printf("msgList1.size = %ld\n", msgList1.size());
                 for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
                 {
@@ -693,18 +699,11 @@ void StandardPLPanel::popupAction( QAction *action )
                     shareurl.append( sid);
 		      shareurl.append( "/" );
                     shareurl.append( (*ii1).c_str() );
-                    printf("shareurl:%s\n", shareurl.toStdString().c_str());
+                    printf("sharefileurl:%s\n", shareurl.toStdString().c_str());
                     input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_CARD);
-                    printf("%d\n", __LINE__);
-                    playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-
-                    if( play_item == NULL )
-                        return;
-                    else
-                    {
-                        printf("play_item->i_id = %d\n", play_item->i_id);
-                        playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
-                    }
+                    
+                    printf("play_item->i_id = %d\n", play_item->i_id);
+		      playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
                 }
             }
             break;  
