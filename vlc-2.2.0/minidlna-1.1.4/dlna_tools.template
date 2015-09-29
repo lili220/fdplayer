@@ -35,7 +35,7 @@ fi
 new_fn="friendly_name=`hostname`"
 sed -i "s/^friendly_name=.*/$new_fn/g" ./minidlna.conf
 
-new_md="media_dir=V,$HOME"
+new_md="media_dir=AVP,$HOME"
 sed -i "s#^media_dir=.*#$new_md#g" ./minidlna.conf
 
 pid_file="`pwd`/minidlna.pid"
