@@ -545,19 +545,16 @@ void StandardPLPanel::popupAction( QAction *action )
 					url.append( "/" );
 					url.append( filename );
 
-					/*upload selected file*/
+					/*upload selected file to server */
 					printf( "before upload: %s\n", file.toStdString().c_str() );
 					printf( "filename:%s\n", filename.toStdString().c_str());
 					QString upfile = filename;
 					/*continue if upload failed*/
 					printf( "upfile:%s\n", upfile.toStdString().c_str());
-					//if( user->nfschina_upLoad( uid, "yydd.mp3", "/home/lili/share/uudd.mp3" ) == 0 )
-					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) == 0 )
-					{
-						printf( "upload file %s failed!!!\n", filename.toStdString().c_str() );
-						break;
-					}
+					//if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) == 0 )
+					 user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() );
 
+					 /*add the selected file to current window*/
 					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
 					playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
 					if( play_item == NULL )
@@ -569,6 +566,17 @@ void StandardPLPanel::popupAction( QAction *action )
 			break;
 		case VLCModelSubInterface::ACTION_DELCLOUD:
 			{
+				/*tell server to delete the selected file*/
+				QString file = index.data().toString();
+				UserOption *user = UserOption::getInstance( p_intf );
+				user->nfschina_delete( user->getLUid(), file );
+
+				/*remove the selected item from current window*/
+				playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+				if( play_item == NULL )
+					printf( "can't get root item for cloudshare module!\n" );
+				else
+					playlist_NodeDelete( THEPL, play_item, true , true );
 				printf( "delete cloud files\n" );
 			}
 			break;

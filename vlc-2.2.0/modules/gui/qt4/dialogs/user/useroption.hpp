@@ -65,13 +65,27 @@ private:
 };
 #endif
 
+/*多线程上传入口函数参数结构体*/
+class ThreadArg
+{
+	public:
+		ThreadArg(  int _uid, const QString& _file, const QString& _path = NULL, intf_thread_t* _p_intf = NULL ):
+			uid( _uid ), file( _file ), path( _path ), p_intf( _p_intf )
+	{
+	}
+	int uid;
+	QString file;
+	QString path;
+	intf_thread_t* p_intf;
+};
+
 class UserOption : public QObject, /*public QVLCFrame,*/ public Singleton<UserOption>
 {
     Q_OBJECT
 public:
     UserOption( intf_thread_t * _p_intf );
     virtual ~UserOption();
-	bool init();
+	//bool init();
 	bool initialize();//new
 	bool isLoaded(){ return b_load == true; }
 	bool isLogin(){ return b_login == true; }

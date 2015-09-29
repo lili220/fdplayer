@@ -65,6 +65,7 @@
 
 
 #include <assert.h>
+#include <pthread.h>
 
 UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 {
@@ -104,6 +105,7 @@ UserOption::~UserOption()
 	printf("-----------------------%s---------------------------\n", __func__ );
 }
 
+#if 0
 bool UserOption::init()
 {
 	Py_Initialize();
@@ -189,6 +191,7 @@ bool UserOption::init()
 
 	return true;
 }
+#endif
 bool UserOption::initialize()
 {
 	printf( "---------------%s---------------\n", __func__ );
@@ -242,6 +245,13 @@ bool UserOption::initialize()
 	if(fileupload == NULL)
 	{
 		printf("fileupload is NULL\n");
+		return false;
+	}
+
+	filedelete = PyObject_GetAttrString(pModule,"nfschina_delete");
+	if(filedelete == NULL)
+	{
+		printf("delete is NULL\n");
 		return false;
 	}
 
@@ -323,6 +333,60 @@ int UserOption::nfschina_keeponline( int userid, bool b_share )
 	return err;
 }
 
+#if 1
+static void *thread_upload( void *data )
+{
+	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
+
+	int ret;
+	if( (ret = pthread_detach(pthread_self())) != 0 )
+	{
+		fprintf( stderr, "pthread_detach failed for thread_upload:%s\n", strerror(ret) );
+		return (void*)-1;
+	}
+
+	ThreadArg *arg = (ThreadArg*)data;
+
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return (void*)-1;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return (void*)-1;
+	}
+
+	PyObject *fileupload = PyObject_GetAttrString(pModule,"nfschina_upload");
+	if(fileupload == NULL)
+	{
+		printf("fileupload is NULL\n");
+		return (void*)-1;
+	}
+
+	PyObject *pArgs = PyTuple_New( 3 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
+
+	PyObject *pRetValue = PyObject_CallObject( fileupload, pArgs );
+	int err =0;
+	err = _PyInt_AsInt( pRetValue );
+
+	printf( "upload retvalue: %d \n", err );
+	
+	return (void*)err;
+}
+#endif
+
 //int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
 int UserOption::nfschina_upLoad( int userid, const char* filename, const char* filepath )
 {
@@ -338,6 +402,18 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 
 		return -1;// ?????
 	}
+#if 1
+	ThreadArg *arg = new ThreadArg( userid, filename, filepath );
+	int ret = 0;
+	pthread_t upthread_id;
+	if( (ret = pthread_create( &upthread_id, NULL, thread_upload, (void*)arg)) != 0 )
+	{
+		fprintf( stderr, "pthread_create for upload:%s\n", strerror(ret) );
+		return -1;
+	}
+	return 0;
+#endif
+#if 0
 	pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	//PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
@@ -352,6 +428,7 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 	printf( "upload retvalue: %d \n", err );
 	
 	return err;
+#endif
 }
 
 void UserOption::nfschina_listMyFile( int userid )
@@ -450,6 +527,53 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	return filelist;
 }
 
+static void* thread_delete( void *data )
+{
+	printf( "----------%s:%s-----------\n", __FILE__, __func__ );
+	int ret;
+	if( (ret = pthread_detach(pthread_self())) != 0 )
+	{
+		printf( "pthread_detach failed for thread_delete:%s\n", strerror( ret ) );
+		return (void*)-1;
+	}
+	ThreadArg *arg = (ThreadArg*)data;
+
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return (void*)-1;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return (void*)-1;
+	}
+
+	PyObject *filedelete = PyObject_GetAttrString(pModule,"nfschina_delete");
+	if(filedelete == NULL)
+	{
+		printf("delete is NULL\n");
+		return (void*)-1;
+	}
+
+	PyObject *pArgs = PyTuple_New( 2 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+
+	PyObject *pRetValue = PyObject_CallObject( filedelete, pArgs );
+	int err = _PyInt_AsInt( pRetValue );
+	printf( "filedelete retvalue: %d\n", err );
+
+	return (void*)err;
+}
+
 int UserOption::nfschina_delete( int userid, QString filename )
 {
 	if( !isLogin() )
@@ -463,15 +587,54 @@ int UserOption::nfschina_delete( int userid, QString filename )
 
 		return -1;// ?????
 	}
-	pArgs = PyTuple_New( 2 );
+#if 1
+	pthread_t delthread_id;
+	int ret;
+	ThreadArg *arg = new ThreadArg( userid, filename );
+	if( (ret = pthread_create(&delthread_id, NULL, thread_delete, (void*)arg)) != 0 )
+	{
+		fprintf( stderr, "pthread_create for nfschina_delete:%s\n", strerror(ret) );
+		return -1;
+	}
+	return 0;
+#endif
+
+#if 0
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return -1;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return -1;
+	}
+
+	PyObject *filedelete = PyObject_GetAttrString(pModule,"nfschina_delete");
+	if(filedelete == NULL)
+	{
+		printf("delete is NULL\n");
+		return false;
+	}
+
+	PyObject *pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
 
-	pRetValue = PyObject_CallObject( filedelete, pArgs );
+	PyObject *pRetValue = PyObject_CallObject( filedelete, pArgs );
 	int err = _PyInt_AsInt( pRetValue );
 	printf( "filedelete retvalue: %d\n", err );
 
 	return err;
+#endif
 
 }
 
