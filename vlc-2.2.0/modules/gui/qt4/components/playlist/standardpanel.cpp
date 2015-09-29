@@ -70,6 +70,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QFont>
+#include <QMessageBox>
 
 #include <assert.h>
 
@@ -519,8 +520,21 @@ void StandardPLPanel::popupAction( QAction *action )
 				cmd.append( qtu(QString(sharePath)) );
 				cmd.append( "/");
 				cmd.append( filename );
-				system( cmd.toStdString().c_str() );
-
+				QString dstfile = qtu(QString(sharePath));
+				dstfile.append( "/");
+				dstfile.append( filename );
+                                printf("dstfile is:%s\n",dstfile.toStdString().c_str() );
+                                if (access(dstfile.toStdString().c_str(),0) == 0){
+				    QMessageBox msgBox( QMessageBox::Information,
+							qtr( "增加本地共享文件" ),
+							qtr( "目标文件已经存在！" ),
+							QMessageBox::Ok,
+							NULL );
+				    msgBox.exec();
+                                    return;
+                                }
+                                system( cmd.toStdString().c_str() );
+				
 				/*update Window items */
 				QString url = "file://";
 				url.append( qtu(QString(sharePath)) );
