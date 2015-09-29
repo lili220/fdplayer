@@ -535,9 +535,11 @@ void StandardPLPanel::popupAction( QAction *action )
 					printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
 				else
 				{
-					printf( "---------i_children = %d addr=[%p] proot=[%p]\n", play_item->i_children,play_item,THEPL->p_root );
-					playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-
+					printf( "play_item id=[%d] i_children = %d addr=[%p] p_parent=[%p]  proot=[%p] \n",play_item->i_id, play_item->i_children,play_item,play_item->p_parent,THEPL->p_root);
+                                        if (play_item->i_children >= 0)
+						playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+                                        else
+						playlist_NodeAddInput( THEPL, item, play_item->p_parent, PLAYLIST_APPEND, PLAYLIST_END, false);
 				}
 			}
 			break;
