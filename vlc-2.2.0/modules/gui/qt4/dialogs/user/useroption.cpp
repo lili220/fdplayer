@@ -436,11 +436,13 @@ static void *thread_upload( void *data )
 	int err =0;
 	err = _PyInt_AsInt( pRetValue );
 
+#if 0
 	Py_DECREF(pModule);
 	Py_DECREF(fileupload);
 	Py_DECREF(pArgs);
 	Py_DECREF(pRetValue);
 	Py_Finalize();
+#endif
 
 	printf( "upload retvalue: %d \n", err );
 	

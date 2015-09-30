@@ -160,7 +160,8 @@ def nfschina_upload(userid,filename,filepath):
             payload = {'userid': userid, 'filename':filename, 'offset':offset}
             result = requests.post(url,payload,files=files)
             #print result.text
-            if int(result.text) == int(1):
+            #if int(result.text) == int(1):
+            if int(result.text) == int(-1):
                 print "success upload file"
                 ret = 1
                 break
