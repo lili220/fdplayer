@@ -120,6 +120,9 @@ public:
 	void setNetShared( bool state ){ b_netShared = state; }
 	bool getLocalShared(){ return b_localShared == true; }
 	bool getNetShared(){ return b_netShared == true; }
+signals:
+	void netShareState(bool);
+
 #if 1
 public slots:
 	void toggleLocalShared( bool state = false );

@@ -820,6 +820,7 @@ QMenu *VLCMenuBar::UserMenu( intf_thread_t *p_intf,  QWidget *parent )
 	//action->setChecked( UserOption::getInstance( p_intf )->getNetShared() );
 	action->setChecked( false );
 	CONNECT( action, triggered( bool ), UserOption::getInstance( p_intf ), toggleNetShared( bool ) );
+	CONNECT( UserOption::getInstance( p_intf ), netShareState(bool), action, setChecked( bool));
 
     menu->addSeparator();
     addDPStaticEntry( menu, qtr( "用户共享界面" ) , "",
