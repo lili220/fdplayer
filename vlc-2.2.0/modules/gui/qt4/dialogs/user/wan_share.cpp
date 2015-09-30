@@ -711,7 +711,7 @@ static void* wan_share_keep(void* arg)
 #if DEBUG
 			printf("wan_share_keep(): restart wan share\n");
 #endif
-			
+			sleep(1);
 			continue;
 		} else if (ret == -1) {
 			pthread_exit(NULL);

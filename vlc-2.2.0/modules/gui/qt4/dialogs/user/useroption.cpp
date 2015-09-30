@@ -930,6 +930,7 @@ void UserOption::toggleNetShared( bool state )
 	//	nfschina_keepalive("0.0.0.0", 8000, getLUid(), state, getServerUrl() );
 	//	nfschina_keeponline( getLUid(), getNetShared() );
 	printf("line:%d\n", __LINE__);
+	emit netShareState(b_netShared);
 }
 
 void UserOption::nfschina_keepalive(QString localIp, int localPort, int userid, bool is_share, QString ServerUrl)
