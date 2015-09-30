@@ -214,6 +214,7 @@ bool UserOption::initialize()
 		return false;
 	}
 
+#if 0
 	regist = PyObject_GetAttrString(pModule,"nfschina_register");
 	if(regist == NULL)
 	{
@@ -255,16 +256,43 @@ bool UserOption::initialize()
 		printf("delete is NULL\n");
 		return false;
 	}
+#endif
 
 	return true;
 }
 
 int UserOption::nfschina_registor( QString username, QString password )
 {
-	pArgs = PyTuple_New( 2 );
+#if 1
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return -1;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return -1;
+	}
+
+	PyObject *regist = PyObject_GetAttrString(pModule,"nfschina_register");
+	if(regist == NULL)
+	{
+		printf("regist is NULL\n");
+		return -1;
+	}
+#endif
+	PyObject *pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", username.toStdString().c_str()) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", password.toStdString().c_str()) );
-	pRetValue = PyObject_CallObject( regist, pArgs );
+	PyObject *pRetValue = PyObject_CallObject( regist, pArgs );
 	int uid = _PyInt_AsInt( pRetValue );
 	printf("register :: uid = %d\n",uid);
 
@@ -277,6 +305,32 @@ int UserOption::nfschina_login( QString username, QString password )
 	printf("//service.nfschina_login\n");
 
 	printf("username=%s :: password = %s\n",username.toStdString().c_str(), password.toStdString().c_str() );
+#if 1
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return -1;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return -1;
+	}
+
+	PyObject *login = PyObject_GetAttrString(pModule,"nfschina_login");
+	if(login == NULL)
+	{
+		printf("login is NULL\n");
+		return -1;
+	}
+#endif
 	pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", username.toStdString().c_str()) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", password.toStdString().c_str()) );
@@ -382,6 +436,12 @@ static void *thread_upload( void *data )
 	int err =0;
 	err = _PyInt_AsInt( pRetValue );
 
+	Py_DECREF(pModule);
+	Py_DECREF(fileupload);
+	Py_DECREF(pArgs);
+	Py_DECREF(pRetValue);
+	Py_Finalize();
+
 	printf( "upload retvalue: %d \n", err );
 	
 	return (void*)err;
@@ -479,6 +539,23 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 		return filelist;
 	}
 
+#if 0
+	int ret;
+	pthread_t listthread_id;
+	ThreadArg *arg = new ThreadArg( userid, NULL );
+	if( (ret = pthread_create(&listthread_id, NULL, thread_getfile, (void*)arg)) != 0 )
+	{
+		fprintf( stderr, "pthread_create for getfilelist failed:%s\n", strerror(ret) );
+		return filelist;
+	}
+
+	if( (ret = pthread_join( listthread_id, (void**)&filelist)) != 0 )
+	{
+		fprintf( stderr, "pthread_join failed for getfilelist:%s\n", strerror(ret) );
+		return filelist;
+	}
+
+#endif
 #if 1//此处和远端模块由冲突，所以重新初始化python模块，能够正常
 	Py_Initialize();
 	if( !Py_IsInitialized() )
@@ -491,13 +568,13 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
-	pModule = PyImport_ImportModule( "clientrg" );
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
 	if( pModule  == NULL )
 	{
 		printf( "Can't Import clientrg! \n" );
 		return filelist;
 	}
-	listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
+	PyObject *listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
 	if(listmyfile == NULL)
 	{
 		printf("listmyfile is NULL\n");
@@ -505,10 +582,10 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	}
 #endif
 
-	pArgs = PyTuple_New ( 1 );
+	PyObject *pArgs = PyTuple_New ( 1 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 
-	pRetValue = PyObject_CallObject( listmyfile, pArgs );
+	PyObject *pRetValue = PyObject_CallObject( listmyfile, pArgs );
 	if( pRetValue == NULL )
 	{
 		printf( "pRetValue for nfschina_GetFileList is NULL\n" );
@@ -525,6 +602,11 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	}
 	printf( "s = %d, fileList count = %d\n", s, filelist.count() );
 
+	Py_DECREF(pModule);
+	Py_DECREF(listmyfile);
+	Py_DECREF(pArgs);
+	Py_DECREF(pRetValue);
+	Py_Finalize();
 	return filelist;
 }
 
