@@ -730,14 +730,29 @@ static int init_config(void)
 	ini_read_int(conf, "wan_share", "server_port", &server_port, 0);
 	ini_read_int(conf, "wan_share", "heartbeat_interval", &heartbeat_interval, 0);
 	ini_read_int(conf, "wan_share", "max_thread_num", &max_thread_num, 0);
-	ini_read_str(conf, "wan_share", "share_path", &share_path, NULL);
+//	ini_read_str(conf, "wan_share", "share_path", &share_path, NULL);
 #if DEBUG
 	printf("init_config(): server_ip: [%s]\n", server_ip);
 	printf("init_config(): server_port: [%d]\n", server_port);
 	printf("init_config(): heartbeat_interval: [%d]\n", heartbeat_interval);
 	printf("init_config(): max_thread_num: [%d]\n", max_thread_num);
+//	printf("init_config(): share_path: [%s]\n", share_path);
+#endif
+	ini_free(conf);
+
+	conf = ini_load("./minidlna-1.1.4/minidlna.conf");
+	if (conf == NULL) { 
+		printf("init_config(): %s(errno: %d)\n", strerror(errno), errno);
+		return -1;
+	}
+	char *tmp;
+	ini_read_str(conf, NULL, "media_dir", &tmp, NULL);
+	share_path = (char*)malloc(strlen(tmp));
+	snprintf(share_path, strlen(tmp), "%s", tmp + 4);
+#if DEBUG
 	printf("init_config(): share_path: [%s]\n", share_path);
 #endif
+	free(tmp);
 	ini_free(conf);
 	return 0;
 }
@@ -781,9 +796,9 @@ int read_wan_share_status(void)
 
 int main()
 {
-//	printf("%s", HTTP_LOGIN);
+//	printf("log test\n");
 
-	open_wan_share(1102);
+	open_wan_share(1104);
 	sleep(9999999);
 
 	close_wan_share();
