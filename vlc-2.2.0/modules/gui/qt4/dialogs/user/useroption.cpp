@@ -734,23 +734,117 @@ QString UserOption::nfschina_download( int userid, QString filename )
 
 		return NULL;// ?????
 	}
-	pArgs = PyTuple_New( 2 );
+
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return NULL;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return NULL;
+	}
+
+	PyObject *filedownload = PyObject_GetAttrString(pModule,"nfschina_download");
+	if(filedownload ==NULL)
+	{
+		printf("download is NULL\n");
+		return NULL;
+	}
+
+
+	PyObject *pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
 
-	pRetValue = PyObject_CallObject( filedownload, pArgs );
+	PyObject *pRetValue = PyObject_CallObject( filedownload, pArgs );
 	int s = PyList_Size( pRetValue );
 	printf( "s = %d\n", s );
 	//int i;
 	//for( i = 0; i < s; i++ )
 	//printf( "get url:%s\n", PyString_AsString( pRetValue ) );
 	return PyString_AsString( PyList_GetItem( pRetValue, 0) );
-#if 0
-	int err = _PyInt_AsInt( pRetValue );
-	printf( "filedownload retvalue:%d\n", err );
+}
 
-	return err;
-#endif
+static void* thread_dwncloud( void *data )
+{
+	int ret;
+	if( (ret = pthread_detach( pthread_self())) != 0 )
+	{
+		fprintf( stderr, "pthread_detach failed for thread_dwncloud:%s\n", strerror(ret) );
+		return (void*)-1;
+	}
+	ThreadArg *arg = (ThreadArg*)data;
+
+	Py_Initialize();
+	if( !Py_IsInitialized() )
+	{
+		printf( "Python initialize failed! \n" );
+		return (void*)-1;
+	}
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+
+	PyObject *pName = PyString_FromString( "download" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find download.py\n" );
+		return (void*)-1;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from download.py\n" );
+		return (void*)-1;
+	}
+
+	PyObject *pFunc = PyDict_GetItemString( pDict, "paxel" );
+	if( !pFunc || !PyCallable_Check( pFunc ) )
+	{
+		printf( "can't find function [paxel]" );
+		return (void*)-1;
+	}
+
+	PyObject *pArgs = PyTuple_New( 3 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", 4 ) );
+
+	PyObject_CallObject( pFunc, pArgs );
+
+	Py_DECREF( pName );
+	Py_DECREF( pArgs );
+	Py_DECREF( pModule );
+
+	Py_Finalize();
+
+	return (void*)0;
+}
+void UserOption::downloadCloudShareFile( const QString url, const QString file )
+{
+	printf( "----------------------%s-----------------------\n", __func__ );
+	pthread_t dwncloud_thread_id;
+	ThreadArg *arg = new ThreadArg( file, url );//user the path memeber of TreadArg as url
+
+	int ret;
+	if( (ret = pthread_create( &dwncloud_thread_id, NULL, thread_dwncloud, (void*)arg)) != 0 )
+	{
+		fprintf( stderr, "pthread_create failed for download cloudshare file:%s\n", strerror( ret ));
+		return ;
+	}
 }
 
 void UserOption::toggleLocalShared( bool state )

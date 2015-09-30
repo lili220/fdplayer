@@ -73,6 +73,12 @@ class ThreadArg
 			uid( _uid ), file( _file ), path( _path ), p_intf( _p_intf )
 	{
 	}
+		ThreadArg(  const QString& _file, const QString& _path = NULL, intf_thread_t* _p_intf = NULL ):
+			file( _file ), path( _path ), p_intf( _p_intf )
+	{
+	//	uid = -1;
+	}
+
 	int uid;
 	QString file;
 	QString path;
@@ -101,7 +107,9 @@ public:
 	void nfschina_listMyFile( int userid );
 	QList<QString> nfschina_GetFileList( int userid );
 	int nfschina_delete( int userid, QString filename );
-	QString nfschina_download( int userid, QString filename );
+	QString nfschina_download( int userid, QString filename );//return the URL of the selected cloudshare file
+
+	void downloadCloudShareFile( const QString url, const QString filename );
 
 	QList<QString> getFileList(){ return fileList; }
 	int getRUid(){ return ruid; }
