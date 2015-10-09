@@ -508,10 +508,10 @@ void UserOption::nfschina_listMyFile( int userid )
 		return ;
 	}
 
-	pArgs = PyTuple_New ( 1 );
+	PyObject *pArgs = PyTuple_New ( 1 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 
-	pRetValue = PyObject_CallObject( listmyfile, pArgs );
+	PyObject *pRetValue = PyObject_CallObject( listmyfile, pArgs );
 	int s = PyList_Size( pRetValue );
 
 	fileList.clear(); int i = 0;
@@ -770,6 +770,8 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	PyObject *pRetValue = PyObject_CallObject( filedownload, pArgs );
 	int s = PyList_Size( pRetValue );
 	printf( "s = %d\n", s );
+	if( s <= 0 )
+		return NULL;
 	//int i;
 	//for( i = 0; i < s; i++ )
 	//printf( "get url:%s\n", PyString_AsString( pRetValue ) );

@@ -335,7 +335,7 @@ bool StandardPLPanel::popup( const QPoint &point )
 
 void StandardPLPanel::popupAction( QAction *action )
 {
-	printf( "---------------------%s-----------------------\n", __func__ );
+	//printf( "---------------------%s-----------------------\n", __func__ );
     VLCModel *model = qobject_cast<VLCModel *>(currentView->model());
     VLCModelSubInterface::actionsContainerType a =
             action->data().value<VLCModelSubInterface::actionsContainerType>();
@@ -624,6 +624,11 @@ void StandardPLPanel::popupAction( QAction *action )
 				int uid = user->getLUid();
 				QString url = user->nfschina_download( uid, file );
 				printf( "download cloudfile url:%s\n", url.toStdString().c_str() );
+				if( url == NULL )
+				{
+					printf( "get url for %s from server failed!\n", file.toStdString().c_str() );
+					return;
+				}
 
 				/*download the selected file*/
 				QString dest = qtu( QString(sharePath) );
