@@ -38,6 +38,8 @@ def nfschina_msg(userid,max_items):
     p1=re.compile(r'(?<=<tns:string>)(.*?)(?=</tns:string>)')
     p2=re.compile(r'(?<=<s0:string>)(.*?)(?=</s0:string>)')
     a = p1.findall(msg)
+    if len(a) == 0:
+        a = p2.findall(msg)
     print a
     tmp = []
     for i in range(0, len(a)):
@@ -48,4 +50,4 @@ def nfschina_msg(userid,max_items):
 
 
 #if __name__ == "__main__":
-#    print(nfschina_msg(34,2))
+#    print(nfschina_msg(2,2))

@@ -105,7 +105,13 @@ def nfschina_listmyfile(userid):
     p = re.compile(r'(?<=<tns:string>)(.*?)(?=</tns:string>)')
     '''<tns:string>guigu.mp4</tns:string> '''
     match = p.findall(results)
-    return match
+    if match:
+        return match
+    p = re.compile(r'(?<=<s0:string>)(.*?)(?=</s0:string>)')
+    '''<tns:string>guigu.mp4</tns:string> '''
+    match = p.findall(results)
+    if match:
+        return match
 
 def nfschina_upload(userid,filename,filepath): 
     SENDTPL = \
@@ -133,9 +139,22 @@ def nfschina_upload(userid,filename,filepath):
     statuscode, statusmessage, header = webservice.getreply() 
     print "Response: ", statuscode, statusmessage 
     print "headers: ", header 
-    print webservice.getfile().read()
+    ret =  webservice.getfile().read()
+    print ret
+    '''<s0:nfschina_uploadResult>-2</s0:nfschina_uploadResult>'''
 
-    ret = 0
+    p1=re.compile(r'nfschina_uploadResult>(.*?)nfschina_uploadResult>')
+    p2=re.compile(r'(.*?)</')
+    ret1 = p1.findall(ret)
+    print ret1
+    ret2 = p2.findall(ret1[0])
+    print ret2[0]
+
+    if int(ret2[0]) == int(-3):
+        print "hhhhhhhhhhhhh" # cant uploada
+        return -3
+
+    results = 0
     url = 'http://192.168.7.97/haha/service/uploadfile'
     file1 = open(filepath,'r')
     offset=1
@@ -159,15 +178,13 @@ def nfschina_upload(userid,filename,filepath):
             offset=-2
             payload = {'userid': userid, 'filename':filename, 'offset':offset}
             result = requests.post(url,payload,files=files)
-            #print result.text
-            #if int(result.text) == int(1):
-            if int(result.text) == int(-1):
+            print result.text
+            if int(result.text) == int(1):
                 print "success upload file"
-                ret = 1
+                results = 1
                 break
 	file1.close
-    print ret
-    return ret
+    return results
 
 def nfschina_delete(userid, filename): 
     SENDTPL = \

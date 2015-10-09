@@ -204,7 +204,8 @@ bool UserOption::initialize()
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	pModule = PyImport_ImportModule( "clientrg" );
@@ -272,7 +273,8 @@ int UserOption::nfschina_registor( QString username, QString password )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
@@ -314,7 +316,8 @@ int UserOption::nfschina_login( QString username, QString password )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
@@ -410,7 +413,8 @@ static void *thread_upload( void *data )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
@@ -567,7 +571,8 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
@@ -631,7 +636,8 @@ static void* thread_delete( void *data )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
@@ -745,7 +751,8 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
@@ -796,7 +803,8 @@ static void* thread_dwncloud( void *data )
 	}
 
 	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
 
