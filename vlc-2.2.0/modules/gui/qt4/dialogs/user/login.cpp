@@ -207,7 +207,7 @@ void LoginDialog::logout()
 	if( ret == QMessageBox::Yes )
 	{
 		//saveLogInfo();
-		user->nfschina_logout( user->getLUid() );
+		//user->nfschina_logout( user->getLUid() );
 		setLogState( false );
 		UserOption::getInstance( p_intf )->setLogin( false );
 		UserOption::getInstance( p_intf )->setLUid( -1 );

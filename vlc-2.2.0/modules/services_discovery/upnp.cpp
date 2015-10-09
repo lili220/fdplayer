@@ -61,7 +61,8 @@ struct services_discovery_sys_t
  */
 static int Open( vlc_object_t* );
 static void Close( vlc_object_t* );
-VLC_SD_PROBE_HELPER( "upnp", "LAN Share", SD_CAT_SHARE )        /*wangpei*/
+//VLC_SD_PROBE_HELPER( "upnp", "LAN Share", SD_CAT_SHARE )        /*wangpei*/
+VLC_SD_PROBE_HELPER( "upnp", "局域网共享", SD_CAT_SHARE )        /*wangpei*/
 
 /*
  * Module descriptor

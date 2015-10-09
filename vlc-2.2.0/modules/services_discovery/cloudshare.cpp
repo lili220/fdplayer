@@ -28,7 +28,8 @@ static int Open( vlc_object_t* );
 static void Close( vlc_object_t* );
 static int vlc_sd_probe_Open( vlc_object_t * );
 static void AddDesktop(services_discovery_t *);
-VLC_SD_PROBE_HELPER( "cloudshare", "Cloud Share", SD_CAT_SHARE )
+//VLC_SD_PROBE_HELPER( "cloudshare", "Cloud Share", SD_CAT_SHARE )
+VLC_SD_PROBE_HELPER( "cloudshare", "云端共享", SD_CAT_SHARE )
 
 /*
  * Module descriptor

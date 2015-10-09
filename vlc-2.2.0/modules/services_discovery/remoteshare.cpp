@@ -33,7 +33,8 @@ typedef list<string> LISTSTRING;
 static int Open( vlc_object_t* );
 static void Close( vlc_object_t* );
 static int vlc_sd_probe_Open( vlc_object_t * );
-VLC_SD_PROBE_HELPER( "remoteshare", "Remote Share", SD_CAT_SHARE )
+//VLC_SD_PROBE_HELPER( "remoteshare", "Remote Share", SD_CAT_SHARE )
+VLC_SD_PROBE_HELPER( "remoteshare", "远端共享", SD_CAT_SHARE )
 
 /*
  * Module descriptor
@@ -41,6 +42,7 @@ VLC_SD_PROBE_HELPER( "remoteshare", "Remote Share", SD_CAT_SHARE )
 vlc_module_begin();
     set_shortname( "remoteshare" );
     set_description( N_( "Remote Share" ) );
+    //set_description( ( "远端共享" ).toUtf8().constData() );
     set_category( CAT_PLAYLIST );
     set_subcategory( SUBCAT_PLAYLIST_SD );
     set_capability( "services_discovery", 0 );

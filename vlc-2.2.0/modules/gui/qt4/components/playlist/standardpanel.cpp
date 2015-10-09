@@ -313,9 +313,9 @@ bool StandardPLPanel::popup( const QPoint &point )
     }
     if (p_selector->getCurrentItemCategory() == REMOTESHARE )
     {
-        menu.addAction( qtr( "ADD REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
-        menu.addAction( qtr( "DELETE REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
-        ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("get user share"),
+        //menu.addAction( qtr( "ADD REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
+        //menu.addAction( qtr( "DELETE REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
+        ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("获取远端文件列表"),
                 VLCModelSubInterface::ACTION_ADDSHARE );
     }
 
@@ -883,6 +883,12 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	if( !user->isLogin() )
 	{
 		printf( "Please login first!\n" );
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "云端共享提示" ),
+				qtr( "尚未登陆,无法获取文件列表!" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
 		return ;
 	}
 
@@ -927,6 +933,12 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	if( !user->isLogin() )
 	{
 		printf( "Please login first!\n" );
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "远端共享提示" ),
+				qtr( "尚未登陆,无法获取在线设备列表!" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
 		return ;
 	}
 

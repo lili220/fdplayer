@@ -815,17 +815,17 @@ QMenu *VLCMenuBar::UserMenu( intf_thread_t *p_intf,  QWidget *parent )
 	action->setChecked( false );
 	CONNECT( action, triggered( bool ), UserOption::getInstance( p_intf ), toggleLocalShared( bool ) );
 
-	action = menu->addAction( qtr( "广域网共享" ) );
+	action = menu->addAction( qtr( "远端共享" ) );
 	action->setCheckable( true );
 	//action->setChecked( UserOption::getInstance( p_intf )->getNetShared() );
 	action->setChecked( false );
 	CONNECT( action, triggered( bool ), UserOption::getInstance( p_intf ), toggleNetShared( bool ) );
 	CONNECT( UserOption::getInstance( p_intf ), netShareState(bool), action, setChecked( bool));
 
+#if 0
     menu->addSeparator();
     addDPStaticEntry( menu, qtr( "用户共享界面" ) , "",
                       SLOT( shareDialog() ) );
-#if 0
 	action = menu->addAction( qtr("用户共享界面") );
 	CONNECT( action, triggered(), UserShareDialog::getInstance( p_intf ), toggleVisible() );
 #endif

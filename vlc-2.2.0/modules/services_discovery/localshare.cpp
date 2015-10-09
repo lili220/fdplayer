@@ -35,7 +35,8 @@ static int vlc_sd_probe_Open( vlc_object_t * );
 static void AddDesktop(services_discovery_t *);
 static int onNewFileAdded( vlc_object_t*, char const *, vlc_value_t, vlc_value_t, void *);
 static void *Run( void *data );
-VLC_SD_PROBE_HELPER( "localshare", "Local Share", SD_CAT_SHARE )
+//VLC_SD_PROBE_HELPER( "localshare", "Local Share", SD_CAT_SHARE )
+VLC_SD_PROBE_HELPER( "localshare", "本地共享", SD_CAT_SHARE )
 
 /*
  * Module descriptor
