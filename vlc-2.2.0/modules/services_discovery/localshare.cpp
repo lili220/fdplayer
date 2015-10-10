@@ -117,7 +117,7 @@ static void AddDesktop(services_discovery_t *sd)
 			QString url = "file://";
 			url.append(file.absoluteFilePath());
 			item = input_item_NewWithType ( url.toUtf8().constData(), (file.fileName()).toUtf8().constData() ,
-					0, NULL, 0, -1, ITEM_TYPE_CARD);
+					0, NULL, 0, -1, ITEM_TYPE_FILE);
 			qDebug() << "url:" << url;
 			if (item == NULL)
 				continue;
