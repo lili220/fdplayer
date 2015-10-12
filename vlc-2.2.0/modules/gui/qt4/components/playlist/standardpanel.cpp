@@ -550,9 +550,9 @@ void StandardPLPanel::popupAction( QAction *action )
 				else
 				{
 					printf( "play_item id=[%d] i_children = %d addr=[%p] p_parent=[%p]  proot=[%p] \n",play_item->i_id, play_item->i_children,play_item,play_item->p_parent,THEPL->p_root);
-                                        if (play_item->i_children >= 0)
+					if (play_item->i_children >= 0)
 						playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-                                        else
+					else
 						playlist_NodeAddInput( THEPL, item, play_item->p_parent, PLAYLIST_APPEND, PLAYLIST_END, false);
 				}
 			}
@@ -593,7 +593,12 @@ void StandardPLPanel::popupAction( QAction *action )
 					if( play_item == NULL )
 						printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
 					else
-						playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+					{
+						if (play_item->i_children >= 0)
+							playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+						else
+							playlist_NodeAddInput( THEPL, item, play_item->p_parent, PLAYLIST_APPEND, PLAYLIST_END, false);
+					}
 				}
 			}
 			break;
@@ -857,16 +862,19 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 
 	emit viewChanged( index );
 
+#if 0
 	/* add by lili */
        if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
 	{
 		printf( "--------%s:%d------------\n", __func__, __LINE__ );
 		createCloudItems( index );
 	}
+#endif
 	if (p_selector->getCurrentItemCategory() == REMOTESHARE )
 	{
 		createRemoteShareItems( index );
 	}
+
 }
 
 /* add by lili */

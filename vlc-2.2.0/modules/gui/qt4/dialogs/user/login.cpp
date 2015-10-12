@@ -74,6 +74,7 @@ LoginDialog::LoginDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 	b_login = false;
 	//readLoginConfig();
 
+	p_intf->p_sys->p_playlist->uid = -1;
 	init();
 
 #if 0
@@ -149,11 +150,13 @@ bool LoginDialog::login()
 	{
 		userOption->setLUid( uid );// save login uid
 		setLogState( true );//save login state
+		p_intf->p_sys->p_playlist->p_libvlc->uid = uid;//save the uid information
 	}
 	else
 	{
 		userOption->setLUid( uid );// save login uid
 		setLogState( false );//save login state
+		p_intf->p_sys->p_playlist->p_libvlc->uid = -1;//reset the uid information
 	}
 
 	/* record the log information if login successfull and show log result to user */
@@ -211,6 +214,7 @@ void LoginDialog::logout()
 		setLogState( false );
 		UserOption::getInstance( p_intf )->setLogin( false );
 		UserOption::getInstance( p_intf )->setLUid( -1 );
+		p_intf->p_sys->p_playlist->p_libvlc->uid = -1;//reset the uid information
 	}
 	else if( ret == QMessageBox::No )
 	{

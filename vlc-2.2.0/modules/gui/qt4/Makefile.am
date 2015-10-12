@@ -59,6 +59,7 @@ libqt4_plugin_la_SOURCES = \
 	dialogs/convert.cpp dialogs/convert.hpp \
 	dialogs/help.cpp dialogs/help.hpp \
 	dialogs/user/login.cpp dialogs/user/login.hpp \
+	dialogs/user/task.cpp dialogs/user/task.hpp \
 	dialogs/user/registor.cpp dialogs/user/registor.hpp \
 	dialogs/user/useroption.cpp dialogs/user/useroption.hpp \
 	dialogs/user/usershare.cpp dialogs/user/usershare.hpp \
@@ -165,6 +166,7 @@ nodist_libqt4_plugin_la_SOURCES = \
 	dialogs/convert.moc.cpp \
 	dialogs/help.moc.cpp \
 	dialogs/user/login.moc.cpp \
+	dialogs/user/task.moc.cpp \
 	dialogs/user/registor.moc.cpp \
 	dialogs/user/useroption.moc.cpp \
 	dialogs/user/usershare.moc.cpp \

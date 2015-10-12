@@ -129,6 +129,7 @@ public slots:
     void userLogout();//add by lili
     void registorDialog();//add by lili
     void shareDialog();//add by lili
+    void taskDialog();//add by lili
 #ifdef UPDATE_CHECK
     void updateDialog();
 #endif

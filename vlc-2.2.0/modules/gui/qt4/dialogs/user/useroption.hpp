@@ -85,6 +85,19 @@ class ThreadArg
 	intf_thread_t* p_intf;
 };
 
+/*用于获取文件列表*/
+class ThreadListArg
+{
+	public:
+		/*注意，此处为浅拷贝*/
+		ThreadListArg( int _uid, QList<QString>* _filelist):
+			uid( _uid ), filelist( _filelist )
+	{
+	}
+		int uid;
+		QList<QString> *filelist;
+};
+
 class UserOption : public QObject, /*public QVLCFrame,*/ public Singleton<UserOption>
 {
     Q_OBJECT

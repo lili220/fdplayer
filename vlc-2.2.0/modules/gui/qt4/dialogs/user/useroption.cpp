@@ -529,8 +529,75 @@ void UserOption::nfschina_listMyFile( int userid )
 	return ;
 }
 
+#if 1
+void *thread_getfile( void* data )
+{
+	printf( "--------%s:%d------------\n", __func__, __LINE__ );
+	ThreadListArg *arg = ( ThreadListArg*)data;
+	int userid = arg->uid;
+	//arg->filelist->push_back("aaaaaaa");
+
+	if( !Py_IsInitialized() )
+	{
+		Py_Initialize();
+		printf( "Python initialize failed! \n" );
+		//return (void*)false;
+	}
+
+	printf( "--------%s:%d------------\n", __func__, __LINE__ );
+	PyRun_SimpleString( "import sys" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+	printf( "--------%s:%d------------\n", __func__, __LINE__ );
+
+	PyObject *pModule = PyImport_ImportModule( "clientrg" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+		return (void*)false;
+	}
+	PyObject *listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
+	if(listmyfile == NULL)
+	{
+		printf("listmyfile is NULL\n");
+		return (void*)false;
+	}
+
+	PyObject *pArgs = PyTuple_New ( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
+
+	PyObject *pRetValue = PyObject_CallObject( listmyfile, pArgs );
+	if( pRetValue == NULL )
+	{
+		printf( "pRetValue for nfschina_GetFileList is NULL\n" );
+		return (void*)false;
+	}
+
+	int s = PyList_Size( pRetValue );
+
+	//filelist.clear(); int i = 0;
+	QList<QString> *plist = arg->filelist;
+	for( int i = 0; i < s; i++ )
+	{
+		printf( "file[%d]:%s\n", i,  PyString_AsString( PyList_GetItem( pRetValue, i ) ));
+		//filelist << PyString_AsString( PyList_GetItem( pRetValue, i ) );
+		(*plist) << PyString_AsString( PyList_GetItem( pRetValue, i ) );
+	}
+	printf( "s = %d, fileList count = %d\n", s, plist->count() );
+
+	Py_DECREF(pModule);
+	Py_DECREF(listmyfile);
+	Py_DECREF(pArgs);
+	Py_DECREF(pRetValue);
+	Py_Finalize();
+	//arg->filelist->push_back("aaaaaaa");
+	return (void*)true;
+}
+#endif
 QList<QString> UserOption::nfschina_GetFileList( int userid )
 {
+	printf( "--------%s:%d------------\n", __func__, __LINE__ );
 	QList<QString> filelist;
 	filelist.clear();
 	if( !isLogin() )
@@ -545,23 +612,36 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 		return filelist;
 	}
 
-#if 0
+#if 1
 	int ret;
 	pthread_t listthread_id;
-	ThreadArg *arg = new ThreadArg( userid, NULL );
+	bool retval;
+	QList<QString> *plist = new QList<QString>;
+	ThreadListArg *arg = new ThreadListArg( userid,  plist);
 	if( (ret = pthread_create(&listthread_id, NULL, thread_getfile, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for getfilelist failed:%s\n", strerror(ret) );
 		return filelist;
 	}
 
-	if( (ret = pthread_join( listthread_id, (void**)&filelist)) != 0 )
+	if( (ret = pthread_join( listthread_id, (void**)&retval)) != 0 )
 	{
 		fprintf( stderr, "pthread_join failed for getfilelist:%s\n", strerror(ret) );
 		return filelist;
 	}
 
+	foreach( const QString& file, *plist )
+	{
+		printf( "get filelist:%s\n", file.toStdString().c_str() );
+		filelist.append( file );
+	}
+
+	delete plist;
+	return filelist;
+
 #endif
+
+#if 0
 #if 1//此处和远端模块由冲突，所以重新初始化python模块，能够正常
 	Py_Initialize();
 	if( !Py_IsInitialized() )
@@ -615,6 +695,7 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	Py_DECREF(pRetValue);
 	Py_Finalize();
 	return filelist;
+#endif
 }
 
 static void* thread_delete( void *data )
@@ -795,11 +876,11 @@ static void* thread_dwncloud( void *data )
 	}
 	ThreadArg *arg = (ThreadArg*)data;
 
-	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
+		Py_Initialize();
 		printf( "Python initialize failed! \n" );
-		return (void*)-1;
+		//return (void*)-1;
 	}
 
 	PyRun_SimpleString( "import sys" );

@@ -822,6 +822,11 @@ QMenu *VLCMenuBar::UserMenu( intf_thread_t *p_intf,  QWidget *parent )
 	CONNECT( action, triggered( bool ), UserOption::getInstance( p_intf ), toggleNetShared( bool ) );
 	CONNECT( UserOption::getInstance( p_intf ), netShareState(bool), action, setChecked( bool));
 
+	/*task menu*/
+    menu->addSeparator();
+    addDPStaticEntry( menu, qtr( "我的任务(&T)" ) ,
+        ":/menu/help", SLOT( taskDialog() ), "F7" );
+
 #if 0
     menu->addSeparator();
     addDPStaticEntry( menu, qtr( "用户共享界面" ) , "",

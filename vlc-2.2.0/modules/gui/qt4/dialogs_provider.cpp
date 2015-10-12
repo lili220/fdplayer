@@ -49,9 +49,10 @@
 #include "dialogs/open.hpp"
 #include "dialogs/openurl.hpp"
 #include "dialogs/help.hpp"
-#include "dialogs/user/login.hpp"
-#include "dialogs/user/registor.hpp"
-#include "dialogs/user/usershare.hpp"
+#include "dialogs/user/login.hpp"/*add by lili*/
+#include "dialogs/user/registor.hpp"/*add by lili*/
+#include "dialogs/user/usershare.hpp"/*add by lili*/
+#include "dialogs/user/task.hpp"/*add by lili*/
 #include "dialogs/gototime.hpp"
 #include "dialogs/podcast_configuration.hpp"
 #include "dialogs/toolbar.hpp"
@@ -290,6 +291,23 @@ void DialogsProvider::userLogout()
 void DialogsProvider::shareDialog()
 {
 		UserShareDialog::getInstance( p_intf )->toggleVisible();
+}
+
+void DialogsProvider::taskDialog()
+{
+	if( !LoginDialog::getInstance( p_intf )->isLogin() )
+	{
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "我的任务" ),
+				qtr( "您还未登陆，请先登录！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
+
+		return;
+	}
+
+	TaskDialog::getInstance( p_intf )->toggleVisible();
 }
 #endif
 

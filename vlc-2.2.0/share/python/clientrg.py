@@ -244,7 +244,13 @@ def nfschina_download(userid, filename):
     results = webservice.getfile().read() 
     p = re.compile(r'(?<=<tns:string>)(.*?)(?=</tns:string>)')
     match = p.findall(results)
-    return match
+    if match:
+        return match
+    p = re.compile(r'(?<=<s0:string>)(.*?)(?=</s0:string>)')
+    match = p.findall(results)
+    if match :
+        return match
+    #return match
 
 
 #if __name__ == "__main__":

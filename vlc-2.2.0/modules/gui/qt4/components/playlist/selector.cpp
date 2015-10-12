@@ -388,7 +388,7 @@ void PLSelector::setSource( QTreeWidgetItem *item )
         QString qs = item->data( 0, NAME_ROLE ).toString();
 		printf( "-----------qs:%s----------\n", qs.toStdString().c_str() );//add by lili
         sd_loaded = playlist_IsServicesDiscoveryLoaded( THEPL, qtu( qs ) );
-#if 1
+#if 0
 		if( sd_loaded )
 		{
 			 if( !qs.startsWith("upnp") )
