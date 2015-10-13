@@ -76,7 +76,7 @@ static int Open( vlc_object_t *p_this )
 
 	var_AddCallback( sd->p_libvlc, "localshare", onNewFileAdded, sd );
 
-    AddDesktop (sd);
+    //AddDesktop (sd);
 
 	printf( "------------------------%s return -----------------------------------\n", __func__ );
 error:
@@ -138,5 +138,5 @@ static void *Run( void *data )
 	services_discovery_t *sd = (services_discovery_t *)data;
 	services_discovery_sys_t *p_sys = sd->p_sys;
 
-	AddDesktop( sd );
+	//AddDesktop( sd );
 }
