@@ -838,6 +838,7 @@ static void* thread_delete( void *data )
 		return (void*)-1;
 	}
 
+	printf( "--------%s:file:%s:url:%s-----------\n", __func__, arg->file.toStdString().c_str(),  arg->url.toStdString().c_str() );
 	PyObject *pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
@@ -869,7 +870,7 @@ int UserOption::nfschina_delete( int userid, QString filename )
 	QString url = buildURL( getServerIp(), URLTAIL );
 	printf( "before thread_delete url: %s\n", url.toStdString().c_str() );
 
-	ThreadArg *arg = new ThreadArg( userid, filename, url );
+	ThreadArg *arg = new ThreadArg( userid, filename, NULL, url );
 	if( (ret = pthread_create(&delthread_id, NULL, thread_delete, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for nfschina_delete:%s\n", strerror(ret) );
