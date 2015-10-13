@@ -57,7 +57,7 @@ static int Open( vlc_object_t *p_this )
     services_discovery_t *sd = (services_discovery_t *)p_this;
 	printf( "global uid == %d\n", p_this->p_libvlc->uid );
     
-    AddDesktop (sd);
+    //AddDesktop (sd);
 
     return 0;
 }

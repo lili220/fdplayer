@@ -141,6 +141,13 @@ public:
 	void setNetShared( bool state ){ b_netShared = state; }
 	bool getLocalShared(){ return b_localShared == true; }
 	bool getNetShared(){ return b_netShared == true; }
+
+	void initialConf();
+	void setConfigPath( QString path = "../sbin/minidlna.conf"){ configPath = path; }
+	QString getConfigPath(){ return configPath; }
+	void setSharePath( QString path = "~/share" ){ sharePath = path; }
+	QString getSharePath();
+
 signals:
 	void netShareState(bool);
 
@@ -169,6 +176,9 @@ private:
 	QString serverIp;
 	int  serverPort;
 	QString serverUrl;
+
+	QString configPath;
+	QString sharePath;
 
 	PyObject *pArgs;
 	PyObject *pRetValue;

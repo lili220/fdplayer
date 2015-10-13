@@ -67,6 +67,7 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <unistd.h>
 
 UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 {
@@ -97,6 +98,7 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 
 	//readSettings();//read localshare state and netshare state
 	b_login = false;
+	initialConf();
 	//b_load = init();
 	b_load = initialize();
 }
@@ -105,6 +107,48 @@ UserOption::~UserOption()
 {
 	printf("-----------------------%s---------------------------\n", __func__ );
 }
+
+void UserOption::initialConf()
+{
+	qDebug() << "-------------------"<< __func__ << "----------------------------";
+	if( access("../sbin/minidlna.conf", F_OK ) >= 0 )
+		setConfigPath( "../sbin/minidlna.conf" );
+	else if( access("./minidlna-1.1.4/minidlna.conf", F_OK ) >= 0 )
+		setConfigPath( "./minidlna-1.1.4/minidlna.conf" );
+	else
+		qDebug() << " minidlna.conf not found!";
+	qDebug() << getConfigPath();
+
+	setSharePath( getConfigPath() );
+	qDebug() << getSharePath();
+}
+
+QString UserOption::getSharePath()
+{
+	qDebug() << "-------------------"<< __func__ << "----------------------------";
+
+	QString cmd = "sed -n --silent '/^media_dir=/p' ";
+	QString configFile = getConfigPath();
+	cmd.append( configFile );
+	cmd.append( "  | awk -F, '{print $2}'" );
+
+	QString path;
+	//qDebug() << "cmd:" << cmd;
+	FILE * pathFile= popen( cmd.toStdString().c_str(), "r" );
+	if( !pathFile )
+		return NULL;
+
+	char buf[1024] = {0};
+	fread( buf, sizeof(char), sizeof(buf), pathFile );
+	pclose( pathFile );
+	int len = strlen( buf );
+	if( buf[ len-1 ] == '\r' || buf[ len-1 ] == '\n' )
+		buf[ len-1 ] = '\0';
+	path = buf;
+
+	return path;
+}
+
 
 #if 0
 bool UserOption::init()

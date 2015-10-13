@@ -45,6 +45,7 @@
 #include <vlc_intf_strings.h>                     /* POP_ */
 
 #include "dialogs/user/useroption.hpp"                   /* add by lili */
+#include "../../../../services_discovery/user.hpp"
 
 #define I_NEW_DIR \
     I_DIR_OR_FOLDER( N_("Create Directory"), N_( "Create Folder" ) )
@@ -588,7 +589,7 @@ void StandardPLPanel::popupAction( QAction *action )
 					 user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() );
 
 					 /*add the selected file to current window*/
-					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 					playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
 					if( play_item == NULL )
 						printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
@@ -649,6 +650,13 @@ void StandardPLPanel::popupAction( QAction *action )
                     printf("index is root index\n");
                 else
                     return;
+
+		  playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+                if( play_item == NULL )
+                    return;
+	         if(play_item->i_children > 0)
+		      return;
+			 
                 PyObject *pName1,*pModule1,*msg1,*pRetValue1,*pArgs1;
 	  	  UserOption *user = NULL;
 
@@ -713,12 +721,6 @@ void StandardPLPanel::popupAction( QAction *action )
                     msgList1.push_back(PyString_AsString( PyList_GetItem( pRetValue1, i ) ) );
                 }
 
-		  playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-                if( play_item == NULL )
-                    return;
-	         if(play_item->i_children > 0)
-		      return;
-
                 printf("msgList1.size = %ld\n", msgList1.size());
                 for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
                 {
@@ -729,9 +731,11 @@ void StandardPLPanel::popupAction( QAction *action )
                     shareurl.append( sid);
 		      shareurl.append( "/" );
                     shareurl.append( (*ii1).c_str() );
+		      RecentsMRL::getInstance( p_intf )->addRecent( shareurl );
                     printf("sharefileurl:%s\n", shareurl.toStdString().c_str());
-                    input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_CARD);
-                    
+                    input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+                    if ( item == NULL)
+		                return;
                     printf("play_item->i_id = %d\n", play_item->i_id);
 		      playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
                 }
@@ -862,17 +866,21 @@ void StandardPLPanel::browseInto( const QModelIndex &index )
 
 	emit viewChanged( index );
 
-#if 0
 	/* add by lili */
        if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
 	{
 		printf( "--------%s:%d------------\n", __func__, __LINE__ );
 		createCloudItems( index );
 	}
-#endif
+
 	if (p_selector->getCurrentItemCategory() == REMOTESHARE )
 	{
 		createRemoteShareItems( index );
+	}
+
+	if (p_selector->getCurrentItemCategory() == LOCALSHARE )
+	{
+		createLocalShareItems( index );
 	}
 
 }
@@ -900,6 +908,10 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 		return ;
 	}
 
+	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+	if( play_item == NULL || play_item->i_children > 0 )
+		return;
+
 	int uid = user->getLUid();
 	printf("-----%s:uid=%d-----------\n", __func__, uid );
 	QList<QString> files = user->nfschina_GetFileList( uid );
@@ -913,14 +925,11 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 		url.append( "/" );
 		url.append( qtu(file) );
 		printf( "url:%s\n", url.toStdString().c_str() );
-		input_item_t *item = input_item_NewWithType ( qtu(url), qtu(file), 0, NULL, 0, -1, ITEM_TYPE_CARD);
-		playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-		if( play_item == NULL )
-			printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
-		else
-		{
-			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-		}
+		RecentsMRL::getInstance( p_intf )->addRecent( url );
+		input_item_t *item = input_item_NewWithType ( qtu(url), qtu(file), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+		if ( item == NULL )
+			return;
+		playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
 	}
 }
 
@@ -987,6 +996,14 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	}
 
        printf("msgList.size = %d\n", msgList.size());
+       playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+       if( play_item == NULL ) {
+    	    printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+	    return;
+       }
+       if( play_item->i_children > 0 )
+    	    return;
+
        for (ii = msgList.begin(); ii != msgList.end(); ++ii)
        {
             printf("msgList = %s\n", (*ii).c_str());
@@ -1011,15 +1028,52 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
                                   0, NULL, 0, -1, ITEM_TYPE_DIRECTORY);
             if (item == NULL)
         	    return;
-	     playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-	     if( play_item == NULL )
-		    printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
-	     else
-	     {
-		     playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-	     }
+
+	     playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
         }
+	 
 }
+
+void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
+{	
+	UserOption *user = UserOption::getInstance( p_intf );
+	printf( "local sharepath == [%s]\n", user->getSharePath().toStdString().c_str() );
+
+	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+       if( play_item == NULL ) {
+    	    printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+	    return;
+       }
+       if( play_item->i_children > 0 ) {
+		    printf( "play_item->i_children >= 0\n" );
+    	    return;
+	   }
+	QString path = user->getSharePath();
+	QDir *dir = new QDir( path );
+
+	QFileInfoList entries = dir->entryInfoList();
+	foreach(const QFileInfo &file, entries )
+	{
+		if( file.isDir() )
+		{
+			printf( "local dir:%s\n",  file.fileName().toStdString().c_str() );
+		}
+		else
+		{
+			input_item_t *item;
+			QString url = "file://";
+			url.append(file.absoluteFilePath());
+			RecentsMRL::getInstance( p_intf )->addRecent( url );
+			printf( "localshare url:%s\n", url.toStdString().c_str() );
+			item = input_item_NewWithType ( url.toUtf8().constData(), (file.fileName()).toUtf8().constData() ,
+					0, NULL, 0, 0, ITEM_TYPE_FILE);
+			if (item == NULL)
+				continue;
+			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+		}
+	}
+}
+
 
 void StandardPLPanel::browseInto()
 {
