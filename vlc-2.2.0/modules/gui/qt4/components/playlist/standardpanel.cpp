@@ -45,7 +45,7 @@
 #include <vlc_intf_strings.h>                     /* POP_ */
 
 #include "dialogs/user/useroption.hpp"                   /* add by lili */
-#include "../../../../services_discovery/user.hpp"
+#include "dialogs/user/ini.hpp"
 
 #define I_NEW_DIR \
     I_DIR_OR_FOLDER( N_("Create Directory"), N_( "Create Folder" ) )
@@ -911,17 +911,33 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
 	if( play_item == NULL || play_item->i_children > 0 )
 		return;
-
+	
+	char *server_ip = NULL;
+	int server_port = 0;
+	ini_t *conf = ini_load("vlc.conf");
+	if (conf == NULL) { 
+		printf("init_config(): %s(errno: %d)\n", strerror(errno), errno);
+		return ;
+	}
+	ini_read_str(conf, "public", "webserver_ip", &server_ip, NULL);
+	ini_read_int(conf, "public", "webserver_port", &server_port, 0);
+	printf("init_config(): server_ip: [%s]\n", server_ip);
+	printf("init_config(): server_port: [%d]\n", server_port);
+	ini_free(conf);
+	
 	int uid = user->getLUid();
-	printf("-----%s:uid=%d-----------\n", __func__, uid );
+	printf("---------------%s:uid=%d-----------\n", __func__, uid );
 	QList<QString> files = user->nfschina_GetFileList( uid );
-	printf( "---------------%s:%d-----------------\n", __func__, __LINE__ );
 	foreach( const QString& file, files )
 	{
-		printf( "file:%s\n", file.toStdString().c_str() );
-		QString url = "http://192.168.7.97/download/";
-		QString uidstr; uidstr.setNum( uid );
-		url.append( uidstr );
+		printf( "share file:%s\n", file.toStdString().c_str() );
+		//QString url = "http://192.168.7.97/download/";
+		QString url = "http://"; QString uidstr; 
+		url.append(server_ip);
+		url.append(":");
+		url.append(uidstr.setNum( server_port ));
+		url.append("/download/");
+		url.append(uidstr.setNum( uid ));
 		url.append( "/" );
 		url.append( qtu(file) );
 		printf( "url:%s\n", url.toStdString().c_str() );
