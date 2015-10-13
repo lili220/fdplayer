@@ -41,10 +41,11 @@ TaskDialog::TaskDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 	process->setRange( 0, 50000);
 	process->setModal( true );
 	process->setCancelButtonText( qtr("cancel") );
-	process->show();
+	//process->show();
 
-//	QHBoxLayout *layout = new QHBoxLayout( this );
-//	layout->addWidget( process );
+	QHBoxLayout *layout = new QHBoxLayout( this );
+	layout->addWidget( process );
+	setLayout(layout);
 }
 
 TaskDialog::~TaskDialog()

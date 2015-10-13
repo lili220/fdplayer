@@ -69,12 +69,12 @@ private:
 class ThreadArg
 {
 	public:
-		ThreadArg(  int _uid, const QString& _file, const QString& _path = NULL, intf_thread_t* _p_intf = NULL ):
-			uid( _uid ), file( _file ), path( _path ), p_intf( _p_intf )
+		ThreadArg(  int _uid, const QString& _file, const QString& _path = NULL, const QString& _url = NULL, const QString& _httpurl = NULL, intf_thread_t* _p_intf = NULL ):
+			uid( _uid ), file( _file ), path( _path ), url( _url ), httpurl( _httpurl ), p_intf( _p_intf )
 	{
 	}
-		ThreadArg(  const QString& _file, const QString& _path = NULL, intf_thread_t* _p_intf = NULL ):
-			file( _file ), path( _path ), p_intf( _p_intf )
+		ThreadArg(  const QString& _file, const QString& _path = NULL, const QString& _url = NULL, const QString& _httpurl = NULL, intf_thread_t* _p_intf = NULL ):
+			file( _file ), path( _path ), url(_url ), httpurl(_httpurl), p_intf( _p_intf )
 	{
 	//	uid = -1;
 	}
@@ -82,6 +82,8 @@ class ThreadArg
 	int uid;
 	QString file;
 	QString path;
+	QString url;
+	QString httpurl;
 	intf_thread_t* p_intf;
 };
 
@@ -90,12 +92,13 @@ class ThreadListArg
 {
 	public:
 		/*注意，此处为浅拷贝*/
-		ThreadListArg( int _uid, QList<QString>* _filelist):
-			uid( _uid ), filelist( _filelist )
+		ThreadListArg( int _uid, QList<QString>* _filelist, QString _url ):
+			uid( _uid ), filelist( _filelist ), url( _url )
 	{
 	}
 		int uid;
 		QList<QString> *filelist;
+		QString url;
 };
 
 class UserOption : public QObject, /*public QVLCFrame,*/ public Singleton<UserOption>
@@ -130,12 +133,14 @@ public:
 	void setRUid( int uid ) { ruid = uid; }
 	void setLUid( int uid ) { luid = uid; }
 
+	void readWebServerConf();
 	void setServerIp( QString ip ){ serverIp = ip; }
 	void setServerPort( int port ){ serverPort = port; }
 	QString getServerIp(){ return serverIp; }
 	int getServerPort(){ return serverPort; }
 	void setServerUrl( QString url ){ serverUrl = url; }
 	QString getServerUrl(){ return serverUrl; }
+	QString buildURL(QString ip, QString tail );
 	
 	void setLocalShared( bool state ){ b_localShared = state; }
 	void setNetShared( bool state ){ b_netShared = state; }

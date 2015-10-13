@@ -30,6 +30,7 @@
 #include "dialogs/user/useroption.hpp"
 #include "dialogs/user/login.hpp"
 #include "util/qt_dirs.hpp"
+#include "dialogs/user/ini.hpp"
 //extern "C" {
 #include "dialogs/user/wan_share.hpp"
 //}
@@ -68,6 +69,9 @@
 #include <assert.h>
 #include <pthread.h>
 
+#define URLTAIL "/haha/service/?wsdl"
+#define HTTPURLTAIL "/haha/service/uploadfile"
+
 UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 {
 	/*Initialize PyObjects */
@@ -91,9 +95,12 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 	b_netShared = false;
 
 	/*default settings*/
+	readWebServerConf();
+#if 0
 	setServerIp( "192.168.7.96" );
 	setServerPort( 80 );
 	setServerUrl( "192.168.7.96:8001" );
+#endif
 
 	//readSettings();//read localshare state and netshare state
 	b_login = false;
@@ -104,6 +111,23 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 UserOption::~UserOption()
 {
 	printf("-----------------------%s---------------------------\n", __func__ );
+}
+void UserOption::readWebServerConf()
+{
+	ini_t *conf = ini_load("./vlc.conf");
+	if( conf == NULL )
+	{
+		printf("ini_load failed for readWebServerConf\n");
+		return ;
+	}
+
+	char *server_ip = NULL;
+	int server_port = -1;
+	ini_read_str(conf, "public", "webserver_ip", &server_ip, NULL);
+	ini_read_int(conf, "public", "webserver_port", &server_port, 0);
+	ini_free(conf);
+	setServerIp( server_ip );
+	setServerPort( server_port );
 }
 
 #if 0
@@ -262,6 +286,15 @@ bool UserOption::initialize()
 	return true;
 }
 
+QString UserOption::buildURL( QString ip, QString tail )
+{
+	QString url = "http://";
+	url.append( ip );
+	url.append( tail );
+
+	return url;
+}
+
 int UserOption::nfschina_registor( QString username, QString password )
 {
 #if 1
@@ -291,9 +324,14 @@ int UserOption::nfschina_registor( QString username, QString password )
 		return -1;
 	}
 #endif
-	PyObject *pArgs = PyTuple_New( 2 );
+	//QString url = "http://192.168.7.97/haha/service/?wsdl";
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before registor url: %s\n", url.toStdString().c_str() );
+
+	PyObject *pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", username.toStdString().c_str()) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", password.toStdString().c_str()) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", url.toStdString().c_str()) );
 	PyObject *pRetValue = PyObject_CallObject( regist, pArgs );
 	int uid = _PyInt_AsInt( pRetValue );
 	printf("register :: uid = %d\n",uid);
@@ -334,10 +372,14 @@ int UserOption::nfschina_login( QString username, QString password )
 		return -1;
 	}
 #endif
-	pArgs = PyTuple_New( 2 );
+
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before login url: %s\n", url.toStdString().c_str() );
+
+	pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", username.toStdString().c_str()) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", password.toStdString().c_str()) );
-	//PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", b_share ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", url.toStdString().c_str() ) );
 	//PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", ip.toStdString().c_str()) );
 	//PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", port.toStdString().c_str()) );
 
@@ -431,10 +473,12 @@ static void *thread_upload( void *data )
 		return (void*)-1;
 	}
 
-	PyObject *pArgs = PyTuple_New( 3 );
+	PyObject *pArgs = PyTuple_New( 5 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", arg->url.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", arg->httpurl.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( fileupload, pArgs );
 	int err =0;
@@ -469,8 +513,15 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 
 		return -1;// ?????
 	}
+
 #if 1
-	ThreadArg *arg = new ThreadArg( userid, filename, filepath );
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before nfschina_upLoad url: %s\n", url.toStdString().c_str() );
+
+	QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
+	printf( "before nfschina_upLoad httpurl: %s\n", httpurl.toStdString().c_str() );
+
+	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl );
 	int ret = 0;
 	pthread_t upthread_id;
 	if( (ret = pthread_create( &upthread_id, NULL, thread_upload, (void*)arg)) != 0 )
@@ -512,8 +563,12 @@ void UserOption::nfschina_listMyFile( int userid )
 		return ;
 	}
 
-	PyObject *pArgs = PyTuple_New ( 1 );
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before nfschina_listMyFile url: %s\n", url.toStdString().c_str() );
+
+	PyObject *pArgs = PyTuple_New ( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", url.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( listmyfile, pArgs );
 	int s = PyList_Size( pRetValue );
@@ -535,6 +590,7 @@ void *thread_getfile( void* data )
 	printf( "--------%s:%d------------\n", __func__, __LINE__ );
 	ThreadListArg *arg = ( ThreadListArg*)data;
 	int userid = arg->uid;
+	QString url = arg->url;
 	//arg->filelist->push_back("aaaaaaa");
 
 	if( !Py_IsInitialized() )
@@ -564,8 +620,9 @@ void *thread_getfile( void* data )
 		return (void*)false;
 	}
 
-	PyObject *pArgs = PyTuple_New ( 1 );
+	PyObject *pArgs = PyTuple_New ( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", url.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( listmyfile, pArgs );
 	if( pRetValue == NULL )
@@ -617,7 +674,9 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 	pthread_t listthread_id;
 	bool retval;
 	QList<QString> *plist = new QList<QString>;
-	ThreadListArg *arg = new ThreadListArg( userid,  plist);
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before nfschina_GetFileList url: %s\n", url.toStdString().c_str() );
+	ThreadListArg *arg = new ThreadListArg( userid,  plist, url );
 	if( (ret = pthread_create(&listthread_id, NULL, thread_getfile, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for getfilelist failed:%s\n", strerror(ret) );
@@ -735,9 +794,10 @@ static void* thread_delete( void *data )
 		return (void*)-1;
 	}
 
-	PyObject *pArgs = PyTuple_New( 2 );
+	PyObject *pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", arg->url.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( filedelete, pArgs );
 	int err = _PyInt_AsInt( pRetValue );
@@ -762,7 +822,10 @@ int UserOption::nfschina_delete( int userid, QString filename )
 #if 1
 	pthread_t delthread_id;
 	int ret;
-	ThreadArg *arg = new ThreadArg( userid, filename );
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before thread_delete url: %s\n", url.toStdString().c_str() );
+
+	ThreadArg *arg = new ThreadArg( userid, filename, url );
 	if( (ret = pthread_create(&delthread_id, NULL, thread_delete, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for nfschina_delete:%s\n", strerror(ret) );
@@ -851,9 +914,12 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	}
 
 
-	PyObject *pArgs = PyTuple_New( 2 );
+	QString url = buildURL( getServerIp(), URLTAIL );
+	printf( "before nfschina_download url: %s\n", url.toStdString().c_str() );
+	PyObject *pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", url.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( filedownload, pArgs );
 	int s = PyList_Size( pRetValue );

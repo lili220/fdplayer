@@ -116,7 +116,7 @@ def paxel(url, output, blocks=6, proxies={}):
         show = u'\rFilesize:%d Downloaded:%d Completed:%.2f%%' % (size, downloaded, process)
         sys.stdout.write(show)
         sys.stdout.flush()
-        time.sleep( 0.5 )
+       # time.sleep( 0.0001 )
             
     filehandle = open( output, 'wb+' )
     for i in filename:
@@ -130,3 +130,9 @@ def paxel(url, output, blocks=6, proxies={}):
             pass
 
     filehandle.close()
+
+if __name__ == '__main__':
+    url = "http://192.168.7.97/download/2/guigu.mp4"
+    output = 'guigu.mp4'
+    paxel( url, output, blocks=8, proxies={} )
+
