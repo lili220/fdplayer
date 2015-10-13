@@ -164,7 +164,6 @@ protected:
 private:
 	bool b_load;//python module is Loaded successfull
 	bool b_login;//user is login
-	void private_login();
 	QList<QString> fileList;
 
 	int ruid;

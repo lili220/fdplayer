@@ -1034,11 +1034,6 @@ void UserOption::toggleLocalShared( bool state )
 	}
 }
 
-void UserOption::private_login()
-{
-	LoginDialog::getInstance( p_intf )->toggleVisible();
-}
-
 void UserOption::toggleNetShared( bool state )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
@@ -1049,9 +1044,14 @@ void UserOption::toggleNetShared( bool state )
 	printf("b_netShared = %d\n", b_netShared );
 	if( !isLogin() )
 	{
-		private_login();
+		QMessageBox msgBox( QMessageBox::Information,
+				qtr( "远端共享提示" ),
+				qtr( "用户尚未登录, 无法开启远端共享！" ),
+				QMessageBox::Ok,
+				NULL );
+		msgBox.exec();
 	}
-	if ( isLogin() )
+	else
 	{
 		if (state == 1)
 		{
