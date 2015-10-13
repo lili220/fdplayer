@@ -1034,11 +1034,6 @@ void UserOption::toggleLocalShared( bool state )
 	}
 }
 
-void UserOption::private_login()
-{
-	LoginDialog::getInstance( p_intf )->toggleVisible();
-}
-
 void UserOption::toggleNetShared( bool state )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
