@@ -122,9 +122,12 @@ void vlc_meta_Delete( vlc_meta_t *m )
 
 void vlc_meta_Set( vlc_meta_t *p_meta, vlc_meta_type_t meta_type, const char *psz_val )
 {
+	//modify by zhangwanchun
+	if (meta_type != vlc_meta_Title) {
     free( p_meta->ppsz_meta[meta_type] );
     assert( psz_val == NULL || IsUTF8( psz_val ) );
     p_meta->ppsz_meta[meta_type] = psz_val ? strdup( psz_val ) : NULL;
+	}
 }
 
 const char *vlc_meta_Get( const vlc_meta_t *p_meta, vlc_meta_type_t meta_type )
