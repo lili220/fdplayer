@@ -118,8 +118,8 @@ char HTTP_TRANSFER[] =
 "HTTP/1.1 206 OK\r\n\
 Connection: close\r\n\
 Content-Type: video/mp4\r\n\
-Content-Length: %d\r\n\
-Content-Range: bytes %d-%d/%d\r\n\
+Content-Length: %ld\r\n\
+Content-Range: bytes %ld-%ld/%ld\r\n\
 Accept-Ranges: bytes \r\n\
 \r\n";
 
