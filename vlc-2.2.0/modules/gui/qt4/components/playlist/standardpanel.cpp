@@ -976,6 +976,9 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	}
 
 	mid = user->getLUid();
+	
+	QString url = user->buildURL( user->getServerIp(), "/haha/service/wsdl" );
+	printf( "remote share url: %s\n", url.toStdString().c_str() );
 
 	Py_Initialize();
 
@@ -984,8 +987,8 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	      printf( "Python initialize failed! \n" );
 	      return ;
 	}
+
        PyRun_SimpleString( "import sys" );
-       //PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
        PyRun_SimpleString( "sys.path.append('./share/python')" );
        pName = PyString_FromString("remotemsg");
        pModule = PyImport_Import(pName);
@@ -997,9 +1000,11 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
             return;
        }
 
-       pArgs = PyTuple_New( 2 );
+       pArgs = PyTuple_New( 3 );
        PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", mid) );
        PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", 100 ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", url.toStdString().c_str() ) );
+
        pRetValue = PyObject_CallObject( msg, pArgs );
        int s = PyList_Size( pRetValue );
 
