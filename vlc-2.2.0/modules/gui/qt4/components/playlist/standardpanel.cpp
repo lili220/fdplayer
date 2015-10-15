@@ -543,7 +543,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				url.append( "/" );
 				url.append( filename );
 
-				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 
 				//playlist_item_t *play_item = playlist_ChildSearchName( THEPL->p_root, "Local share" );
 				playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
@@ -1090,7 +1090,7 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 			url.append(file);
 			RecentsMRL::getInstance( p_intf )->addRecent( url );
 			printf( "localshare url:%s\n", url.toStdString().c_str() );
-			item = input_item_NewWithType ( url.toUtf8().constData(), ent[i]->d_name, \
+			item = input_item_NewWithType ( url.toStdString().c_str(), ent[i]->d_name, \
 				0, NULL, 0, 0, ITEM_TYPE_FILE);
 			if (item == NULL)
 				continue;
