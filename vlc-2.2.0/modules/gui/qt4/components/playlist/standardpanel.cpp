@@ -74,6 +74,7 @@
 #include <QMessageBox>
 
 #include <assert.h>
+#include <dirent.h>
 
 #include <vlc_modules.h>
 
@@ -478,11 +479,11 @@ void StandardPLPanel::popupAction( QAction *action )
 		case VLCModelSubInterface::ACTION_DELLOCAL:
 			{
 			QString file = " rm ";
-			file.append(qtu(QString(sharePath)));
+			file.append(sharePath);
 			file.append("/");
-			file.append( qtu(index.data().toString()) );
+			file.append( qtu(index.data().toString()));
 			printf("qtu index.data:%s\n", qtu(index.data().toString()));
-			printf( "del file:%s\n", qtu(file) );
+			printf( "del file:%s\n", file.toStdString().c_str());
 			printf("file no qtu:%s\n", file.toStdString().c_str() );
 			system( file.toStdString().c_str() );
 
@@ -518,10 +519,10 @@ void StandardPLPanel::popupAction( QAction *action )
 				QString cmd = "link ";
 				cmd.append(qtu(file));
 				cmd.append( " " );
-				cmd.append( qtu(QString(sharePath)) );
+				cmd.append( sharePath);
 				cmd.append( "/");
 				cmd.append( filename );
-				QString dstfile = qtu(QString(sharePath));
+				QString dstfile = QString(sharePath);
 				dstfile.append( "/");
 				dstfile.append( filename );
                                 printf("dstfile is:%s\n",dstfile.toStdString().c_str() );
@@ -538,7 +539,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				
 				/*update Window items */
 				QString url = "file://";
-				url.append( qtu(QString(sharePath)) );
+				url.append( sharePath);
 				url.append( "/" );
 				url.append( filename );
 
@@ -1070,9 +1071,38 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
     	    return;
 	   }
 	QString path = user->getSharePath();
+//modify by zhangwanchun, 2015-10-15
+//description: QDir对中文路径的处理有bug, 改用scandir实现
+#if 1
+	int i, n;
+	struct dirent **ent = NULL;
+	struct stat buf;
+	char file[128];
+	n = scandir(path.toStdString().c_str(), &ent, NULL, NULL);
+	for (i = 0; i < n; i++) {
+		snprintf(file, 128, "%s/%s", path.toStdString().c_str(), ent[i]->d_name);
+		lstat(file, &buf);
+		if (S_ISDIR(buf.st_mode)) {
+			printf( "local dir:%s\n", file);
+		} else if (S_ISREG(buf.st_mode)) {
+			input_item_t *item;
+			QString url = "file://";
+			url.append(file);
+			RecentsMRL::getInstance( p_intf )->addRecent( url );
+			printf( "localshare url:%s\n", url.toStdString().c_str() );
+			item = input_item_NewWithType ( url.toUtf8().constData(), ent[i]->d_name, \
+				0, NULL, 0, 0, ITEM_TYPE_FILE);
+			if (item == NULL)
+				continue;
+			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+		}
+	}
+#endif
+#if 0
 	QDir *dir = new QDir( path );
 
 	QFileInfoList entries = dir->entryInfoList();
+	printf("ZHANG's DEBUG: file count [%d]\n", entries.count());
 	foreach(const QFileInfo &file, entries )
 	{
 		if( file.isDir() )
@@ -1093,6 +1123,7 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
 		}
 	}
+#endif
 }
 
 
