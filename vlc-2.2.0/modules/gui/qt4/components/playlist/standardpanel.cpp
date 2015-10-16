@@ -946,7 +946,8 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	{
 		printf( "share file:%s\n", file.toStdString().c_str() );
 		//QString url = "http://192.168.7.97/download/";
-		QString url = "http://"; QString uidstr; 
+		
+		QString url = "http://"; QString uidstr;
 		url.append(server_ip);
 		url.append(":");
 		url.append(uidstr.setNum( server_port ));
@@ -1530,6 +1531,7 @@ void StandardPLPanel::cycleViews()
         assert( 0 );
 }
 
+#include <QDebug>
 void StandardPLPanel::activate( const QModelIndex &index )
 {
     if( currentView->model() == model )
@@ -1546,24 +1548,38 @@ void StandardPLPanel::activate( const QModelIndex &index )
         {
             playlist_Lock( THEPL );
             playlist_item_t *p_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-	     if ( p_item )
+            if ( p_item )
             {
                 p_item->i_flags |= PLAYLIST_SUBITEM_STOP_FLAG;
                 lastActivatedPLItemId = p_item->i_id;
             }
             playlist_Unlock( THEPL );
-	     if (p_selector->getCurrentItemCategory() == REMOTESHARE ) {
-			if(model->rootIndex() == index.parent()) {
-				printf("p_selector->getCurrentItemCategory() == REMOTESHARE\n");
-				createRemoteShareFileList( index );
-				return;
-		    }
-    	 }	
+            if ( p_selector->getCurrentItemCategory() == REMOTESHARE )
+            {
+                if(model->rootIndex() == index.parent())
+                {
+                    printf("p_selector->getCurrentItemCategory() == REMOTESHARE\n");
+                    createRemoteShareFileList( index );
+                    return;
+                }
+            }
+            if ( p_selector->getCurrentItemCategory() == CLOUDSHARE )
+            {
+                UserOption *user = UserOption::getInstance( p_intf );
+                int uid = user->getLUid();
+                QString filename = index.data().toString();
+                qDebug() << "filename:" <<filename;
+                printf("uid = %d\n", uid);
+                QString url = user->nfschina_download( uid, filename );
+                printf("real url:%s\n", url.toStdString().c_str());
+                model->reURINode( index, url );
+                printf("p_item->p_input->psz_uri=%s\n", p_item->p_input->psz_uri);
+            }
+
             if ( p_item && index.isValid() )
                 model->activateItem( index );
         }
     }
-
 }
 
 void StandardPLPanel::browseInto( int i_pl_item_id )

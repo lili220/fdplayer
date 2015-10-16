@@ -97,6 +97,7 @@ public:
     virtual void createNode( QModelIndex index, QString name );
     virtual void addItem( QModelIndex index, QString name );//add by lili
     virtual void renameNode( QModelIndex index, QString name );
+    virtual void reURINode( QModelIndex index, QString uri );//add by lili
     virtual void removeAll();
 
     /* Lookups */

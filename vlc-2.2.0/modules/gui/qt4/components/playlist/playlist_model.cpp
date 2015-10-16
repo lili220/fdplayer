@@ -944,6 +944,19 @@ void PLModel::renameNode( QModelIndex index, QString name )
     PL_UNLOCK;
 }
 
+void PLModel::reURINode( QModelIndex index, QString uri )
+{
+    if( uri.isEmpty() || !index.isValid() ) return;
+
+    PL_LOCK;
+    if ( !index.isValid() ) index = rootIndex();
+    input_item_t* p_input = this->getInputItem( index );
+    input_item_SetURI( p_input, qtu( uri ) );
+    playlist_t *p_playlist = THEPL;
+    input_item_WriteMeta( VLC_OBJECT(p_playlist), p_input );
+    PL_UNLOCK;
+}
+
 bool PLModel::action( QAction *action, const QModelIndexList &indexes )
 {
 	printf( "----------------------%s--------------------------\n", __func__ );
