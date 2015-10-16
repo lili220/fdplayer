@@ -47,6 +47,7 @@ public:
     LoginDialog( intf_thread_t * );
     virtual ~LoginDialog();
 	void init();
+	static bool input_check(char*, QString, QString);
 
 public slots:
     virtual void close() { toggleVisible(); }
@@ -67,6 +68,7 @@ private:
 	QString userName;
 	QString passWord;
 	bool b_login;//是否已登录
+	static void prompt_dialog_box(char *, char*);
 
 	QLineEdit* nameEdit;
 	QLineEdit*   passEdit;
