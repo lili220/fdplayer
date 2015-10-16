@@ -1224,8 +1224,6 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 	   return;
 	}
 	int s = PyList_Size( pRetValue1 );
-	printf("%d\n", __LINE__);
-	// list<string> msgList;
 	LISTSTRING msgList1;
 	msgList1.clear();
 	LISTSTRING::iterator ii1; 
@@ -1235,7 +1233,7 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 	}
 
 	printf("msgList1.size = %ld\n", msgList1.size());
-	for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
+	for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ii1++)
 	{
 		printf("%s\n", (*ii1).c_str());
 		QString shareurl = "http://192.168.7.88:8090/transfer/";
@@ -1244,12 +1242,12 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 		shareurl.append( sid);
 		shareurl.append( "/" );
 		shareurl.append( (*ii1).c_str() );
-		RecentsMRL::getInstance( p_intf )->addRecent( shareurl );
 		printf("sharefileurl:%s\n", shareurl.toStdString().c_str());
 		input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_FILE);
-		if ( item == NULL)
+		if ( item == NULL) {
+			printf("item == NULL\n");
 			return;
-		printf("play_item->i_id = %d\n", play_item->i_id);
+		}
 		playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
 	}
 }
