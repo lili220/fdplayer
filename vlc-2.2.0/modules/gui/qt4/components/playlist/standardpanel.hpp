@@ -76,6 +76,8 @@ public:
 	void createCloudItems( const QModelIndex &index); //add by lili
 	void createRemoteShareItems( const QModelIndex &index);
 	void createLocalShareItems( const QModelIndex &index);
+	void createRemoteShareFileList( const QModelIndex &index );
+
 protected:
     VLCModel *model;
     virtual void wheelEvent( QWheelEvent *e );

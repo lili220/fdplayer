@@ -652,6 +652,9 @@ void StandardPLPanel::popupAction( QAction *action )
                 else
                     return;
 
+		QString file = index.data().toString();
+		printf( "QString file:%s\n", file.toStdString().c_str());
+	
 		  playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
                 if( play_item == NULL )
                     return;
@@ -1126,6 +1129,99 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 #endif
 }
 
+void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
+{	
+	printf( "StandardPLPanel::createRemoteShareFileList\n" );
+	
+	QString file = index.data().toString();
+	printf( "QString file:%s\n", file.toStdString().c_str());
+
+	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+	if( play_item == NULL )
+		return;
+ 
+	PyObject *pName1,*pModule1,*msg1,*pRetValue1,*pArgs1;
+	UserOption *user = NULL;
+
+	QString serverip = model->getURI( index);
+
+	int mid = 0;
+	char user_info[128] = {0};
+	char service_ip[128] = {0};
+	char cmid[128] = {0};
+	char sid[128] = {0};
+	char *p = NULL;
+	memcpy(user_info,  serverip.toStdString().c_str(), strlen(serverip.toStdString().c_str()));
+	printf("get share user info = %s\n", user_info);
+
+	p = strrchr(user_info, 32);
+	memcpy(sid, p+1, strlen(p));
+	memcpy(service_ip, user_info, p-user_info);
+	p = strrchr(service_ip, 32);
+	*p = ':';
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	pName1 = PyString_FromString("sharefile");
+	pModule1 = PyImport_Import(pName1);
+
+	msg1 = PyObject_GetAttrString(pModule1,"getfile");
+	
+	if(msg1 == NULL)
+	{
+		printf("msg is NULL\n");
+		return;
+	}
+
+	user = UserOption::getInstance( p_intf );
+	if(user)
+	{
+		mid = user->getLUid();
+		sprintf(cmid, "%d", mid);
+	}
+	printf("service_ip = %s, cmid = %s, sid = %s\n", service_ip, cmid, sid);
+
+	pArgs1 = PyTuple_New( 3 );
+	PyTuple_SetItem( pArgs1, 0, Py_BuildValue( "s", service_ip) );
+	PyTuple_SetItem( pArgs1, 1, Py_BuildValue( "s", cmid) );
+	PyTuple_SetItem( pArgs1, 2, Py_BuildValue( "s", sid ) );
+
+	pRetValue1 = PyObject_CallObject( msg1, pArgs1 );
+	if(pRetValue1 == NULL)
+	{
+	   printf("%d:pRetValue1 is NULL\n",__LINE__); 
+	   return;
+	}
+	int s = PyList_Size( pRetValue1 );
+	printf("%d\n", __LINE__);
+	// list<string> msgList;
+	LISTSTRING msgList1;
+	msgList1.clear();
+	LISTSTRING::iterator ii1; 
+	for( int i = 0; i < s; i++ )
+	{
+		msgList1.push_back(PyString_AsString( PyList_GetItem( pRetValue1, i ) ) );
+	}
+
+	printf("msgList1.size = %ld\n", msgList1.size());
+	for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ++ii1)
+	{
+		printf("%s\n", (*ii1).c_str());
+		QString shareurl = "http://192.168.7.88:8090/transfer/";
+		shareurl.append( cmid );
+		shareurl.append( "/" );
+		shareurl.append( sid);
+		shareurl.append( "/" );
+		shareurl.append( (*ii1).c_str() );
+		RecentsMRL::getInstance( p_intf )->addRecent( shareurl );
+		printf("sharefileurl:%s\n", shareurl.toStdString().c_str());
+		input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+		if ( item == NULL)
+			return;
+		printf("play_item->i_id = %d\n", play_item->i_id);
+		playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
+	}
+}
 
 void StandardPLPanel::browseInto()
 {
@@ -1409,6 +1505,8 @@ void StandardPLPanel::activate( const QModelIndex &index )
 {
     if( currentView->model() == model )
     {
+        printf("p_selector->getCurrentItemCategory():%d,%d,%s\n", p_selector->getCurrentItemCategory(),__LINE__,__FUNCTION__);
+
         /* If we are not a leaf node */
         if( !index.data( VLCModelSubInterface::IsLeafNodeRole ).toBool() )
         {
@@ -1419,16 +1517,24 @@ void StandardPLPanel::activate( const QModelIndex &index )
         {
             playlist_Lock( THEPL );
             playlist_item_t *p_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-            if ( p_item )
+	     if ( p_item )
             {
                 p_item->i_flags |= PLAYLIST_SUBITEM_STOP_FLAG;
                 lastActivatedPLItemId = p_item->i_id;
             }
             playlist_Unlock( THEPL );
+	     if (p_selector->getCurrentItemCategory() == REMOTESHARE ) {
+			if(model->rootIndex() == index.parent()) {
+				printf("p_selector->getCurrentItemCategory() == REMOTESHARE\n");
+				createRemoteShareFileList( index );
+				return;
+		    }
+    	 }	
             if ( p_item && index.isValid() )
                 model->activateItem( index );
         }
     }
+
 }
 
 void StandardPLPanel::browseInto( int i_pl_item_id )
