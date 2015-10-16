@@ -80,6 +80,16 @@
 
 #include <python2.7/Python.h>
 
+#define EXPANDED_NAME 10
+char media_file_suffix[][EXPANDED_NAME] = {
+"wmv", "avi", "mpg", "mp4", "3gp", "wma", "rmvb", "rm", 	//视频
+"gif", "mkv", "vob", "mov", "flv", "swf", "dv", "asf",		//视频
+"ts", "dat", "f4v", "webm", 					//视频
+"mp3", "wma", "ape", "flac", "aac", "mmf", "amr", "m4a", 	//音频
+"m4r", "ogg", "wav", "mp2", "ac3", "ra", "au", 			//音频
+"jpg", "png", "ico", "bmp", "gif", "tif", "pcx", "tga",		//图片
+};
+
 typedef list<string> LISTSTRING;
 /* local helper */
 inline QModelIndex popupIndex( QAbstractItemView *view );
@@ -543,7 +553,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				url.append( "/" );
 				url.append( filename );
 
-				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 
 				//playlist_item_t *play_item = playlist_ChildSearchName( THEPL->p_root, "Local share" );
 				playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
@@ -1059,6 +1069,24 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	 
 }
 
+static bool chk_media_file(char *filename)
+{
+	char *en = NULL;
+	int i;
+	en = strrchr(filename, '.');
+	if ( en == NULL ) {
+		return false;
+	} else {
+		en = en + 1;
+		for (i = 0; i < (sizeof(media_file_suffix) / EXPANDED_NAME); i++) {
+			if (strcmp(en, media_file_suffix[i]) == 0) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 {	
 	UserOption *user = UserOption::getInstance( p_intf );
@@ -1088,12 +1116,15 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 		if (S_ISDIR(buf.st_mode)) {
 			printf( "local dir:%s\n", file);
 		} else if (S_ISREG(buf.st_mode)) {
+			if (chk_media_file(file) == false) {
+				continue;
+			}
 			input_item_t *item;
 			QString url = "file://";
 			url.append(file);
 			RecentsMRL::getInstance( p_intf )->addRecent( url );
 			printf( "localshare url:%s\n", url.toStdString().c_str() );
-			item = input_item_NewWithType ( url.toUtf8().constData(), ent[i]->d_name, \
+			item = input_item_NewWithType ( url.toStdString().c_str(), ent[i]->d_name, \
 				0, NULL, 0, 0, ITEM_TYPE_FILE);
 			if (item == NULL)
 				continue;
