@@ -146,6 +146,7 @@ public:
     static int metaToColumn( int meta );
     static QString getMeta( const QModelIndex & index, int meta );
     static QPixmap getArtPixmap( const QModelIndex & index, const QSize & size );
+    virtual void reURINode( QModelIndex index, QString uri ) = 0;//add by lili
 
 	/*add by lili */
     virtual AbstractPLItem *getPLItem( const QModelIndex & index ) const;//add by lili

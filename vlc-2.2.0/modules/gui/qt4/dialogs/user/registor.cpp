@@ -119,6 +119,9 @@ bool RegistorDialog::checkPassword()
 void RegistorDialog::registor()
 {
 	qDebug() << __func__;
+	if (!LoginDialog::input_check("用户注册", nameEdit->text(), passEdit->text())) {
+		return;
+	}
 	if( !checkPassword() )
 	{
 		QMessageBox msgBox( QMessageBox::Information,
@@ -127,6 +130,7 @@ void RegistorDialog::registor()
 				QMessageBox::Ok,
 				NULL );
 		msgBox.exec();
+		return;
 	}
 
 	userOption = UserOption::getInstance( p_intf );

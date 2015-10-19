@@ -122,12 +122,60 @@ void LoginDialog::init()
 
 }
 
+void LoginDialog::prompt_dialog_box(char* tital, char *msg)
+{
+	QMessageBox msgBox( QMessageBox::Information,
+			qtr(tital),
+			qtr(msg),
+			QMessageBox::Ok,
+			NULL );
+	msgBox.exec();
+}
+
+bool LoginDialog::input_check(char *tital, QString name, QString pass)
+{
+	QString valid_char = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_";
+	int name_len = name.count();
+	int pass_len = pass.count();
+	if (name_len < 6 || name_len > 30 || pass_len < 6 || pass_len > 128) {
+		printf( "用户名、密码的长度错误!\n" );
+		prompt_dialog_box(tital, "用户名或密码无效！\n"\
+			"用户名：大于等于6位且小于等于30位的大小写字母、数字和下划线!\n"\
+			"密码：大于等于6位且小于等于128位的大小写字母、数字和下划线!\n");
+		return false;
+	}
+	for (int i = 0; i < name_len; i++) {
+		QChar c = name.at(i);
+		if (valid_char.indexOf(c) == -1) {
+			printf( "用户名含有无效字符!\n" );
+			prompt_dialog_box(tital, "用户名或密码无效！\n"\
+				"用户名：大于等于6位且小于等于30位的大小写字母、数字和下划线!\n"\
+				"密码：大于等于6位且小于等于128位的大小写字母、数字和下划线!\n");
+			return false;
+		}
+	}
+	for (int i = 0; i < pass_len; i++) {
+		QChar c = pass.at(i);
+		if (valid_char.indexOf(c) == -1) {
+			printf( "密码含有无效字符!\n" );
+			prompt_dialog_box(tital, "用户名或密码无效！\n"\
+				"用户名：大于等于6位且小于等于30位的大小写字母、数字和下划线!\n"\
+				"密码：大于等于6位且小于等于128位的大小写字母、数字和下划线!\n");
+			return false;
+		}
+	}
+	return true;
+}
+
 bool LoginDialog::login()
 {
 	qDebug() << __func__;
 
 	qDebug() << "username:" << nameEdit->text();
 	qDebug() << "password:" << passEdit->text();
+	if (!input_check("用户登录", nameEdit->text(), passEdit->text())) {
+		return false;
+	}
 
 	userOption = UserOption::getInstance( p_intf );
 	if( !userOption->isLoaded() )
@@ -211,6 +259,7 @@ void LoginDialog::logout()
 	{
 		//saveLogInfo();
 		//user->nfschina_logout( user->getLUid() );
+		UserOption::getInstance( p_intf )->toggleNetShared(false);    // close remote share
 		setLogState( false );
 		UserOption::getInstance( p_intf )->setLogin( false );
 		UserOption::getInstance( p_intf )->setLUid( -1 );

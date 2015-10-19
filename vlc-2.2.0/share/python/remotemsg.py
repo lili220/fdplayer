@@ -3,9 +3,15 @@ __author__ = 'wp'
 import urllib2
 import sys, httplib
 import re
+import requests
 
-
-def nfschina_msg(userid,max_items):
+def parse_url(url):
+    s1 =  url.split("//")
+    s2 = s1[1].split("/")
+    s3 = s1[1].split("/",1)
+    return s3
+	
+def nfschina_msg(userid,max_items,url):
     SENDTPL = \
 '''<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="nfschina.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
@@ -18,13 +24,17 @@ def nfschina_msg(userid,max_items):
    </ns0:Body>
 </SOAP-ENV:Envelope>'''
     SoapMessage = SENDTPL % (userid, max_items)
-    webservice = httplib.HTTP("192.168.7.97")
-    webservice.putrequest("POST", "/haha/service/wsdl")
-    webservice.putheader("Host", "192.168.7.97")
+    purl = parse_url(url)
+    ip = purl[0]
+    postpath = "/" + purl[1]
+    soapaction = url
+    webservice = httplib.HTTP(ip)
+    webservice.putrequest("POST", postpath)
+    webservice.putheader("Host", ip)
     webservice.putheader("User-Agent", "Python Post")
     webservice.putheader("Content-type", "text/xml; charset=\"UTF-8\"")
     webservice.putheader("Content-length", "%d" % len(SoapMessage))
-    webservice.putheader("SOAPAction", "\"http://192.168.7.97/haha/service/wsdl\"")
+    webservice.putheader("SOAPAction", soapaction)
     webservice.endheaders()
     webservice.send(SoapMessage)
     # get the response
@@ -49,5 +59,5 @@ def nfschina_msg(userid,max_items):
 
 
 
-#if __name__ == "__main__":
-#    print(nfschina_msg(2,2))
+if __name__ == "__main__":
+    print(nfschina_msg(2,2,"http://192.168.7.97/haha/service/wsdl"))

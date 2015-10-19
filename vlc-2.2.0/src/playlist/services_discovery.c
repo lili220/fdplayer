@@ -65,6 +65,8 @@ char **vlc_sd_GetNames (vlc_object_t *obj, char ***pppsz_longnames, int **pp_cat
 {
     size_t count;
     vlc_sd_probe_t *tab = vlc_probe (obj, "services probe", &count);
+    size_t myorder[4];
+    memset(myorder,0,sizeof(size_t)*4);
 
     if (count == 0)
     {
@@ -83,7 +85,45 @@ char **vlc_sd_GetNames (vlc_object_t *obj, char ***pppsz_longnames, int **pp_cat
         names[i] = tab[i].name;
         longnames[i] = tab[i].longname;
         categories[i] = tab[i].category;
+#if  1
+	if (strncmp(names[i],"local",5)==0)
+           myorder[0]=i;
+	else if (strncmp(names[i],"upnp",4)==0)
+           myorder[1]=i;
+	else if (strncmp(names[i],"cloud",5)==0)
+           myorder[2]=i;
+	else if (strncmp(names[i],"remote",6)==0)
+           myorder[3]=i;
+#endif
     }
+#if  1
+    for (size_t m=0;m<3;m++) {
+	for (size_t n=0;n<3-m;n++) {
+           if (myorder[n] > myorder[n+1]){
+                size_t wjl1=myorder[n];
+                size_t wjl2=myorder[n+1];
+                char * t = NULL;
+                int wjl3=0;
+
+                t = names[wjl1];
+                names[wjl1]=names[wjl2];
+                names[wjl2]=t;
+
+                t = longnames[wjl1];
+                longnames[wjl1]=longnames[wjl2];
+                longnames[wjl2]=t;
+
+                wjl3 = categories[wjl1];
+                categories[wjl1]=categories[wjl2];
+                categories[wjl2]=wjl3;
+
+		wjl3=myorder[n];
+		myorder[n]=myorder[n+1];
+		myorder[n+1]=wjl3;
+           }
+        }
+    } 
+#endif
     free (tab);
     names[count] = longnames[count] = NULL;
     categories[count] = 0;

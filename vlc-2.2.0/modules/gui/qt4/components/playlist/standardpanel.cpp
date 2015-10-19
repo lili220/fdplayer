@@ -74,10 +74,21 @@
 #include <QMessageBox>
 
 #include <assert.h>
+#include <dirent.h>
 
 #include <vlc_modules.h>
 
 #include <python2.7/Python.h>
+
+#define EXPANDED_NAME 10
+char media_file_suffix[][EXPANDED_NAME] = {
+"wmv", "avi", "mpg", "mp4", "3gp", "wma", "rmvb", "rm", 	//视频
+"gif", "mkv", "vob", "mov", "flv", "swf", "dv", "asf",		//视频
+"ts", "dat", "f4v", "webm", 					//视频
+"mp3", "wma", "ape", "flac", "aac", "mmf", "amr", "m4a", 	//音频
+"m4r", "ogg", "wav", "mp2", "ac3", "ra", "au", 			//音频
+"jpg", "png", "ico", "bmp", "gif", "tif", "pcx", "tga",		//图片
+};
 
 typedef list<string> LISTSTRING;
 /* local helper */
@@ -478,11 +489,11 @@ void StandardPLPanel::popupAction( QAction *action )
 		case VLCModelSubInterface::ACTION_DELLOCAL:
 			{
 			QString file = " rm ";
-			file.append(qtu(QString(sharePath)));
+			file.append(sharePath);
 			file.append("/");
-			file.append( qtu(index.data().toString()) );
+			file.append( qtu(index.data().toString()));
 			printf("qtu index.data:%s\n", qtu(index.data().toString()));
-			printf( "del file:%s\n", qtu(file) );
+			printf( "del file:%s\n", file.toStdString().c_str());
 			printf("file no qtu:%s\n", file.toStdString().c_str() );
 			system( file.toStdString().c_str() );
 
@@ -518,10 +529,10 @@ void StandardPLPanel::popupAction( QAction *action )
 				QString cmd = "link ";
 				cmd.append(qtu(file));
 				cmd.append( " " );
-				cmd.append( qtu(QString(sharePath)) );
+				cmd.append( sharePath);
 				cmd.append( "/");
 				cmd.append( filename );
-				QString dstfile = qtu(QString(sharePath));
+				QString dstfile = QString(sharePath);
 				dstfile.append( "/");
 				dstfile.append( filename );
                                 printf("dstfile is:%s\n",dstfile.toStdString().c_str() );
@@ -538,11 +549,11 @@ void StandardPLPanel::popupAction( QAction *action )
 				
 				/*update Window items */
 				QString url = "file://";
-				url.append( qtu(QString(sharePath)) );
+				url.append( sharePath);
 				url.append( "/" );
 				url.append( filename );
 
-				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_CARD);
+				input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 
 				//playlist_item_t *play_item = playlist_ChildSearchName( THEPL->p_root, "Local share" );
 				playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
@@ -651,6 +662,9 @@ void StandardPLPanel::popupAction( QAction *action )
                 else
                     return;
 
+		QString file = index.data().toString();
+		printf( "QString file:%s\n", file.toStdString().c_str());
+	
 		  playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
                 if( play_item == NULL )
                     return;
@@ -680,6 +694,7 @@ void StandardPLPanel::popupAction( QAction *action )
                 PyRun_SimpleString( "import sys" );
                 //PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
                 PyRun_SimpleString( "sys.path.append('./share/python')" );
+		PyRun_SimpleString( "sys.path.append('../share/python')" );
                 pName1 = PyString_FromString("sharefile");
                 pModule1 = PyImport_Import(pName1);
 
@@ -932,7 +947,8 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	{
 		printf( "share file:%s\n", file.toStdString().c_str() );
 		//QString url = "http://192.168.7.97/download/";
-		QString url = "http://"; QString uidstr; 
+		
+		QString url = "http://"; QString uidstr;
 		url.append(server_ip);
 		url.append(":");
 		url.append(uidstr.setNum( server_port ));
@@ -976,6 +992,9 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	}
 
 	mid = user->getLUid();
+	
+	QString url = user->buildURL( user->getServerIp(), "/haha/service/wsdl" );
+	printf( "remote share url: %s\n", url.toStdString().c_str() );
 
 	Py_Initialize();
 
@@ -984,9 +1003,10 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	      printf( "Python initialize failed! \n" );
 	      return ;
 	}
+
        PyRun_SimpleString( "import sys" );
-       //PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
        PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/python')" );
        pName = PyString_FromString("remotemsg");
        pModule = PyImport_Import(pName);
 
@@ -997,9 +1017,11 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
             return;
        }
 
-       pArgs = PyTuple_New( 2 );
+       pArgs = PyTuple_New( 3 );
        PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", mid) );
        PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", 100 ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", url.toStdString().c_str() ) );
+
        pRetValue = PyObject_CallObject( msg, pArgs );
        int s = PyList_Size( pRetValue );
 
@@ -1050,6 +1072,24 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	 
 }
 
+static bool chk_media_file(char *filename)
+{
+	char *en = NULL;
+	int i;
+	en = strrchr(filename, '.');
+	if ( en == NULL ) {
+		return false;
+	} else {
+		en = en + 1;
+		for (i = 0; i < (sizeof(media_file_suffix) / EXPANDED_NAME); i++) {
+			if (strcmp(en, media_file_suffix[i]) == 0) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 {	
 	UserOption *user = UserOption::getInstance( p_intf );
@@ -1065,9 +1105,41 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
     	    return;
 	   }
 	QString path = user->getSharePath();
+//modify by zhangwanchun, 2015-10-15
+//description: QDir对中文路径的处理有bug, 改用scandir实现
+#if 1
+	int i, n;
+	struct dirent **ent = NULL;
+	struct stat buf;
+	char file[128];
+	n = scandir(path.toStdString().c_str(), &ent, NULL, NULL);
+	for (i = 0; i < n; i++) {
+		snprintf(file, 128, "%s/%s", path.toStdString().c_str(), ent[i]->d_name);
+		lstat(file, &buf);
+		if (S_ISDIR(buf.st_mode)) {
+			printf( "local dir:%s\n", file);
+		} else if (S_ISREG(buf.st_mode)) {
+			if (chk_media_file(file) == false) {
+				continue;
+			}
+			input_item_t *item;
+			QString url = "file://";
+			url.append(file);
+			RecentsMRL::getInstance( p_intf )->addRecent( url );
+			printf( "localshare url:%s\n", url.toStdString().c_str() );
+			item = input_item_NewWithType ( url.toStdString().c_str(), ent[i]->d_name, \
+				0, NULL, 0, 0, ITEM_TYPE_FILE);
+			if (item == NULL)
+				continue;
+			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+		}
+	}
+#endif
+#if 0
 	QDir *dir = new QDir( path );
 
 	QFileInfoList entries = dir->entryInfoList();
+	printf("ZHANG's DEBUG: file count [%d]\n", entries.count());
 	foreach(const QFileInfo &file, entries )
 	{
 		if( file.isDir() )
@@ -1088,8 +1160,101 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 			playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
 		}
 	}
+#endif
 }
 
+void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
+{	
+	printf( "StandardPLPanel::createRemoteShareFileList\n" );
+	
+	QString file = index.data().toString();
+	printf( "QString file:%s\n", file.toStdString().c_str());
+
+	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+	if( play_item == NULL )
+		return;
+ 
+	PyObject *pName1,*pModule1,*msg1,*pRetValue1,*pArgs1;
+	UserOption *user = NULL;
+
+	QString serverip = model->getURI( index);
+
+	int mid = 0;
+	char user_info[128] = {0};
+	char service_ip[128] = {0};
+	char cmid[128] = {0};
+	char sid[128] = {0};
+	char *p = NULL;
+	memcpy(user_info,  serverip.toStdString().c_str(), strlen(serverip.toStdString().c_str()));
+	printf("get share user info = %s\n", user_info);
+
+	p = strrchr(user_info, 32);
+	memcpy(sid, p+1, strlen(p));
+	memcpy(service_ip, user_info, p-user_info);
+	p = strrchr(service_ip, 32);
+	*p = ':';
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	pName1 = PyString_FromString("sharefile");
+	pModule1 = PyImport_Import(pName1);
+
+	msg1 = PyObject_GetAttrString(pModule1,"getfile");
+	
+	if(msg1 == NULL)
+	{
+		printf("msg is NULL\n");
+		return;
+	}
+
+	user = UserOption::getInstance( p_intf );
+	if(user)
+	{
+		mid = user->getLUid();
+		sprintf(cmid, "%d", mid);
+	}
+	printf("service_ip = %s, cmid = %s, sid = %s\n", service_ip, cmid, sid);
+
+	pArgs1 = PyTuple_New( 3 );
+	PyTuple_SetItem( pArgs1, 0, Py_BuildValue( "s", service_ip) );
+	PyTuple_SetItem( pArgs1, 1, Py_BuildValue( "s", cmid) );
+	PyTuple_SetItem( pArgs1, 2, Py_BuildValue( "s", sid ) );
+
+	pRetValue1 = PyObject_CallObject( msg1, pArgs1 );
+	if(pRetValue1 == NULL)
+	{
+	   printf("%d:pRetValue1 is NULL\n",__LINE__); 
+	   return;
+	}
+	int s = PyList_Size( pRetValue1 );
+	LISTSTRING msgList1;
+	msgList1.clear();
+	LISTSTRING::iterator ii1; 
+	for( int i = 0; i < s; i++ )
+	{
+		msgList1.push_back(PyString_AsString( PyList_GetItem( pRetValue1, i ) ) );
+	}
+
+	printf("msgList1.size = %ld\n", msgList1.size());
+	for (ii1 = msgList1.begin(); ii1 != msgList1.end(); ii1++)
+	{
+		printf("%s\n", (*ii1).c_str());
+		QString shareurl = "http://192.168.7.88:8090/transfer/";
+		shareurl.append( cmid );
+		shareurl.append( "/" );
+		shareurl.append( sid);
+		shareurl.append( "/" );
+		shareurl.append( (*ii1).c_str() );
+		printf("sharefileurl:%s\n", shareurl.toStdString().c_str());
+		input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+		if ( item == NULL) {
+			printf("item == NULL\n");
+			return;
+		}
+		playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
+	}
+}
 
 void StandardPLPanel::browseInto()
 {
@@ -1369,10 +1534,13 @@ void StandardPLPanel::cycleViews()
         assert( 0 );
 }
 
+#include <QDebug>
 void StandardPLPanel::activate( const QModelIndex &index )
 {
     if( currentView->model() == model )
     {
+        printf("p_selector->getCurrentItemCategory():%d,%d,%s\n", p_selector->getCurrentItemCategory(),__LINE__,__FUNCTION__);
+
         /* If we are not a leaf node */
         if( !index.data( VLCModelSubInterface::IsLeafNodeRole ).toBool() )
         {
@@ -1389,6 +1557,28 @@ void StandardPLPanel::activate( const QModelIndex &index )
                 lastActivatedPLItemId = p_item->i_id;
             }
             playlist_Unlock( THEPL );
+            if ( p_selector->getCurrentItemCategory() == REMOTESHARE )
+            {
+                if(model->rootIndex() == index.parent())
+                {
+                    printf("p_selector->getCurrentItemCategory() == REMOTESHARE\n");
+                    createRemoteShareFileList( index );
+                    return;
+                }
+            }
+            if ( p_selector->getCurrentItemCategory() == CLOUDSHARE )
+            {
+                UserOption *user = UserOption::getInstance( p_intf );
+                int uid = user->getLUid();
+                QString filename = index.data().toString();
+                qDebug() << "filename:" <<filename;
+                printf("uid = %d\n", uid);
+                QString url = user->nfschina_download( uid, filename );
+                printf("real url:%s\n", url.toStdString().c_str());
+                model->reURINode( index, url );
+                printf("p_item->p_input->psz_uri=%s\n", p_item->p_input->psz_uri);
+            }
+
             if ( p_item && index.isValid() )
                 model->activateItem( index );
         }

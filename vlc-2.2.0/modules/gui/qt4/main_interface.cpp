@@ -384,13 +384,13 @@ void MainInterface::createResumePanel( QWidget *w )
     continuePixmapLabel->setPixmap( QPixmap( ":/menu/help" ) );
     continuePixmapLabel->setContentsMargins( 5, 0, 5, 0 );
 
-    QLabel *continueLabel = new QLabel( qtr( "Do you want to restart the playback where left off?") );
+    QLabel *continueLabel = new QLabel( qtr( "你想继续上一次播放吗？") );
 
     QToolButton *cancel = new QToolButton( resumePanel );
     cancel->setAutoRaise( true );
     cancel->setText( "X" );
 
-    QPushButton *ok = new QPushButton( qtr( "&Continue" )  );
+    QPushButton *ok = new QPushButton( qtr( "续播" )  );
 
     resumePanelLayout->addWidget( continuePixmapLabel );
     resumePanelLayout->addWidget( continueLabel );

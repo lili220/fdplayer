@@ -30,6 +30,7 @@
 #include "components/playlist/selector.hpp"
 #include "playlist_model.hpp"                /* plMimeData */
 #include "input_manager.hpp"                 /* MainInputManager, for podcast */
+#include "../../dialogs/user/useroption.hpp"                 /* MainInputManager, for podcast */
 
 #include <QApplication>
 #include <QInputDialog>
@@ -242,16 +243,17 @@ void PLSelector::createItems()
     ml->treeItem()->setData( 0, Qt::DecorationRole, QIcon( ":/sidebar/library" ) );
 
     /* SD nodes */
-    QTreeWidgetItem *mycomp = addItem( CATEGORY_TYPE, N_("My Computer"), false, true )->treeItem();
+    QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("媒体共享"), false, true )->treeItem();
+    //QTreeWidgetItem *mycomp = addItem( CATEGORY_TYPE, N_("My Computer"), false, true )->treeItem();
     QTreeWidgetItem *devices = addItem( CATEGORY_TYPE, N_("Devices"), false, true )->treeItem();
     QTreeWidgetItem *lan = addItem( CATEGORY_TYPE, N_("Local Network"), false, true )->treeItem();
     QTreeWidgetItem *internet = addItem( CATEGORY_TYPE, N_("Internet"), false, true )->treeItem();
     /*wangpei*/
     //QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("Media Share"), false, true )->treeItem();
-    QTreeWidgetItem *share = addItem( CATEGORY_TYPE, N_("媒体共享"), false, true )->treeItem();
+
 
 #define NOT_SELECTABLE(w) w->setFlags( w->flags() ^ Qt::ItemIsSelectable );
-    NOT_SELECTABLE( mycomp );
+    //NOT_SELECTABLE( mycomp );
     NOT_SELECTABLE( devices );
     NOT_SELECTABLE( lan );
     NOT_SELECTABLE( internet );
@@ -318,6 +320,7 @@ void PLSelector::createItems()
             // icon = QIcon( ":/sidebar/lan" );
             break;
         case SD_CAT_MYCOMPUTER:
+            /*
             name = name.mid( 0, name.indexOf( '{' ) );
             selItem = addItem( SD_TYPE, *ppsz_longname, false, false, mycomp );
             if ( name == "video_dir" )
@@ -328,6 +331,7 @@ void PLSelector::createItems()
                 icon = QIcon( ":/sidebar/pictures" );
             else
                 icon = QIcon( ":/sidebar/movie" );
+            */
             break;
         /* wangpei */
         case SD_CAT_SHARE:
@@ -335,18 +339,22 @@ void PLSelector::createItems()
             if (name.startsWith( "localshare" ))
             {
                 selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_LS ) );
+                icon = QIcon( ":/sidebar/movie" );
             }
             else if (name.startsWith("upnp"))
             {
                 selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_LANS ) );
-            }
-            else if (name.startsWith("remoteshare"))
-            {
-                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_RS ) );
+                icon = QIcon( ":/sidebar/music" );
             }
             else if (name.startsWith("cloudshare"))
             {
                 selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_CS ) );
+                icon = QIcon( ":/sidebar/capture" );
+            }
+            else if (name.startsWith("remoteshare"))
+            {
+                selItem->treeItem()->setData( 0, SPECIAL_ROLE, QVariant( IS_RS ) );
+                icon = QIcon( ":/sidebar/network" );
             }
             break;
         default:
@@ -365,7 +373,7 @@ void PLSelector::createItems()
     free( ppsz_longnames );
     free( p_categories );
 
-    if( mycomp->childCount() == 0 ) delete mycomp;
+    //if( mycomp->childCount() == 0 ) delete mycomp;
     if( devices->childCount() == 0 ) delete devices;
     if( lan->childCount() == 0 ) delete lan;
     if( internet->childCount() == 0 ) delete internet;
@@ -386,18 +394,29 @@ void PLSelector::setSource( QTreeWidgetItem *item )
     if( i_type == SD_TYPE )
     {
         QString qs = item->data( 0, NAME_ROLE ).toString();
-		printf( "-----------qs:%s----------\n", qs.toStdString().c_str() );//add by lili
         sd_loaded = playlist_IsServicesDiscoveryLoaded( THEPL, qtu( qs ) );
-#if 0
-		if( sd_loaded )
+
+        printf( "###################PLSelector::setSource-qs:%s, %d\n", qs.toStdString().c_str(), sd_loaded );//add by lili
+
+	if( sd_loaded )
+	{
+		if ( qs.startsWith("cloud") || qs.startsWith("remote") ) 
 		{
-			 if( !qs.startsWith("upnp") )
-			 {
-				 playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
-				 sd_loaded = false;
-			 }
+			UserOption *user = UserOption::getInstance( p_intf );
+			if( user == NULL )
+			{
+				printf( "Failed to UerOption::getInstance\n" );
+				return;
+			}
+
+			if( !user->isLogin() )
+			{
+			        printf( "###################not login, remove service.\n");
+				playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+				sd_loaded = false;
+			}
 		}
-#endif
+	}
 
         if( !sd_loaded )
         {

@@ -46,9 +46,9 @@ enum SelectorItemType {
     PL_ITEM_TYPE,
     SQL_ML_TYPE,
     /*wangpei*/
-    CLOUDSHARE,
     LOCALSHARE,
     LANSHARE,
+    CLOUDSHARE,
     REMOTESHARE
 };
 
@@ -57,9 +57,9 @@ enum SpecialData {
     IS_PL,
     IS_ML,
     /*wangpei*/
-    IS_CS,
     IS_LS,
     IS_LANS,
+    IS_CS,
     IS_RS
 };
 
