@@ -400,18 +400,21 @@ void PLSelector::setSource( QTreeWidgetItem *item )
 
 	if( sd_loaded )
 	{
-		UserOption *user = UserOption::getInstance( p_intf );
-		if( user == NULL )
+		if ( qs.startsWith("cloud") || qs.startsWith("remote") ) 
 		{
-			printf( "Failed to UerOption::getInstance\n" );
-			return;
-		}
+			UserOption *user = UserOption::getInstance( p_intf );
+			if( user == NULL )
+			{
+				printf( "Failed to UerOption::getInstance\n" );
+				return;
+			}
 
-		if( !user->isLogin() )
-		{
-		        printf( "###################not login, remove service.\n");
-			playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
-			sd_loaded = false;
+			if( !user->isLogin() )
+			{
+			        printf( "###################not login, remove service.\n");
+				playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+				sd_loaded = false;
+			}
 		}
 	}
 
