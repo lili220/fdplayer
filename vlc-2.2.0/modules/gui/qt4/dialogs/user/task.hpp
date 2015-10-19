@@ -36,6 +36,30 @@
 
 class QEvent;
 class QMessageBox;
+class QProgressDialog;
+class QSplitter;
+class QListWidget;
+class QStackedWidget;
+class QTreeView;
+class QStandardItemModel;
+class QStandardItem;
+class QListWidgetItem;
+class QTableWidget;
+
+class TaskSelector : public QVLCFrame
+{
+    Q_OBJECT
+public:
+    TaskSelector( intf_thread_t * );
+	QListWidget* getListWidget();
+
+public slots:
+    virtual void close() { toggleVisible(); }
+
+private:
+	QListWidget *listWidget;
+    virtual ~TaskSelector();
+};
 
 class TaskDialog : public QVLCFrame, public Singleton<TaskDialog>
 {
@@ -43,12 +67,37 @@ class TaskDialog : public QVLCFrame, public Singleton<TaskDialog>
 public:
     TaskDialog( intf_thread_t * );
     virtual ~TaskDialog();
-	//void init();
+	QTreeView* initDownloadTreeView();
+	QTreeView* initUploadTreeView();
+
+	QStandardItemModel *getDownloadModel(){ return downloadModel; }
+	QStandardItemModel *getUploadModel(){ return uploadModel; }
+
+	void addUploadItem(const QString file, int process = 0, const QString state = "Uploading");
+	void addDownloadItem(const QString file, int process = 0, const QString state = "Downloading");
+
+	QModelIndex getUploadItemIndex(const QString file);
+	QModelIndex getDownloadItemIndex(const QString file);
+
+	void updateUploadItem( const QString file, int process = 0, const QString state = "Uploading");
+	void updateDownloadItem( const QString file, int process = 0, const QString state = "Downloading");
 
 public slots:
     friend class    Singleton<TaskDialog>;
+	friend class UserOption;
 
 private:
+	QSplitter *leftSplitter;
+	TaskSelector *selector;
+	QStackedWidget *mainWidget;
+
+	/* 下载 */
+	QTreeView *downloadTree;
+	QStandardItemModel *downloadModel;
+
+	/*上传*/
+	QTreeView *uploadTree;
+	QStandardItemModel *uploadModel;
 };
 
 #endif

@@ -29,6 +29,7 @@
 #include "qt4.hpp"
 #include "dialogs/user/useroption.hpp"
 #include "dialogs/user/login.hpp"
+#include "dialogs/user/task.hpp"
 #include "util/qt_dirs.hpp"
 #include "dialogs/user/ini.hpp"
 //extern "C" {
@@ -524,6 +525,10 @@ static void *thread_upload( void *data )
 	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", arg->url.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", arg->httpurl.toStdString().c_str() ) );
 
+#if 1
+	TaskDialog *task = TaskDialog::getInstance(arg->p_intf);
+	task->addUploadItem(arg->file, 0, "Uploading");
+#endif
 	PyObject *pRetValue = PyObject_CallObject( fileupload, pArgs );
 	int err =0;
 	err = _PyInt_AsInt( pRetValue );
@@ -565,7 +570,8 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 	QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
 	printf( "before nfschina_upLoad httpurl: %s\n", httpurl.toStdString().c_str() );
 
-	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl );
+	//ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl );
+	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl, p_intf );
 	int ret = 0;
 	pthread_t upthread_id;
 	if( (ret = pthread_create( &upthread_id, NULL, thread_upload, (void*)arg)) != 0 )
