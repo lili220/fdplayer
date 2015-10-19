@@ -30,6 +30,7 @@
 #include "components/playlist/selector.hpp"
 #include "playlist_model.hpp"                /* plMimeData */
 #include "input_manager.hpp"                 /* MainInputManager, for podcast */
+#include "../../dialogs/user/useroption.hpp"                 /* MainInputManager, for podcast */
 
 #include <QApplication>
 #include <QInputDialog>
@@ -393,18 +394,26 @@ void PLSelector::setSource( QTreeWidgetItem *item )
     if( i_type == SD_TYPE )
     {
         QString qs = item->data( 0, NAME_ROLE ).toString();
-		printf( "-----------qs:%s----------\n", qs.toStdString().c_str() );//add by lili
         sd_loaded = playlist_IsServicesDiscoveryLoaded( THEPL, qtu( qs ) );
-#if 0
-		if( sd_loaded )
+
+        printf( "###################PLSelector::setSource-qs:%s, %d\n", qs.toStdString().c_str(), sd_loaded );//add by lili
+
+	if( sd_loaded )
+	{
+		UserOption *user = UserOption::getInstance( p_intf );
+		if( user == NULL )
 		{
-			 if( !qs.startsWith("upnp") )
-			 {
-				 playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
-				 sd_loaded = false;
-			 }
+			printf( "Failed to UerOption::getInstance\n" );
+			return;
 		}
-#endif
+
+		if( !user->isLogin() )
+		{
+		        printf( "###################not login, remove service.\n");
+			playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+			sd_loaded = false;
+		}
+	}
 
         if( !sd_loaded )
         {
