@@ -483,6 +483,40 @@ void StandardPLPanel::popupAction( QAction *action )
 
 			/*add by lili*/
 		case VLCModelSubInterface::ACTION_DELLOCAL:
+//原操作只能删除一个，不能删除多个选中的文件
+                        {
+                            int model_count = list.count();
+                            printf("dele file model_count=[%d]\n",model_count);
+                            if (model_count <= 0)
+                                break; 
+                            QMessageBox msgBox( QMessageBox::Information,
+			        qtr( "删除文件" ),
+			        qtr( "您确定要删除该本地共享文件吗？" ),
+			        QMessageBox::Yes | QMessageBox::No,
+			        NULL );
+                            int ret =  msgBox.exec();
+                            if( ret == QMessageBox::No )
+                            {
+                                qDebug() << "do not remove file";
+                                break;
+                            }
+                            for (int i=0;i < model_count; i++) 
+                            {
+                                index = list[i];
+                                if (index.data().toString().toStdString().length())
+                                {
+                                    QString localfile = " rm ";
+                                    localfile.append(sharePath);
+                                    localfile.append("/");
+                                    localfile.append( qtu(index.data().toString()));
+                                    printf("qtu index.data:%s\n", qtu(index.data().toString()));
+                                    printf( "del file:%s\n", localfile.toStdString().c_str());
+                                    system( localfile.toStdString().c_str() );
+                                }
+                            }
+                            model->action( action, list );
+                        }
+#if 0
 			if (index.data().toString().toStdString().length())
 			{
 				QMessageBox msgBox( QMessageBox::Information,
@@ -507,6 +541,7 @@ void StandardPLPanel::popupAction( QAction *action )
 					qDebug() << "do not remove file";
 				}
 			}
+#endif
 			break;
 		case VLCModelSubInterface::ACTION_ADDLOCAL:
         //pl_item = playlist_ChildSearchName( THEPL->p_root, qtu( item->data(0, LONGNAME_ROLE ).toString() ) );
@@ -541,8 +576,9 @@ void StandardPLPanel::popupAction( QAction *action )
 				    msgBox.exec();
                                     return;
                                 }
+                                printf("cmd:%s\n",cmd.toStdString().c_str() );
                                 system( cmd.toStdString().c_str() );
-				
+			
 				/*update Window items */
 				QString url = "file://";
 				url.append( sharePath);
@@ -557,7 +593,6 @@ void StandardPLPanel::popupAction( QAction *action )
 					printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
 				else
 				{
-					printf( "play_item id=[%d] i_children = %d addr=[%p] p_parent=[%p]  proot=[%p] \n",play_item->i_id, play_item->i_children,play_item,play_item->p_parent,THEPL->p_root);
 					if (play_item->i_children >= 0)
 						playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
 					else
