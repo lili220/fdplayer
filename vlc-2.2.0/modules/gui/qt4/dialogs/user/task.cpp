@@ -152,6 +152,8 @@ QTreeView* TaskDialog::initUploadTreeView()
 	uploadModel->setHeaderData( 3, Qt::Horizontal, qtr("id") );
 	tree->setModel( uploadModel );
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
+
+	initUploadItems();//添加登陆用户的相关上传文件记录
 #if 0
 	addUploadItem("uploadtest1.mp4", 10, "Uploading...");//todo delete
 	addUploadItem("uploadtest2.mp4", 20, "Uploading...");//todo delete
@@ -169,24 +171,34 @@ QTreeView* TaskDialog::initUploadTreeView()
 	return tree;
 }
 
+void TaskDialog::initUploadItems()
+{
+	QList<Task> uploadTasks;
+	int size = uploadSettings.beginReadArray("");
+}
+
 void TaskDialog::addUploadItem( const QString filename, int process, const QString state )
 {
+	int uid = UserOption::getInstance( p_intf )->getLUid();
 	QStandardItemModel *model = getUploadModel();
 	QStandardItem *item = new QStandardItem( filename );
 	model->appendRow( item );
 	QString pro = QString::number(process).append("%");
 	model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
 	model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
+	model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
 }
 
 void TaskDialog::addDownloadItem(const QString filename, int process, const QString state )
 {
+	int uid = UserOption::getInstance( p_intf )->getLUid();
 	QStandardItemModel *model = getDownloadModel();
 	QStandardItem *item = new QStandardItem( filename );
 	model->appendRow( item );
 	QString pro = QString::number(process).append("%");
 	model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
 	model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
+	model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
 }
 
 QModelIndex TaskDialog::getUploadItemIndex( const QString filename )

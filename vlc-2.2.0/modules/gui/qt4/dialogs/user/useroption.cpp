@@ -487,12 +487,14 @@ static void *thread_upload( void *data )
 {
 	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
 
+#if 0
 	int ret;
 	if( (ret = pthread_detach(pthread_self())) != 0 )
 	{
 		fprintf( stderr, "pthread_detach failed for thread_upload:%s\n", strerror(ret) );
 		return (void*)-1;
 	}
+#endif
 
 	ThreadArg *arg = (ThreadArg*)data;
 
@@ -589,7 +591,11 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 		fprintf( stderr, "pthread_create for upload:%s\n", strerror(ret) );
 		return -1;
 	}
-	return 0;
+
+	pthread_join(upthread_id, (void**)&ret);
+	printf("thread_upload return value: ret = %d\n", ret);
+
+	return ret;
 #endif
 #if 0
 	pArgs = PyTuple_New( 3 );

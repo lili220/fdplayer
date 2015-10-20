@@ -33,6 +33,9 @@
 #include "util/qvlcframe.hpp"
 #include "util/singleton.hpp"
 #include "useroption.hpp"
+#include <QSettings>
+#include <QList>
+
 
 class QEvent;
 class QMessageBox;
@@ -46,6 +49,23 @@ class QStandardItem;
 class QListWidgetItem;
 class QTableWidget;
 class QModelIndex;
+
+class Task
+{
+public:
+	Task()
+	{
+	}
+	Task( const QString _fileName, int _process, const QString _state, int _uid )
+		: fileName( _fileName ), process( _process ), state( _state ), uid( _uid )
+	{
+	}
+
+	QString fileName;
+	QString state;
+	int process;
+	int uid;
+};
 
 class TaskSelector : public QVLCFrame
 {
@@ -80,6 +100,9 @@ public:
 	QModelIndex getUploadItemIndex(const QString file);
 	QModelIndex getDownloadItemIndex(const QString file);
 
+	void initUploadItems();//读取登陆用户的上传文件信息
+	void initDownloadItems();//读取登陆用户的下载文件信息
+
 	void updateUploadItem( const QString file, int process = 0, const QString state = "Uploading");
 	void updateDownloadItem( const QString file, int process = 0, const QString state = "Downloading");
 
@@ -88,6 +111,10 @@ public slots:
 	friend class UserOption;
 
 private:
+	QSettings downloadSettings;//存储下载任务信息
+	QList<Task> downloadTasks;//存储下载任务的链表
+	QSettings uploadSettings;//存储上传任务信息
+	QList<Task> uploadTasks;//存储上传任务的链表
 	QSplitter *leftSplitter;
 	TaskSelector *selector;
 	QStackedWidget *mainWidget;

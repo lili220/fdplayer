@@ -596,8 +596,12 @@ void StandardPLPanel::popupAction( QAction *action )
 					QString upfile = filename;
 					/*continue if upload failed*/
 					printf( "upfile:%s\n", upfile.toStdString().c_str());
-					//if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) == 0 )
-					 user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() );
+					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) < 0 )
+					{
+						printf("Upload %s to server failed!\n", upfile.toStdString().c_str());
+						return;
+					}
+					 //user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() );
 
 					 /*add the selected file to current window*/
 					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
