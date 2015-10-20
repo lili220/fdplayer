@@ -530,7 +530,7 @@ static void *thread_upload( void *data )
 	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", arg->url.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", arg->httpurl.toStdString().c_str() ) );
 
-#if 1
+#if 0
 	TaskDialog *task = TaskDialog::getInstance(arg->p_intf);
 	task->addUploadItem(arg->file, 0, "Uploading");
 #endif
@@ -567,6 +567,11 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 
 		return -1;// ?????
 	}
+
+#if 1
+	TaskDialog *task = TaskDialog::getInstance(p_intf);
+	task->addUploadItem(filename, 0, "Uploading");
+#endif
 
 #if 1
 	QString url = buildURL( getServerIp(), URLTAIL );

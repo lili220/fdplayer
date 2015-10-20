@@ -45,6 +45,7 @@ class QStandardItemModel;
 class QStandardItem;
 class QListWidgetItem;
 class QTableWidget;
+class QModelIndex;
 
 class TaskSelector : public QVLCFrame
 {
