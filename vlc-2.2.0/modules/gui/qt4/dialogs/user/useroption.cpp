@@ -95,6 +95,8 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 
 	b_localShared = false;
 	b_netShared = false;
+	b_cloudModeStart = false;
+	b_remoteModeStart = false;
 
 	/*default settings*/
 	readWebServerConf();
