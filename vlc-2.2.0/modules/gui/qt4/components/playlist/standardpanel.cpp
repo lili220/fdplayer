@@ -1588,6 +1588,13 @@ void StandardPLPanel::activate( const QModelIndex &index )
             playlist_item_t *p_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
             if ( p_item )
             {
+                //add by wjl begin
+                if (strncmp(p_item->p_input->psz_uri,"vlc:",4)==0) {
+                    printf("p_item->p_input->psz_uri=[%s]\n",p_item->p_input->psz_uri);
+                    playlist_Unlock( THEPL );
+                    return;
+                }
+                //add by wjl end
                 p_item->i_flags |= PLAYLIST_SUBITEM_STOP_FLAG;
                 lastActivatedPLItemId = p_item->i_id;
             }
