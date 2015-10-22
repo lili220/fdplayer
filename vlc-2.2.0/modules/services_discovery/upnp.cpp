@@ -335,6 +335,7 @@ static int Callback( Upnp_EventType event_type, void* p_event, void* p_user_data
     switch( event_type )
     {
     case UPNP_DISCOVERY_ADVERTISEMENT_ALIVE:
+    	  break;
     case UPNP_DISCOVERY_SEARCH_RESULT:
     {
         struct Upnp_Discovery* p_discovery = ( struct Upnp_Discovery* )p_event;

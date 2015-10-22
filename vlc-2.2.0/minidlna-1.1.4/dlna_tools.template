@@ -32,11 +32,11 @@ if [ $# == 0 ];then
 	exit 1
 fi
 
-new_fn="friendly_name=`hostname`"
-sed -i "s/^friendly_name=.*/$new_fn/g" ./minidlna.conf
+#new_fn="friendly_name=`hostname`"
+#sed -i "s/^friendly_name=.*/$new_fn/g" ./minidlna.conf
 
-new_md="media_dir=AVP,$HOME"
-sed -i "s#^media_dir=.*#$new_md#g" ./minidlna.conf
+#new_md="media_dir=AVP,$HOME"
+#sed -i "s#^media_dir=.*#$new_md#g" ./minidlna.conf
 
 pid_file="`pwd`/minidlna.pid"
 if [ $switch == start ];then
