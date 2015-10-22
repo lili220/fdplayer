@@ -243,7 +243,7 @@ void TaskDialog::initDownloadItems(QSettings &settings, int uid)
 	settings.endGroup();
 }
 
-void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, unsigned int thread_id )
+void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, pthread_t thread_id )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
 	QStandardItemModel *model = getUploadModel();
@@ -258,7 +258,7 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 		model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
 }
 
-void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, unsigned int thread_id )
+void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, pthread_t thread_id )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
 	QStandardItemModel *model = getDownloadModel();

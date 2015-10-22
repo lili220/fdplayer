@@ -497,19 +497,16 @@ int UserOption::nfschina_keeponline( int userid, bool b_share )
 	return err;
 }
 
-#if 1
 static void *thread_upload( void *data )
 {
 	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
 
-#if 0
 	int ret;
 	if( (ret = pthread_detach(pthread_self())) != 0 )
 	{
 		fprintf( stderr, "pthread_detach failed for thread_upload:%s\n", strerror(ret) );
 		return (void*)-1;
 	}
-#endif
 
 	ThreadArg *arg = (ThreadArg*)data;
 /*
@@ -572,7 +569,6 @@ static void *thread_upload( void *data )
 	
 	return (void*)err;
 }
-#endif
 
 //int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
 int UserOption::nfschina_upLoad( int userid, const char* filename, const char* filepath )
@@ -592,11 +588,6 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 	}
 
 #if 1
-	TaskDialog *task = TaskDialog::getInstance(p_intf);
-	task->addUploadItem(filename, 0, "Uploading");
-#endif
-
-#if 1
 	QString url = buildURL( getServerIp(), URLTAIL );
 	printf( "before nfschina_upLoad url: %s\n", url.toStdString().c_str() );
 
@@ -613,7 +604,13 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 		return -1;
 	}
 
-	pthread_join(upthread_id, (void**)&ret);
+#if 1
+	TaskDialog *task = TaskDialog::getInstance(p_intf);
+	task->saveNewTask("upload", userid, filename, 0, qtr("上传中..."), url);
+	task->addUploadItem(filename, 0, qtr("上传中..."), userid, filepath, upthread_id);
+#endif
+
+//	pthread_join(upthread_id, (void**)&ret);
 	printf("thread_upload return value: ret = %d\n", ret);
 
 	return ret;

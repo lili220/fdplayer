@@ -97,8 +97,8 @@ public:
 	QStandardItemModel *getDownloadModel(){ return downloadModel; }
 	QStandardItemModel *getUploadModel(){ return uploadModel; }
 
-	void addUploadItem(const QString file, int process = 0, const QString state = "Uploading", int uid = -1, const QString path = "", unsigned int thread_id = 0 );
-	void addDownloadItem(const QString file, int process = 0, const QString state = "Downloading", int uid = -1, const QString url = "", unsigned int thread_id = 0 );
+	void addUploadItem(const QString file, int process = 0, const QString state = "Uploading", int uid = -1, const QString path = "", pthread_t thread_id = 0 );
+	void addDownloadItem(const QString file, int process = 0, const QString state = "Downloading", int uid = -1, const QString url = "", pthread_t thread_id = 0 );
 
 	QModelIndex getUploadItemIndex(const QString file);
 	QModelIndex getDownloadItemIndex(const QString file);
