@@ -485,6 +485,7 @@ void StandardPLPanel::popupAction( QAction *action )
 		case VLCModelSubInterface::ACTION_DELLOCAL:
 //原操作只能删除一个，不能删除多个选中的文件
                         {
+                            printf("this->threadid=[%lu]\n",pthread_self());
                             int model_count = list.count();
                             printf("dele file model_count=[%d]\n",model_count);
                             if (model_count <= 0)
@@ -545,7 +546,7 @@ void StandardPLPanel::popupAction( QAction *action )
 			break;
 		case VLCModelSubInterface::ACTION_ADDLOCAL:
         //pl_item = playlist_ChildSearchName( THEPL->p_root, qtu( item->data(0, LONGNAME_ROLE ).toString() ) );
-
+                        printf("this->threadid=[%lu]\n",pthread_self());
 			uris = THEDP->showSimpleOpen();
 			if ( uris.isEmpty() ) return;
 			uris.sort();
@@ -602,6 +603,7 @@ void StandardPLPanel::popupAction( QAction *action )
 			break;
 		case VLCModelSubInterface::ACTION_ADDCLOUD:
 			{
+				printf("this->threadid=[%lu]\n",pthread_self());
 				UserOption *user = UserOption::getInstance( p_intf );
 				int uid = user->getLUid();
 				QString uidstr; uidstr.setNum( uid );
@@ -646,6 +648,42 @@ void StandardPLPanel::popupAction( QAction *action )
 			}
 			break;
 		case VLCModelSubInterface::ACTION_DELCLOUD:
+                        {
+                            printf("this->threadid=[%lu]\n",pthread_self());
+                            int model_count = list.count();
+                            printf("dele file model_count=[%d]\n",model_count);
+                            if (model_count <= 0)
+                                break; 
+                            QMessageBox msgBox( QMessageBox::Information,
+			        qtr( "删除文件" ),
+			        qtr( "您确定要删除该云端共享文件吗？" ),
+			        QMessageBox::Yes | QMessageBox::No,
+			        NULL );
+                            int ret =  msgBox.exec();
+                            if( ret == QMessageBox::No )
+                            {
+                                qDebug() << "do not remove file";
+                                break;
+                            }
+                            UserOption *user = UserOption::getInstance( p_intf );
+                            user->initpython();
+                            for (int i=0;i < model_count; i++) 
+                            {
+                                index = list[i];
+                                if (index.data().toString().toStdString().length())
+                                {
+                                    QString file = index.data().toString();
+                                    user->nfschina_delete( user->getLUid(), file );
+                                    playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+                                    if( play_item == NULL )
+                                        printf( "can't get root item for cloudshare module!\n" );
+                                    else
+                                        playlist_NodeDelete( THEPL, play_item, true , true );
+                                }
+                            }
+                        }
+
+#if 0
 			{
 				/*tell server to delete the selected file*/
 				QString file = index.data().toString();
@@ -659,6 +697,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				else
 					playlist_NodeDelete( THEPL, play_item, true , true );
 			}
+#endif
 			break;
 
 		case VLCModelSubInterface::ACTION_DWNCLOUD:
@@ -975,6 +1014,7 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	
 	int uid = user->getLUid();
 	printf("---------------%s:uid=%d-----------\n", __func__, uid );
+        user->initpython();
 	QList<QString> files = user->nfschina_GetFileList( uid );
 	foreach( const QString& file, files )
 	{

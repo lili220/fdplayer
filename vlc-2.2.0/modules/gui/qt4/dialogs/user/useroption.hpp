@@ -165,6 +165,7 @@ signals:
 public slots:
 	void toggleLocalShared( bool state = false );
 	void toggleNetShared( bool state = false );
+        void initpython();
 #endif
 
 protected:
@@ -183,6 +184,7 @@ private:
 	bool b_netShared;
 	bool b_cloudModeStart;
 	bool b_remoteModeStart;
+        bool initflag;
 
 	QString serverIp;
 	int  serverPort;
