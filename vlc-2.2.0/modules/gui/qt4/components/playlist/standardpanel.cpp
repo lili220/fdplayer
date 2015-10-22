@@ -45,6 +45,7 @@
 #include <vlc_intf_strings.h>                     /* POP_ */
 
 #include "dialogs/user/useroption.hpp"                   /* add by lili */
+#include "dialogs/user/task.hpp"                   /* add by lili */
 #include "dialogs/user/ini.hpp"
 
 #define I_NEW_DIR \
@@ -594,6 +595,7 @@ void StandardPLPanel::popupAction( QAction *action )
 					printf( "before upload: %s\n", file.toStdString().c_str() );
 					printf( "filename:%s\n", filename.toStdString().c_str());
 					QString upfile = filename;
+
 					/*continue if upload failed*/
 					printf( "upfile:%s\n", upfile.toStdString().c_str());
 					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) < 0 )
@@ -643,6 +645,7 @@ void StandardPLPanel::popupAction( QAction *action )
 				/*get the URL of the selected file*/
 				UserOption *user = UserOption::getInstance( p_intf );
 				int uid = user->getLUid();
+
 				QString url = user->nfschina_download( uid, file );
 				printf( "download cloudfile url:%s\n", url.toStdString().c_str() );
 				if( url == NULL )

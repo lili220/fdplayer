@@ -78,6 +78,8 @@ TaskDialog::TaskDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 {
 	qDebug() << "func:" << __func__;
 	setWindowTitle( qtr( "我的任务" ) );
+	organization = "FangDePlayer";
+	application = "TaskDialog";
 
 	/* Left side */
 	QGridLayout *mainLayout = new QGridLayout;
@@ -116,13 +118,23 @@ QTreeView* TaskDialog::initDownloadTreeView()
 
 	QTreeView *tree = new QTreeView;
 	//QStandardItemModel *model = new QStandardItemModel( 0, 3, this );
-	downloadModel = new QStandardItemModel( 0, 4, this );
+	downloadModel = new QStandardItemModel( 0, 6, this );
 	downloadModel->setHeaderData( 0, Qt::Horizontal, qtr("文件名") );
 	downloadModel->setHeaderData( 1, Qt::Horizontal, qtr("进度") );
 	downloadModel->setHeaderData( 2, Qt::Horizontal, qtr("状态") );
 	downloadModel->setHeaderData( 3, Qt::Horizontal, qtr("id") );
+	downloadModel->setHeaderData( 4, Qt::Horizontal, qtr("url") );
+	downloadModel->setHeaderData( 5, Qt::Horizontal, qtr("threadId") );
 	tree->setModel( downloadModel );
+#if 0
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
+	tree->hideColumn(4);
+	tree->hideColumn(5);
+#endif
+
+	int uid = UserOption::getInstance( p_intf )->getLUid();
+	QSettings settings(organization, application);
+	initDownloadItems(settings, uid);//添加登陆用户的相关上传文件记录
 
 #if 0
 	addDownloadItem("downloadtest1.mp4", 10, "Downloading...");//todo delete
@@ -145,15 +157,23 @@ QTreeView* TaskDialog::initUploadTreeView()
 
 	QTreeView *tree = new QTreeView;
 	//QStandardItemModel *model = new QStandardItemModel( 0, 3, this );
-	uploadModel = new QStandardItemModel( 0, 4, this );
+	uploadModel = new QStandardItemModel( 0, 6, this );
 	uploadModel->setHeaderData( 0, Qt::Horizontal, qtr("文件名") );
 	uploadModel->setHeaderData( 1, Qt::Horizontal, qtr("进度") );
 	uploadModel->setHeaderData( 2, Qt::Horizontal, qtr("状态") );
 	uploadModel->setHeaderData( 3, Qt::Horizontal, qtr("id") );
+	uploadModel->setHeaderData( 4, Qt::Horizontal, qtr("filePath") );
+	uploadModel->setHeaderData( 5, Qt::Horizontal, qtr("threadId") );
 	tree->setModel( uploadModel );
+#if 0
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
+	tree->hideColumn(4);
+	tree->hideColumn(5);
+#endif
 
-	initUploadItems();//添加登陆用户的相关上传文件记录
+	int uid = UserOption::getInstance( p_intf )->getLUid();
+	QSettings settings(organization, application);
+	initUploadItems(settings, uid);//添加登陆用户的相关上传文件记录
 #if 0
 	addUploadItem("uploadtest1.mp4", 10, "Uploading...");//todo delete
 	addUploadItem("uploadtest2.mp4", 20, "Uploading...");//todo delete
@@ -171,15 +191,61 @@ QTreeView* TaskDialog::initUploadTreeView()
 	return tree;
 }
 
-void TaskDialog::initUploadItems()
+void TaskDialog::initUploadItems(QSettings &settings, int uid)
 {
-	QList<Task> uploadTasks;
-	int size = uploadSettings.beginReadArray("");
+	QString uploadkey = "upload-";
+	uploadkey.append(QString::number(uid));
+
+	settings.beginGroup("");
+	foreach(QString key, settings.childKeys())
+	{
+		if(key.startsWith(uploadkey))
+		{
+			QString tmp = settings.value(key).toString();
+			qDebug() << "upload tmp: " << tmp;
+			QStringList list = tmp.split("-");
+			QString file = list.at(0);
+			int process = list.at(1).toInt();
+			QString state = list.at(2);
+			QString path = list.at(3);
+			if(process == 100)
+				addUploadItem(file, process, state, uid, path);
+			else
+				addUploadItem(file, process, qtr("已停止"), uid, path);
+		}
+	}
+	settings.endGroup();
 }
 
-void TaskDialog::addUploadItem( const QString filename, int process, const QString state )
+void TaskDialog::initDownloadItems(QSettings &settings, int uid)
 {
-	int uid = UserOption::getInstance( p_intf )->getLUid();
+	QString downloadkey = "download-";
+	downloadkey.append(QString::number(uid));
+	
+	settings.beginGroup("");
+	foreach(QString key, settings.childKeys())
+	{
+		if(key.startsWith(downloadkey))
+		{
+			QString tmp = settings.value(key).toString();
+			qDebug() << "download tmp: " << tmp;
+			QStringList list = tmp.split("-");
+			QString file= list.at(0);
+			int process = list.at(1).toInt();
+			QString state = list.at(2);
+			QString url = list.at(3);
+			if(process == 100)
+				addDownloadItem(file, process, state, uid, url);
+			else
+				addDownloadItem(file, process, qtr("已停止"), uid, url);
+		}
+	}
+	settings.endGroup();
+}
+
+void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, unsigned int thread_id )
+{
+	qDebug() << __func__ << "thread_id = " << thread_id;
 	QStandardItemModel *model = getUploadModel();
 	QStandardItem *item = new QStandardItem( filename );
 	model->appendRow( item );
@@ -187,11 +253,14 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 	model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
 	model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
 	model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
+	model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(path));
+	if(thread_id > 0)
+		model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
 }
 
-void TaskDialog::addDownloadItem(const QString filename, int process, const QString state )
+void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, unsigned int thread_id )
 {
-	int uid = UserOption::getInstance( p_intf )->getLUid();
+	qDebug() << __func__ << "thread_id = " << thread_id;
 	QStandardItemModel *model = getDownloadModel();
 	QStandardItem *item = new QStandardItem( filename );
 	model->appendRow( item );
@@ -199,6 +268,9 @@ void TaskDialog::addDownloadItem(const QString filename, int process, const QStr
 	model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
 	model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
 	model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
+	model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(url));
+	if(thread_id > 0)
+		model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
 }
 
 QModelIndex TaskDialog::getUploadItemIndex( const QString filename )
@@ -273,4 +345,90 @@ void TaskDialog::updateDownloadItem( const QString filename, int process, const 
 	QString pro = QString::number(process).append("%");
 	model->setItem(index.row(), 1, new QStandardItem(pro));
 	model->setItem(index.row(), 2, new QStandardItem(state));
+}
+
+QString TaskDialog::buildKeyString(const QString type, int uid, const QString file)
+{
+	/*
+	 * type-uid-filename
+	 * eg. "upload-2-aaa.mp4"
+	 * */
+	QString key = type;
+	key.append("-").append(QString::number(uid)).append("-").append(file);
+
+	return key;
+}
+
+QString TaskDialog::buildValueString(const QString file, int process, const QString state, const QString url)
+{
+	/*
+	 * filename-process-state
+	 * eg. upload: "aaa.mp4-30-Uploading-/home/nfschina/test.mp4"
+	 * eg. download:"aaa.mp4-30-Uploading-http://192.168.7.97:80/download/157/test.mp4"
+	 * */
+	QString value = file;
+	value.append("-").append(QString::number(process)).append("-").append(state).append("-").append(url);
+
+	return value;
+}
+
+void TaskDialog::saveNewTask(const QString type, int uid, const QString file, int process, const QString state, const QString url)
+{
+	QSettings settings(organization, application);
+	QString key = buildKeyString(type, uid, file);
+	QString value = buildValueString(file, process, state, url);
+	settings.setValue(key, value);
+}
+
+void TaskDialog::deleteTask(const QString type, int uid, const QString file)
+{
+	QSettings settings(organization, application);
+	QString key = buildKeyString(type, uid, file);
+	if(settings.contains(key))
+		settings.remove(key);
+}
+
+void TaskDialog::contextMenuEvent(QContextMenuEvent *event)
+{
+	QMenu *menu = new QMenu();
+	QAction *stopAction = new QAction(qtr("停止"), menu);
+	menu->addAction(stopAction);
+
+	QAction *continueAction = new QAction(qtr("继续"), menu);
+	menu->addAction(continueAction);
+
+	QAction *deleteAction = new QAction(qtr("删除任务"), menu);
+	menu->addAction(deleteAction);
+
+	connect(stopAction, SIGNAL(triggered(bool)), this, SLOT(stopTask()));
+	connect(continueAction, SIGNAL(triggered(bool)), this, SLOT(continueTask()));
+	connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteTask()));
+
+	menu->exec(event->globalPos());
+}
+
+void TaskDialog::stopTask()
+{
+	qDebug() << __func__;
+	/*stop download or upload task*/
+
+	/*update item state for Task Window*/
+}
+
+void TaskDialog::continueTask()
+{
+	qDebug() << __func__;
+	/*continue download/upload task*/
+
+	/*update item state form Task Window*/
+}
+
+void TaskDialog::deleteTask()
+{
+	qDebug() << __func__;
+	/*delete download/upload task*/
+
+	/*delete item from Task window*/
+
+	/*delete item information from QSettings*/
 }

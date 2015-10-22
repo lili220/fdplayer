@@ -35,6 +35,8 @@
 #include "useroption.hpp"
 #include <QSettings>
 #include <QList>
+#include <QMenu>
+#include <pthread.h>
 
 
 class QEvent;
@@ -88,33 +90,54 @@ class TaskDialog : public QVLCFrame, public Singleton<TaskDialog>
 public:
     TaskDialog( intf_thread_t * );
     virtual ~TaskDialog();
+
 	QTreeView* initDownloadTreeView();
 	QTreeView* initUploadTreeView();
 
 	QStandardItemModel *getDownloadModel(){ return downloadModel; }
 	QStandardItemModel *getUploadModel(){ return uploadModel; }
 
-	void addUploadItem(const QString file, int process = 0, const QString state = "Uploading");
-	void addDownloadItem(const QString file, int process = 0, const QString state = "Downloading");
+	void addUploadItem(const QString file, int process = 0, const QString state = "Uploading", int uid = -1, const QString path = "", unsigned int thread_id = 0 );
+	void addDownloadItem(const QString file, int process = 0, const QString state = "Downloading", int uid = -1, const QString url = "", unsigned int thread_id = 0 );
 
 	QModelIndex getUploadItemIndex(const QString file);
 	QModelIndex getDownloadItemIndex(const QString file);
 
-	void initUploadItems();//读取登陆用户的上传文件信息
-	void initDownloadItems();//读取登陆用户的下载文件信息
+	/*初始化任务窗口任务项*/
+	void initUploadItems(QSettings &settings, int uid);//读取登陆用户的上传文件信息
+	void initDownloadItems(QSettings &settings, int uid);//读取登陆用户的下载文件信息
 
+	/*更新task窗口项的进度信息*/
 	void updateUploadItem( const QString file, int process = 0, const QString state = "Uploading");
 	void updateDownloadItem( const QString file, int process = 0, const QString state = "Downloading");
+
+	/*information for QSettings*/
+	QString getOrganization(){ return organization; };
+	QString getApplication() { return application; };
+
+	QString buildKeyString(const QString type, int uid, const QString file);
+	QString buildValueString(const QString file, int process, const QString state, const QString url);
+
+	/* 增加/删除QSettings配置信息*/
+	void saveNewTask(const QString type, int uid, const QString file, int process, const QString state, const QString url/*用于上传时，此参数存储上传文件的路径*/ );
+	void deleteTask(const QString type, int uid, const QString file);
+
+	/*右键菜单*/
+	void contextMenuEvent(QContextMenuEvent* e);
 
 public slots:
     friend class    Singleton<TaskDialog>;
 	friend class UserOption;
 
+	void stopTask();
+	void continueTask();
+	void deleteTask();
+
 private:
-	QSettings downloadSettings;//存储下载任务信息
-	QList<Task> downloadTasks;//存储下载任务的链表
-	QSettings uploadSettings;//存储上传任务信息
-	QList<Task> uploadTasks;//存储上传任务的链表
+	/*Information for QSettings*/
+	QString organization;
+	QString application;
+
 	QSplitter *leftSplitter;
 	TaskSelector *selector;
 	QStackedWidget *mainWidget;
