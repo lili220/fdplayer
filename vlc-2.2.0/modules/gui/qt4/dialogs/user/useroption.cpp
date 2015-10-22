@@ -95,6 +95,8 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 
 	b_localShared = false;
 	b_netShared = false;
+	b_cloudModeStart = false;
+	b_remoteModeStart = false;
 
 	/*default settings*/
 	readWebServerConf();
@@ -109,6 +111,7 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 	initialConf();
 	//b_load = init();
 	b_load = initialize();
+        initflag = false;
 }
 
 UserOption::~UserOption()
@@ -345,13 +348,17 @@ QString UserOption::buildURL( QString ip, QString tail )
 int UserOption::nfschina_registor( QString username, QString password )
 {
 #if 1
+/*
 	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
 		printf( "Python initialize failed! \n" );
 		return -1;
 	}
+*/
 
+	initpython();
+	PyGILState_STATE state = PyGILState_Ensure();
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
@@ -361,7 +368,8 @@ int UserOption::nfschina_registor( QString username, QString password )
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
 	if( pModule  == NULL )
 	{
-		printf( "Can't Import clientrg! \n" );
+		PyGILState_Release( state );
+                printf( "Can't Import clientrg! \n" );
 		return -1;
 	}
 
@@ -369,6 +377,7 @@ int UserOption::nfschina_registor( QString username, QString password )
 	if(regist == NULL)
 	{
 		printf("regist is NULL\n");
+                PyGILState_Release( state );
 		return -1;
 	}
 #endif
@@ -383,24 +392,28 @@ int UserOption::nfschina_registor( QString username, QString password )
 	PyObject *pRetValue = PyObject_CallObject( regist, pArgs );
 	int uid = _PyInt_AsInt( pRetValue );
 	printf("register :: uid = %d\n",uid);
-
+	PyGILState_Release( state );
 	return uid;
 }
 
 //int UserOption::nfschina_login( QString username, QString password, bool b_share, QString ip, QString port )
 int UserOption::nfschina_login( QString username, QString password )
 {
+	printf("nfschina_login this->threadid=[%lu]\n",pthread_self());
 	printf("//service.nfschina_login\n");
 
 	printf("username=%s :: password = %s\n",username.toStdString().c_str(), password.toStdString().c_str() );
 #if 1
+        /*
 	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
 		printf( "Python initialize failed! \n" );
 		return -1;
 	}
-
+        */
+	initpython();
+        PyGILState_STATE state = PyGILState_Ensure();
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
@@ -411,6 +424,7 @@ int UserOption::nfschina_login( QString username, QString password )
 	if( pModule  == NULL )
 	{
 		printf( "Can't Import clientrg! \n" );
+                PyGILState_Release( state );
 		return -1;
 	}
 
@@ -418,6 +432,7 @@ int UserOption::nfschina_login( QString username, QString password )
 	if(login == NULL)
 	{
 		printf("login is NULL\n");
+                PyGILState_Release( state );
 		return -1;
 	}
 #endif
@@ -436,7 +451,7 @@ int UserOption::nfschina_login( QString username, QString password )
 	int uid = _PyInt_AsInt(pRetValue);
 	printf("login :: luid = %d\n",uid);
 	b_login = ( uid > 0 ? true : false );
-
+	PyGILState_Release( state );
 	return uid;
 }
 
@@ -497,13 +512,15 @@ static void *thread_upload( void *data )
 #endif
 
 	ThreadArg *arg = (ThreadArg*)data;
-
+/*
 	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
 		printf( "Python initialize failed! \n" );
 		return (void*)-1;
 	}
+*/
+        PyGILState_STATE state = PyGILState_Ensure();
 
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
@@ -515,6 +532,7 @@ static void *thread_upload( void *data )
 	if( pModule  == NULL )
 	{
 		printf( "Can't Import clientrg! \n" );
+                PyGILState_Release( state );
 		return (void*)-1;
 	}
 
@@ -522,6 +540,7 @@ static void *thread_upload( void *data )
 	if(fileupload == NULL)
 	{
 		printf("fileupload is NULL\n");
+                PyGILState_Release( state );
 		return (void*)-1;
 	}
 
@@ -539,6 +558,7 @@ static void *thread_upload( void *data )
 	PyObject *pRetValue = PyObject_CallObject( fileupload, pArgs );
 	int err =0;
 	err = _PyInt_AsInt( pRetValue );
+	PyGILState_Release( state );
 
 #if 0
 	Py_DECREF(pModule);
@@ -558,6 +578,7 @@ static void *thread_upload( void *data )
 int UserOption::nfschina_upLoad( int userid, const char* filename, const char* filepath )
 {
 	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
+	printf("this->threadid=[%lu]\n",pthread_self());
 	if( !isLogin() )
 	{
 		QMessageBox msgBox( QMessageBox::Information,
@@ -581,7 +602,7 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 
 	QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
 	printf( "before nfschina_upLoad httpurl: %s\n", httpurl.toStdString().c_str() );
-
+        initpython();
 	//ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl );
 	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl, p_intf );
 	int ret = 0;
@@ -658,14 +679,15 @@ void *thread_getfile( void* data )
 	int userid = arg->uid;
 	QString url = arg->url;
 	//arg->filelist->push_back("aaaaaaa");
-
+/*
 	if( !Py_IsInitialized() )
 	{
 		Py_Initialize();
 		printf( "Python initialize failed! \n" );
 		//return (void*)false;
 	}
-
+*/
+        PyGILState_STATE state = PyGILState_Ensure( );
 	printf( "--------%s:%d------------\n", __func__, __LINE__ );
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
@@ -678,12 +700,14 @@ void *thread_getfile( void* data )
 	if( pModule  == NULL )
 	{
 		printf( "Can't Import clientrg! \n" );
+                PyGILState_Release( state );
 		return (void*)false;
 	}
 	PyObject *listmyfile = PyObject_GetAttrString(pModule,"nfschina_listmyfile");
 	if(listmyfile == NULL)
 	{
 		printf("listmyfile is NULL\n");
+                PyGILState_Release( state );
 		return (void*)false;
 	}
 
@@ -695,6 +719,7 @@ void *thread_getfile( void* data )
 	if( pRetValue == NULL )
 	{
 		printf( "pRetValue for nfschina_GetFileList is NULL\n" );
+                PyGILState_Release( state );
 		return (void*)false;
 	}
 
@@ -714,7 +739,9 @@ void *thread_getfile( void* data )
 	Py_DECREF(listmyfile);
 	Py_DECREF(pArgs);
 	Py_DECREF(pRetValue);
-	Py_Finalize();
+	PyGILState_Release( state );
+
+	//Py_Finalize();
 	//arg->filelist->push_back("aaaaaaa");
 	return (void*)true;
 }
@@ -827,7 +854,6 @@ QList<QString> UserOption::nfschina_GetFileList( int userid )
 
 static void* thread_delete( void *data )
 {
-	printf( "----------%s:%s-----------\n", __FILE__, __func__ );
 	int ret;
 	if( (ret = pthread_detach(pthread_self())) != 0 )
 	{
@@ -835,13 +861,18 @@ static void* thread_delete( void *data )
 		return (void*)-1;
 	}
 	ThreadArg *arg = (ThreadArg*)data;
-
+#if 0
 	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
 		printf( "Python initialize failed! \n" );
 		return (void*)-1;
 	}
+#endif
+	// grab the global interpreter lock
+	//PyEval_AcquireLock();
+        PyGILState_STATE state = PyGILState_Ensure();
+	printf( "----------%s:%s-----------\n", __FILE__, __func__ );
 
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
@@ -873,7 +904,24 @@ static void* thread_delete( void *data )
 	int err = _PyInt_AsInt( pRetValue );
 	printf( "filedelete retvalue: %d\n", err );
 
+        // release the lock
+	//PyEval_ReleaseLock();
+         PyGILState_Release( state );
+
 	return (void*)err;
+}
+
+void UserOption::initpython()
+{
+	if (! initflag)  {
+	// initialize Python
+	Py_Initialize();
+	// initialize thread support
+	PyEval_InitThreads();
+        //PyEval_ReleaseLock();
+        PyEval_ReleaseThread(PyThreadState_Get());
+            initflag=true;
+        }
 }
 
 int UserOption::nfschina_delete( int userid, QString filename )
@@ -890,6 +938,7 @@ int UserOption::nfschina_delete( int userid, QString filename )
 		return -1;// ?????
 	}
 #if 1
+
 	pthread_t delthread_id;
 	int ret;
 	QString url = buildURL( getServerIp(), URLTAIL );
@@ -957,13 +1006,16 @@ QString UserOption::nfschina_download( int userid, QString filename )
 
 		return NULL;// ?????
 	}
-
+/*
 	Py_Initialize();
 	if( !Py_IsInitialized() )
 	{
 		printf( "Python initialize failed! \n" );
 		return NULL;
 	}
+*/
+	initpython();
+	PyGILState_STATE state  = PyGILState_Ensure( );
 
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
@@ -975,6 +1027,7 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	if( pModule  == NULL )
 	{
 		printf( "Can't Import clientrg! \n" );
+		PyGILState_Release( state );
 		return NULL;
 	}
 
@@ -982,6 +1035,7 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	if(filedownload ==NULL)
 	{
 		printf("download is NULL\n");
+		PyGILState_Release( state );
 		return NULL;
 	}
 
@@ -997,10 +1051,15 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	int s = PyList_Size( pRetValue );
 	printf( "s = %d\n", s );
 	if( s <= 0 )
+	{
+		PyGILState_Release( state );
 		return NULL;
+	}
+
 	//int i;
 	//for( i = 0; i < s; i++ )
 	//printf( "get url:%s\n", PyString_AsString( pRetValue ) );
+	PyGILState_Release( state );
 	return PyString_AsString( PyList_GetItem( pRetValue, 0) );
 }
 
@@ -1013,14 +1072,15 @@ static void* thread_dwncloud( void *data )
 		return (void*)-1;
 	}
 	ThreadArg *arg = (ThreadArg*)data;
-
+/*
 	if( !Py_IsInitialized() )
 	{
 		Py_Initialize();
 		printf( "Python initialize failed! \n" );
 		//return (void*)-1;
 	}
-
+*/
+	PyGILState_STATE state  = PyGILState_Ensure( );
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
@@ -1033,6 +1093,7 @@ static void* thread_dwncloud( void *data )
 	if( !pModule )
 	{
 		printf( "can't find download.py\n" );
+		PyGILState_Release( state );
 		return (void*)-1;
 	}
 
@@ -1040,6 +1101,7 @@ static void* thread_dwncloud( void *data )
 	if( !pDict )
 	{
 		printf( "can't get dict from download.py\n" );
+		PyGILState_Release( state );
 		return (void*)-1;
 	}
 
@@ -1047,6 +1109,7 @@ static void* thread_dwncloud( void *data )
 	if( !pFunc || !PyCallable_Check( pFunc ) )
 	{
 		printf( "can't find function [paxel]" );
+		PyGILState_Release( state );
 		return (void*)-1;
 	}
 
@@ -1061,7 +1124,8 @@ static void* thread_dwncloud( void *data )
 	Py_DECREF( pArgs );
 	Py_DECREF( pModule );
 
-	Py_Finalize();
+	//Py_Finalize();
+	PyGILState_Release( state );
 
 	return (void*)0;
 }
@@ -1072,6 +1136,7 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 	ThreadArg *arg = new ThreadArg( file, url );//user the path memeber of TreadArg as url
 
 	int ret;
+	initpython();
 	if( (ret = pthread_create( &dwncloud_thread_id, NULL, thread_dwncloud, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create failed for download cloudshare file:%s\n", strerror( ret ));

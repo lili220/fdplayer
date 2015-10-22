@@ -259,7 +259,9 @@ void LoginDialog::logout()
 	{
 		//saveLogInfo();
 		//user->nfschina_logout( user->getLUid() );
-		UserOption::getInstance( p_intf )->toggleNetShared(false);    // close remote share
+		user->setRemoteSharedStart(false);
+		user->setCloudSharedStart(false);
+		user->toggleNetShared(false);    // close remote share
 		setLogState( false );
 		UserOption::getInstance( p_intf )->setLogin( false );
 		UserOption::getInstance( p_intf )->setLUid( -1 );
