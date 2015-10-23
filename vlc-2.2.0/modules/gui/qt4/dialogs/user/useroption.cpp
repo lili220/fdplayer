@@ -97,6 +97,7 @@ UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 	b_netShared = false;
 	b_cloudModeStart = false;
 	b_remoteModeStart = false;
+	b_lanModeStart = true;
 
 	/*default settings*/
 	readWebServerConf();
@@ -1196,6 +1197,8 @@ void UserOption::toggleLocalShared( bool state )
 		system( cmd.toStdString().c_str() );
 		//system( "kill -9 `ps -ef | grep minidlna | grep -v grep | awk '{print $2}'`" );
 	}
+
+	setLanSharedStart(false);
 }
 
 void UserOption::toggleNetShared( bool state )

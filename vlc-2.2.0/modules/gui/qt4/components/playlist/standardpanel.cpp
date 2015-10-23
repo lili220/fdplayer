@@ -324,8 +324,8 @@ bool StandardPLPanel::popup( const QPoint &point )
     {
         //menu.addAction( qtr( "ADD REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
         //menu.addAction( qtr( "DELETE REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
-        ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("获取远端文件列表"),
-                VLCModelSubInterface::ACTION_ADDSHARE );
+        //ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("获取远端文件列表"),
+        //        VLCModelSubInterface::ACTION_ADDSHARE );
     }
 
     CONNECT( &menu, triggered( QAction * ), this, popupAction( QAction * ) );
