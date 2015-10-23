@@ -129,9 +129,13 @@ public slots:
     friend class    Singleton<TaskDialog>;
 	friend class UserOption;
 
-	void stopTask();
-	void continueTask();
-	void deleteTask();
+	void stopItemTask();
+	void continueItemTask();
+	void deleteItemTask();
+
+	/*双击停止或开始上传/下载任务*/
+	void toggleUploadState(const QModelIndex&);
+	void toggleDownloadState(const QModelIndex&);
 
 private:
 	/*Information for QSettings*/

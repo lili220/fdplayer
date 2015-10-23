@@ -105,6 +105,9 @@ TaskDialog::TaskDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 	setLayout( mainLayout );
 
 	connect( selector->getListWidget(), SIGNAL( currentRowChanged(int)), mainWidget, SLOT(setCurrentIndex(int)));
+
+	connect(downloadTree, SIGNAL(doubleClicked(const QModelIndex)), this, SLOT(toggleDownloadState(const QModelIndex&)));
+	connect(uploadTree, SIGNAL(doubleClicked(const QModelIndex)), this, SLOT(toggleUploadState(const QModelIndex&)));
 }
 
 TaskDialog::~TaskDialog()
@@ -126,6 +129,7 @@ QTreeView* TaskDialog::initDownloadTreeView()
 	downloadModel->setHeaderData( 4, Qt::Horizontal, qtr("url") );
 	downloadModel->setHeaderData( 5, Qt::Horizontal, qtr("threadId") );
 	tree->setModel( downloadModel );
+	tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 #if 0
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
 	tree->hideColumn(4);
@@ -165,6 +169,7 @@ QTreeView* TaskDialog::initUploadTreeView()
 	uploadModel->setHeaderData( 4, Qt::Horizontal, qtr("filePath") );
 	uploadModel->setHeaderData( 5, Qt::Horizontal, qtr("threadId") );
 	tree->setModel( uploadModel );
+	tree->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 #if 0
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
 	tree->hideColumn(4);
@@ -246,31 +251,59 @@ void TaskDialog::initDownloadItems(QSettings &settings, int uid)
 void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, pthread_t thread_id )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
-	QStandardItemModel *model = getUploadModel();
-	QStandardItem *item = new QStandardItem( filename );
-	model->appendRow( item );
 	QString pro = QString::number(process).append("%");
-	model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
-	model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
-	model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
-	model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(path));
-	if(thread_id > 0)
-		model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
+	QStandardItemModel *model = getUploadModel();
+
+	QModelIndex index = getUploadItemIndex(filename);
+	if(index.isValid())
+	{
+		model->setItem(index.row(), 1, new QStandardItem(pro));
+		model->setItem(index.row(), 2, new QStandardItem(state));
+		model->setItem(index.row(), 3, new QStandardItem(QString::number(uid)));
+		model->setItem(index.row(), 4, new QStandardItem(path));
+		if(thread_id > 0)
+			model->setItem(index.row(), 5, new QStandardItem(QString::number(thread_id)));
+	}
+	else
+	{
+		QStandardItem *item = new QStandardItem( filename );
+		model->appendRow( item );
+		model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
+		model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
+		model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
+		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(path));
+		if(thread_id > 0)
+			model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
+	}
 }
 
 void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, pthread_t thread_id )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
-	QStandardItemModel *model = getDownloadModel();
-	QStandardItem *item = new QStandardItem( filename );
-	model->appendRow( item );
 	QString pro = QString::number(process).append("%");
-	model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
-	model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
-	model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
-	model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(url));
-	if(thread_id > 0)
-		model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
+	QStandardItemModel *model = getDownloadModel();
+
+	QModelIndex index = getDownloadItemIndex(filename);
+	if(index.isValid())
+	{
+		model->setItem(index.row(), 1, new QStandardItem(pro));
+		model->setItem(index.row(), 2, new QStandardItem(state));
+		model->setItem(index.row(), 3, new QStandardItem(QString::number(uid)));
+		model->setItem(index.row(), 4, new QStandardItem(url));
+		if(thread_id > 0)
+			model->setItem(index.row(), 5, new QStandardItem(QString::number(thread_id)));
+	}
+	else
+	{
+		QStandardItem *item = new QStandardItem( filename );
+		model->appendRow( item );
+		model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
+		model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
+		model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
+		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(url));
+		if(thread_id > 0)
+			model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
+	}
 }
 
 QModelIndex TaskDialog::getUploadItemIndex( const QString filename )
@@ -400,35 +433,165 @@ void TaskDialog::contextMenuEvent(QContextMenuEvent *event)
 	QAction *deleteAction = new QAction(qtr("删除任务"), menu);
 	menu->addAction(deleteAction);
 
-	connect(stopAction, SIGNAL(triggered(bool)), this, SLOT(stopTask()));
-	connect(continueAction, SIGNAL(triggered(bool)), this, SLOT(continueTask()));
-	connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteTask()));
+	connect(stopAction, SIGNAL(triggered(bool)), this, SLOT(stopItemTask()));
+	connect(continueAction, SIGNAL(triggered(bool)), this, SLOT(continueItemTask()));
+	connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteItemTask()));
 
 	menu->exec(event->globalPos());
 }
 
-void TaskDialog::stopTask()
+void TaskDialog::stopItemTask()
 {
 	qDebug() << __func__;
 	/*stop download or upload task*/
+	if(downloadTree == mainWidget->currentWidget())
+	{
+		QModelIndex index = downloadTree->currentIndex();
+		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+		QString file = model->index(index.row(), 0).data().toString();
+		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
+		pthread_cancel(thread_id);
 
-	/*update item state for Task Window*/
+		/*update item state for Task Window*/
+		int process = model->index(index.row(), 1).data().toInt();
+		QString state = qtr("已停止");
+		qDebug() << file << "->thread_id = " << thread_id;
+		updateDownloadItem(file, process, state);
+	}
+	else if(uploadTree == mainWidget->currentWidget())
+	{
+		QModelIndex index = uploadTree->currentIndex();
+		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+		QString file = model->index(index.row(), 0).data().toString();
+		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
+		pthread_cancel(thread_id);
+
+		/*update item state for Task Window*/
+		int process = model->index(index.row(), 1).data().toInt();
+		QString state = qtr("已停止");
+		qDebug() << file << "->thread_id = " << thread_id;
+		updateUploadItem(file, process, state);
+	}
 }
 
-void TaskDialog::continueTask()
+void TaskDialog::continueItemTask()
 {
 	qDebug() << __func__;
 	/*continue download/upload task*/
+	if(downloadTree == mainWidget->currentWidget())
+	{
+		QModelIndex index = downloadTree->currentIndex();
+		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+		QString file = model->index(index.row(), 0).data().toString();
+		QString url = model->index(index.row(), 4).data().toString();
+		UserOption *user = UserOption::getInstance(p_intf);
+		user->downloadCloudShareFile(url, file);
+	}
+	else if(uploadTree == mainWidget->currentWidget())
+	{
+		QModelIndex index = uploadTree->currentIndex();
+		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+		QString file = model->index(index.row(), 0).data().toString();
+		int uid = model->index(index.row(), 3).data().toInt();
+		QString filepath = model->index(index.row(), 4).data().toString();
+		UserOption *user = UserOption::getInstance(p_intf);
+		user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
+	}
 
 	/*update item state form Task Window*/
 }
 
-void TaskDialog::deleteTask()
+void TaskDialog::deleteItemTask()
 {
 	qDebug() << __func__;
 	/*delete download/upload task*/
+	if(downloadTree == mainWidget->currentWidget())
+	{
+		QModelIndex index = downloadTree->currentIndex();
+		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+		QString file = model->index(index.row(), 0).data().toString();
+		QString state = model->index(index.row(), 2).data().toString();
+		int uid = model->index(index.row(), 3).data().toInt();
 
-	/*delete item from Task window*/
+		/*如果选中文件正在下载，先停止文件下载*/
+		if(state.startsWith(qtr("下载中")))
+		{
+			pthread_t thread_id = model->index(index.row(), 5).data().toInt();
+			pthread_cancel(thread_id);
+		}
 
-	/*delete item information from QSettings*/
+		/*delete item information from QSettings*/
+		deleteTask("download", uid, file);
+
+		/*delete item from Task window*/
+		model->removeRow(index.row());
+
+	}
+	else if(uploadTree == mainWidget->currentWidget())
+	{
+		QModelIndex index = uploadTree->currentIndex();
+		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+		QString file = model->index(index.row(), 0).data().toString();
+		QString state = model->index(index.row(), 2).data().toString();
+		int uid = model->index(index.row(), 3).data().toInt();
+		/*stop upload task if the selected file is Uploading....*/
+		if(state.startsWith(qtr("上传中")))
+		{
+			pthread_t thread_id = model->index(index.row(), 5).data().toInt();
+			pthread_cancel(thread_id);
+		}
+		/*delete item information from QSettings*/
+		deleteTask("upload", uid, file);
+		
+		/*delete item from Task Window*/
+		model->removeRow(index.row());
+	}
 }
+
+void TaskDialog::toggleUploadState(const QModelIndex &index)
+{
+	UserOption *user = UserOption::getInstance(p_intf);
+	QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+	QString state = model->index(index.row(), 2).data().toString();
+	if(state.startsWith(qtr("已停止")))
+	{
+		QString file = model->index(index.row(), 0).data().toString();
+		int uid = model->index(index.row(), 3).data().toInt();
+		QString filepath = model->index(index.row(), 4).data().toString();
+		user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
+	}
+	else if(state.startsWith(qtr("上传中")))
+	{
+		QString file = model->index(index.row(), 0).data().toString();
+		int process = model->index(index.row(), 1).data().toInt();
+		QString newstate = qtr("已停止");
+		updateUploadItem(file, process, newstate);
+
+		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
+		pthread_cancel(thread_id);
+	}
+}
+
+void TaskDialog::toggleDownloadState(const QModelIndex &index)
+{
+	UserOption *user = UserOption::getInstance(p_intf);
+	QAbstractItemModel *model = (QAbstractItemModel*)index.model();
+	QString state = model->index(index.row(), 2).data().toString();
+	if(state.startsWith(qtr("已停止")))
+	{
+		QString file = model->index(index.row(), 0).data().toString();
+		QString url = model->index(index.row(), 4).data().toString();
+		user->downloadCloudShareFile(url, file);
+	}
+	else if(state.startsWith(qtr("下载中")))
+	{
+		QString file = model->index(index.row(), 0).data().toString();
+		int process = model->index(index.row(), 1).data().toInt();
+		QString newstate = qtr("已停止");
+		updateDownloadItem(file, process, newstate);
+
+		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
+		pthread_cancel(thread_id);
+	}
+}
+

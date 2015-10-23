@@ -517,7 +517,7 @@ static void *thread_upload( void *data )
 		return (void*)-1;
 	}
 */
-        PyGILState_STATE state = PyGILState_Ensure();
+	PyGILState_STATE state = PyGILState_Ensure();
 
 	PyRun_SimpleString( "import sys" );
 	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
@@ -606,7 +606,7 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 
 #if 1
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
-	task->saveNewTask("upload", userid, filename, 0, qtr("上传中..."), url);
+	task->saveNewTask("upload", userid, filename, 0, qtr("上传中..."), filepath);
 	task->addUploadItem(filename, 0, qtr("上传中..."), userid, filepath, upthread_id);
 #endif
 
@@ -1139,6 +1139,13 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 		fprintf( stderr, "pthread_create failed for download cloudshare file:%s\n", strerror( ret ));
 		return ;
 	}
+
+#if 1
+	int userid = getLUid();
+	TaskDialog *task = TaskDialog::getInstance(p_intf);
+	task->saveNewTask("download", userid, file, 0, qtr("下载中..."), url);
+	task->addDownloadItem(file, 0, qtr("下载中..."), userid, url, dwncloud_thread_id);
+#endif
 }
 
 void UserOption::toggleLocalShared( bool state )
