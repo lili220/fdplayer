@@ -768,6 +768,10 @@ void StandardPLPanel::popupAction( QAction *action )
 		  p = strrchr(service_ip, 32);
                 *p = ':';
 
+                user = UserOption::getInstance( p_intf );
+		user->initpython();
+	        PyGILState_STATE state = PyGILState_Ensure();
+
                 PyRun_SimpleString( "import sys" );
                 //PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
                 PyRun_SimpleString( "sys.path.append('./share/python')" );
@@ -780,16 +784,16 @@ void StandardPLPanel::popupAction( QAction *action )
                 if(msg1 == NULL)
                 {
                     printf("msg is NULL\n");
+                    PyGILState_Release( state );
                     return;
                 }
 
-	         user = UserOption::getInstance( p_intf );
                 if(user)
                 {
                 	mid = user->getLUid();
 			sprintf(cmid, "%d", mid);
-		  }
-	         printf("service_ip = %s, cmid = %s, sid = %s\n", service_ip, cmid, sid);
+		}
+	        printf("service_ip = %s, cmid = %s, sid = %s\n", service_ip, cmid, sid);
 
                 pArgs1 = PyTuple_New( 3 );
                 PyTuple_SetItem( pArgs1, 0, Py_BuildValue( "s", service_ip) );
@@ -800,6 +804,7 @@ void StandardPLPanel::popupAction( QAction *action )
                 if(pRetValue1 == NULL)
                 {
                    printf("%d:pRetValue1 is NULL\n",__LINE__); 
+                   PyGILState_Release( state );
                    return;
                 }
                 int s = PyList_Size( pRetValue1 );
@@ -826,11 +831,14 @@ void StandardPLPanel::popupAction( QAction *action )
 		      RecentsMRL::getInstance( p_intf )->addRecent( shareurl );
                     printf("sharefileurl:%s\n", shareurl.toStdString().c_str());
                     input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_FILE);
-                    if ( item == NULL)
-		                return;
+                    if ( item == NULL) {
+                         PyGILState_Release( state );
+                         return;
+		    }
                     printf("play_item->i_id = %d\n", play_item->i_id);
 		      playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
                 }
+                PyGILState_Release( state );
             }
             break;  
 		default:
@@ -1077,7 +1085,7 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	
 	QString url = user->buildURL( user->getServerIp(), "/haha/service/wsdl" );
 	printf( "remote share url: %s\n", url.toStdString().c_str() );
-
+/*
 	Py_Initialize();
 
 	if( !Py_IsInitialized() )
@@ -1085,6 +1093,9 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	      printf( "Python initialize failed! \n" );
 	      return ;
 	}
+*/
+	user->initpython();
+        PyGILState_STATE state = PyGILState_Ensure();
 
        PyRun_SimpleString( "import sys" );
        PyRun_SimpleString( "sys.path.append('./share/python')" );
@@ -1096,6 +1107,7 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
        if(msg == NULL)
        {
             printf("msg is NULL\n");
+            PyGILState_Release( state );
             return;
        }
 
@@ -1119,10 +1131,13 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
        playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
        if( play_item == NULL ) {
     	    printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+            PyGILState_Release( state );
 	    return;
        }
-       if( play_item->i_children > 0 )
+       if( play_item->i_children > 0 ){
+            PyGILState_Release( state );
     	    return;
+       }
 
        for (ii = msgList.begin(); ii != msgList.end(); ++ii)
        {
@@ -1146,12 +1161,14 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
             input_item_t *item;
             item = input_item_NewWithType (serviceip, userip,
                                   0, NULL, 0, -1, ITEM_TYPE_DIRECTORY);
-            if (item == NULL)
-        	    return;
+            if (item == NULL) {
+        	PyGILState_Release( state );
+                return;
+            }
 
 	     playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
         }
-	 
+	PyGILState_Release( state ); 
 }
 
 static bool chk_media_file(char *filename)
@@ -1275,6 +1292,9 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 	memcpy(service_ip, user_info, p-user_info);
 	p = strrchr(service_ip, 32);
 	*p = ':';
+	user = UserOption::getInstance( p_intf );
+	user->initpython();
+        PyGILState_STATE state = PyGILState_Ensure();
 
 	PyRun_SimpleString( "import sys" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
@@ -1287,10 +1307,10 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 	if(msg1 == NULL)
 	{
 		printf("msg is NULL\n");
+                PyGILState_Release( state );
 		return;
 	}
 
-	user = UserOption::getInstance( p_intf );
 	if(user)
 	{
 		mid = user->getLUid();
@@ -1306,7 +1326,8 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 	pRetValue1 = PyObject_CallObject( msg1, pArgs1 );
 	if(pRetValue1 == NULL)
 	{
-	   printf("%d:pRetValue1 is NULL\n",__LINE__); 
+	   printf("%d:pRetValue1 is NULL\n",__LINE__);
+           PyGILState_Release( state ); 
 	   return;
 	}
 	int s = PyList_Size( pRetValue1 );
@@ -1332,10 +1353,12 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 		input_item_t *item = input_item_NewWithType ( shareurl.toStdString().c_str(), _((*ii1).c_str()), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 		if ( item == NULL) {
 			printf("item == NULL\n");
+                        PyGILState_Release( state );
 			return;
 		}
 		playlist_NodeAddInput( THEPL, item , play_item, PLAYLIST_APPEND, PLAYLIST_END, false );
 	}
+        PyGILState_Release( state );
 }
 
 void StandardPLPanel::browseInto()
