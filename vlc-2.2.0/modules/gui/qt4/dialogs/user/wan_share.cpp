@@ -708,6 +708,10 @@ static void* wan_share_keep(void* arg)
 	while(1) {
 		ret = wan_share(arg);
 		if (ret == 0) {
+			//如果广域网共享关闭，则断开和服务器的连接、销毁线程池、退出线程
+			if (check_wan_share_switch() < 0) {
+				pthread_exit(NULL);
+			}
 #if DEBUG
 			printf("wan_share_keep(): restart wan share\n");
 #endif

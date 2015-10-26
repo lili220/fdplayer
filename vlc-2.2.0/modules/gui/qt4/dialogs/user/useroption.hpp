@@ -149,8 +149,11 @@ public:
 
 	void setRemoteSharedStart( bool state ){ b_remoteModeStart = state; }
 	void setCloudSharedStart( bool state ){ b_cloudModeStart = state; }
+	void setLanSharedStart( bool state ){ b_lanModeStart = state; }
 	bool getRemoteSharedStart(){ return b_remoteModeStart == true; }
 	bool getCloudSharedStart(){ return b_cloudModeStart == true; }
+	bool getLanSharedStart(){ return b_lanModeStart == true; }
+
 	
 	void initialConf();
 	void setConfigPath( QString path = "../sbin/minidlna.conf"){ configPath = path; }
@@ -184,6 +187,7 @@ private:
 	bool b_netShared;
 	bool b_cloudModeStart;
 	bool b_remoteModeStart;
+	bool b_lanModeStart;
 	bool initflag;
 
 	QString serverIp;
