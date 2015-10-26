@@ -144,6 +144,9 @@ StandardPLPanel::StandardPLPanel( PlaylistWidget *_parent,
 
 StandardPLPanel::~StandardPLPanel()
 {
+    UserOption *user = UserOption::getInstance( p_intf );
+    user->toggleLocalShared(false);
+	
     getSettings()->beginGroup("Playlist");
     if( treeView )
         getSettings()->setValue( "headerStateV2", treeView->header()->saveState() );
