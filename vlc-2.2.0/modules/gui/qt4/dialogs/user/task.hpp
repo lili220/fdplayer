@@ -36,6 +36,7 @@
 #include <QSettings>
 #include <QList>
 #include <QMenu>
+#include <QTimer>
 #include <pthread.h>
 
 
@@ -103,6 +104,9 @@ public:
 	QModelIndex getUploadItemIndex(const QString file);
 	QModelIndex getDownloadItemIndex(const QString file);
 
+	int getUploadItemProcess( const QString filename );
+	int getDownloadItemProcess( const QString filename );
+
 	/*初始化任务窗口任务项*/
 	void initUploadItems(QSettings &settings, int uid);//读取登陆用户的上传文件信息
 	void initDownloadItems(QSettings &settings, int uid);//读取登陆用户的下载文件信息
@@ -110,6 +114,9 @@ public:
 	/*更新task窗口项的进度信息*/
 	void updateUploadItem( const QString file, int process = 0, const QString state = "Uploading");
 	void updateDownloadItem( const QString file, int process = 0, const QString state = "Downloading");
+
+	void updateUploadTasks();//更新所有上传任务的状态
+	void updateDownloadTasks();//更新所有下载任务的状态
 
 	/*information for QSettings*/
 	QString getOrganization(){ return organization; };
@@ -125,6 +132,30 @@ public:
 	/*右键菜单*/
 	void contextMenuEvent(QContextMenuEvent* e);
 
+	/*设置/获取定时器运行状态*/
+	bool isTimerRun(){ return b_timerRun == true; }
+	void setTimerState(bool state){ b_timerRun = state; }
+
+	void startUpdateTimer(int intval ) { updateTimer->start(intval*1000); setTimerState(true); }
+	void tryStopUpdateTimer()
+	{
+		if(nDownloadTasks > 0 || nUploadTasks > 0)
+			return;
+
+		printf("Now Stop Timer\n");
+		updateTimer->stop();
+		setTimerState(false);
+	}
+
+	/*上传任务数增加/减少1个,并根据任务数量调整定时器状态*/
+	void addUploadTask();
+	void delUploadTask();
+
+	/*下载任务数增加/减少1个,并根据任务数量调整定时器状态*/
+	void addDownloadTask();
+	void delDownloadTask();
+
+
 public slots:
     friend class    Singleton<TaskDialog>;
 	friend class UserOption;
@@ -137,6 +168,14 @@ public slots:
 	void toggleUploadState(const QModelIndex&);
 	void toggleDownloadState(const QModelIndex&);
 
+	void updateTask();
+
+protected:
+//	void timerEvent(QTimerEvent *event);
+//	int timerId;
+
+signals:
+	//void timeout();
 private:
 	/*Information for QSettings*/
 	QString organization;
@@ -153,6 +192,13 @@ private:
 	/*上传*/
 	QTreeView *uploadTree;
 	QStandardItemModel *uploadModel;
+
+	/*QTimer*/
+	QTimer *updateTimer;
+	int nDownloadTasks;
+	int nUploadTasks;
+	bool b_timerRun;//定时器是否运行的flag
+
 };
 
 #endif

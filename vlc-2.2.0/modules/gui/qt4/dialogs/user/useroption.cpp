@@ -606,8 +606,9 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 
 #if 1
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
-	task->saveNewTask("upload", userid, filename, 0, qtr("上传中..."), filepath);
-	task->addUploadItem(filename, 0, qtr("上传中..."), userid, filepath, upthread_id);
+	int process = task->getUploadItemProcess(filename);
+	task->saveNewTask("upload", userid, filename, process, qtr("上传中..."), filepath);
+	task->addUploadItem(filename, process, qtr("上传中..."), userid, filepath, upthread_id);
 #endif
 
 //	pthread_join(upthread_id, (void**)&ret);
@@ -1143,8 +1144,9 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 #if 1
 	int userid = getLUid();
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
-	task->saveNewTask("download", userid, file, 0, qtr("下载中..."), url);
-	task->addDownloadItem(file, 0, qtr("下载中..."), userid, url, dwncloud_thread_id);
+	int process = task->getDownloadItemProcess(file);
+	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url);
+	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id);
 #endif
 }
 
