@@ -915,10 +915,10 @@ init(int argc, char **argv)
 		strcpy(log_str+65, "maxdebug");
 		log_level = log_str;
 	}
-	else if (GETFLAG(SYSTEMD_MASK))
+	else //if (GETFLAG(SYSTEMD_MASK))
 	{
 		pid = getpid();
-	}
+	}/*
 	else
 	{
 		pid = process_daemonize();
@@ -931,7 +931,7 @@ init(int argc, char **argv)
 		snprintf(buf, sizeof(buf), "%s/minidlna.log", log_path);
 		path = buf;
 		#endif
-	}
+	}*/
 	log_init(path, log_level);
 
 	if (process_check_if_running(pidfilename) < 0)

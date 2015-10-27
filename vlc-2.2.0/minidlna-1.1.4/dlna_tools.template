@@ -40,27 +40,26 @@ fi
 
 pid_file="`pwd`/minidlna.pid"
 if [ $switch == start ];then
-	./minidlnad -f ./minidlna.conf -P $pid_file
+    nohup ./minidlnad -f ./minidlna.conf -P $pid_file >/dev/null 2>&1 & 
 elif [ $switch == stop ];then
-	if [ ! -f $pid_file ];then
-		echo "ERR: $pid_file is not exists"
-		exit -1
-	fi
-	pid=`cat $pid_file`
-	kill -9 $pid
-	rm -f $pid_file
+    if [ ! -f $pid_file ];then
+        pid=`pidof ./minidlnad`
+        if test "x$pid" != x; then
+            kill -9 $pid
+        else
+            echo "ERR: $pid_file is not exists"
+            exit -1
+        fi
+    fi
+    pid=`cat $pid_file`
+    kill -9 $pid
+    rm -f $pid_file
 else
-	echo "__ERR: switch isn't start/stop"
-	exit -2
+    echo "__ERR: switch isn't start/stop"
+    exit -2
 fi
 
 exit 0
-
-
-
-
-
-
 
 
 
