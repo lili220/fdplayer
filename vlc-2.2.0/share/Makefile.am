@@ -30,11 +30,17 @@ dist_icons48_DATA = icons/48x48/vlc.png icons/48x48/vlc-xmas.png
 dist_icons128_DATA = icons/128x128/vlc.png icons/128x128/vlc-xmas.png
 dist_icons256_DATA = icons/256x256/vlc.png
 
+#modify by zhangwanchun, 2015-10-27, install python script
 nobase_dist_vlcdata_SCRIPTS = \
 	utils/gnome-vlc-default.sh \
 	utils/audio-vlc-default.sh \
 	utils/video-vlc-default.sh \
+	python/clientrg.py \
+	python/download.py \
+	python/remotemsg.py \
+	python/sharefile.py \
 	$(NULL)
+
 endif
 
 EXTRA_DIST += \
