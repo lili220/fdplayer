@@ -39,6 +39,15 @@
 
 #include <assert.h>
 #include <limits.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>  
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <net/if.h>
+#include <arpa/inet.h>
 
 /*
  * Constants
@@ -98,6 +107,7 @@ int xml_getNumber( IXML_Document* p_doc,
 
 IXML_Document* parseBrowseResult( IXML_Document* p_doc );
 
+static char *get_ip();
 /*
  * Initializes UPNP instance.
  */
@@ -328,6 +338,9 @@ int xml_getNumber( IXML_Document* p_doc,
  */
 static int Callback( Upnp_EventType event_type, void* p_event, void* p_user_data )
 {
+    char *ips,*pos;
+    ips = get_ip();
+    pos = strrchr(ips, '.');
     services_discovery_t* p_sd = ( services_discovery_t* ) p_user_data;
     services_discovery_sys_t* p_sys = p_sd->p_sys;
     vlc_mutex_locker locker( &p_sys->callback_lock );
@@ -341,8 +354,12 @@ static int Callback( Upnp_EventType event_type, void* p_event, void* p_user_data
         struct Upnp_Discovery* p_discovery = ( struct Upnp_Discovery* )p_event;
 
         IXML_Document *p_description_doc = 0;
-
         int i_res;
+        if (strncmp(p_discovery->Location+7,  ips, (pos-ips) ))
+        {
+            printf( "p_discovery->Location:%d,%s:%s\n", (pos-ips), p_discovery->Location, ips);
+            break;
+        }
         i_res = UpnpDownloadXmlDoc( p_discovery->Location, &p_description_doc );
         if ( i_res != UPNP_E_SUCCESS )
         {
@@ -401,7 +418,8 @@ static int Callback( Upnp_EventType event_type, void* p_event, void* p_user_data
         msg_Err( p_sd, "Unhandled event, please report ( type=%d )", event_type );
         break;
     }
-
+	
+    free(ips);
     return UPNP_E_SUCCESS;
 }
 
@@ -1383,3 +1401,69 @@ input_item_t* Container::getInputItem() const
 {
     return _p_input_item;
 }
+
+static char *get_ip()
+{  
+    int fd, num;  
+    struct ifreq ifq[16];  
+    struct ifconf ifc;  
+    int i;  
+    char *ips, *tmp_ip;  
+    char *delim = ",";  
+    int val;  
+      
+    fd = socket(AF_INET, SOCK_DGRAM, 0);  
+    if(fd < 0)  
+    {  
+        fprintf(stderr, "socket failed\n");  
+        return NULL;  
+    }  
+    ifc.ifc_len = sizeof(ifq);  
+    ifc.ifc_buf = (caddr_t)ifq;  
+    if(ioctl(fd, SIOCGIFCONF, (char *)&ifc))  
+    {  
+        fprintf(stderr, "ioctl failed\n");  
+        return NULL;  
+    }  
+    num = ifc.ifc_len / sizeof(struct ifreq);  
+    if(ioctl(fd, SIOCGIFADDR, (char *)&ifq[num-1]))  
+    {  
+        fprintf(stderr, "ioctl failed\n");  
+        return NULL;  
+    }  
+    close(fd);  
+      
+    val = 0;  
+    for(i=0; i<num; i++)  
+    {  
+        tmp_ip = inet_ntoa(((struct sockaddr_in*)(&ifq[i].ifr_addr))-> sin_addr);  
+        if(strcmp(tmp_ip, "127.0.0.1") != 0)  
+        {  
+            val++;  
+        }  
+    }  
+      
+    ips = (char *)malloc(val * 16 * sizeof(char));  
+    if(ips == NULL)  
+    {  
+        fprintf(stderr, "malloc failed\n");  
+        return NULL;  
+    }  
+    memset(ips, 0, val * 16 * sizeof(char));  
+    val = 0;  
+    for(i=0; i<num; i++)  
+    {  
+        tmp_ip = inet_ntoa(((struct sockaddr_in*)(&ifq[i].ifr_addr))-> sin_addr);  
+        if(strcmp(tmp_ip, "127.0.0.1") != 0)  
+        {  
+            if(val > 0)  
+            {  
+                strcat(ips, delim);  
+            }  
+            strcat(ips, tmp_ip);  
+            val ++;  
+        }  
+    }  
+      
+    return ips;  
+}  
