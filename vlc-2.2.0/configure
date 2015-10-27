@@ -14,9 +14,6 @@
 ## M4sh Initialization. ##
 ## -------------------- ##
 
-#add by zhangwanchun, 2015-08-12
-dlna_configure_arg=$*
-
 # Be more Bourne compatible
 DUALCASE=1; export DUALCASE # for MKS sh
 if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then :
@@ -690,6 +687,24 @@ LIBS_xml
 CFLAGS_xml
 CPPFLAGS_xml
 LTLIBxml
+remoteshare_LIBS
+remoteshare_CFLAGS
+LIBS_remoteshare
+CFLAGS_remoteshare
+CPPFLAGS_remoteshare
+LTLIBremoteshare
+cloudshare_LIBS
+cloudshare_CFLAGS
+LIBS_cloudshare
+CFLAGS_cloudshare
+CPPFLAGS_cloudshare
+LTLIBcloudshare
+localshare_LIBS
+localshare_CFLAGS
+LIBS_localshare
+CFLAGS_localshare
+CPPFLAGS_localshare
+LTLIBlocalshare
 UPNP_LIBS
 UPNP_CFLAGS
 LIBS_upnp
@@ -1745,6 +1760,9 @@ enable_bonjour
 enable_udev
 enable_mtp
 enable_upnp
+enable_localshare
+enable_cloudshare
+enable_remoteshare
 enable_libxml2
 enable_libgcrypt
 enable_gnutls
@@ -1971,6 +1989,12 @@ MTP_CFLAGS
 MTP_LIBS
 UPNP_CFLAGS
 UPNP_LIBS
+localshare_CFLAGS
+localshare_LIBS
+cloudshare_CFLAGS
+cloudshare_LIBS
+remoteshare_CFLAGS
+remoteshare_LIBS
 LIBXML2_CFLAGS
 LIBXML2_LIBS
 GNUTLS_CFLAGS
@@ -2837,6 +2861,10 @@ Service Discovery plugins:
   --enable-mtp            MTP devices support [default=auto]
   --enable-upnp           Intel UPNP SDK [default=auto]
 Misc options:
+  --enable-localshare     build with localshare support enabled [default=auto]
+  --enable-cloudshare     build with cloudshare support enabled [default=auto]
+  --enable-remoteshare    build with remoteshare support enabled
+                          [default=auto]
   --enable-libxml2        libxml2 support [default=auto]
   --disable-libgcrypt     gcrypt support (default enabled)
   --enable-gnutls         GNU TLS TLS/SSL support (default enabled)
@@ -3167,6 +3195,18 @@ Some influential environment variables:
   MTP_LIBS    linker flags for MTP, overriding pkg-config
   UPNP_CFLAGS C compiler flags for UPNP, overriding pkg-config
   UPNP_LIBS   linker flags for UPNP, overriding pkg-config
+  localshare_CFLAGS
+              C compiler flags for localshare, overriding pkg-config
+  localshare_LIBS
+              linker flags for localshare, overriding pkg-config
+  cloudshare_CFLAGS
+              C compiler flags for cloudshare, overriding pkg-config
+  cloudshare_LIBS
+              linker flags for cloudshare, overriding pkg-config
+  remoteshare_CFLAGS
+              C compiler flags for remoteshare, overriding pkg-config
+  remoteshare_LIBS
+              linker flags for remoteshare, overriding pkg-config
   LIBXML2_CFLAGS
               C compiler flags for LIBXML2, overriding pkg-config
   LIBXML2_LIBS
@@ -51432,6 +51472,741 @@ esac
 
 
 
+# Check whether --enable-localshare was given.
+if test "${enable_localshare+set}" = set; then :
+  enableval=$enable_localshare;
+else
+  enable_localshare=auto
+fi
+
+
+case $enable_localshare in #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for localshare" >&5
+$as_echo_n "checking for localshare... " >&6; }
+
+if test -n "$localshare_CFLAGS"; then
+    pkg_cv_localshare_CFLAGS="$localshare_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"liblocalshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "liblocalshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_localshare_CFLAGS=`$PKG_CONFIG --cflags "liblocalshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$localshare_LIBS"; then
+    pkg_cv_localshare_LIBS="$localshare_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"liblocalshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "liblocalshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_localshare_LIBS=`$PKG_CONFIG --libs "liblocalshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        localshare_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "liblocalshare" 2>&1`
+        else
+	        localshare_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "liblocalshare" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$localshare_PKG_ERRORS" >&5
+
+	if test x"$enable_localshare" = "xyes"; then :
+  as_fn_error $? "Library liblocalshare needed for localshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library liblocalshare needed for localshare was not found" >&5
+$as_echo "$as_me: WARNING: Library liblocalshare needed for localshare was not found" >&2;}
+
+fi
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	if test x"$enable_localshare" = "xyes"; then :
+  as_fn_error $? "Library liblocalshare needed for localshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library liblocalshare needed for localshare was not found" >&5
+$as_echo "$as_me: WARNING: Library liblocalshare needed for localshare was not found" >&2;}
+
+fi
+else
+	localshare_CFLAGS=$pkg_cv_localshare_CFLAGS
+	localshare_LIBS=$pkg_cv_localshare_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	LTLIBlocalshare=liblocalshare_plugin.la
+
+
+
+
+
+
+    eval "CFLAGS_localshare="'"$'"{CFLAGS_localshare} $localshare_CFLAGS "'"'
+
+
+
+
+
+    eval "LIBS_localshare="'"'"$localshare_LIBS  "'$'"{LIBS_localshare}"'"'
+
+
+
+fi ;; #(
+  auto) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for localshare" >&5
+$as_echo_n "checking for localshare... " >&6; }
+
+if test -n "$localshare_CFLAGS"; then
+    pkg_cv_localshare_CFLAGS="$localshare_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"liblocalshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "liblocalshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_localshare_CFLAGS=`$PKG_CONFIG --cflags "liblocalshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$localshare_LIBS"; then
+    pkg_cv_localshare_LIBS="$localshare_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"liblocalshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "liblocalshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_localshare_LIBS=`$PKG_CONFIG --libs "liblocalshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        localshare_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "liblocalshare" 2>&1`
+        else
+	        localshare_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "liblocalshare" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$localshare_PKG_ERRORS" >&5
+
+	enable_localshare=no
+ if test x"$enable_localshare" = "xyes"; then :
+  as_fn_error $? "Library liblocalshare needed for localshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library liblocalshare needed for localshare was not found" >&5
+$as_echo "$as_me: WARNING: Library liblocalshare needed for localshare was not found" >&2;}
+
+fi
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	enable_localshare=no
+ if test x"$enable_localshare" = "xyes"; then :
+  as_fn_error $? "Library liblocalshare needed for localshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library liblocalshare needed for localshare was not found" >&5
+$as_echo "$as_me: WARNING: Library liblocalshare needed for localshare was not found" >&2;}
+
+fi
+else
+	localshare_CFLAGS=$pkg_cv_localshare_CFLAGS
+	localshare_LIBS=$pkg_cv_localshare_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	enable_localshare=yes
+
+
+    LTLIBlocalshare=liblocalshare_plugin.la
+
+
+
+
+
+
+    eval "CFLAGS_localshare="'"$'"{CFLAGS_localshare} $localshare_CFLAGS "'"'
+
+
+
+
+
+    eval "LIBS_localshare="'"'"$localshare_LIBS  "'$'"{LIBS_localshare}"'"'
+
+
+
+fi ;; #(
+  *) :
+     ;;
+esac
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Check whether --enable-cloudshare was given.
+if test "${enable_cloudshare+set}" = set; then :
+  enableval=$enable_cloudshare;
+else
+  enable_cloudshare=auto
+fi
+
+
+case $enable_cloudshare in #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cloudshare" >&5
+$as_echo_n "checking for cloudshare... " >&6; }
+
+if test -n "$cloudshare_CFLAGS"; then
+    pkg_cv_cloudshare_CFLAGS="$cloudshare_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libcloudshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libcloudshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_cloudshare_CFLAGS=`$PKG_CONFIG --cflags "libcloudshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$cloudshare_LIBS"; then
+    pkg_cv_cloudshare_LIBS="$cloudshare_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libcloudshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libcloudshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_cloudshare_LIBS=`$PKG_CONFIG --libs "libcloudshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        cloudshare_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libcloudshare" 2>&1`
+        else
+	        cloudshare_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libcloudshare" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$cloudshare_PKG_ERRORS" >&5
+
+	if test x"$enable_cloudshare" = "xyes"; then :
+  as_fn_error $? "Library libcloudshare needed for cloudshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libcloudshare needed for cloudshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libcloudshare needed for cloudshare was not found" >&2;}
+
+fi
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	if test x"$enable_cloudshare" = "xyes"; then :
+  as_fn_error $? "Library libcloudshare needed for cloudshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libcloudshare needed for cloudshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libcloudshare needed for cloudshare was not found" >&2;}
+
+fi
+else
+	cloudshare_CFLAGS=$pkg_cv_cloudshare_CFLAGS
+	cloudshare_LIBS=$pkg_cv_cloudshare_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	LTLIBcloudshare=libcloudshare_plugin.la
+
+
+
+
+
+
+    eval "CFLAGS_cloudshare="'"$'"{CFLAGS_cloudshare} $cloudshare_CFLAGS "'"'
+
+
+
+
+
+    eval "LIBS_cloudshare="'"'"$cloudshare_LIBS  "'$'"{LIBS_cloudshare}"'"'
+
+
+
+fi ;; #(
+  auto) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cloudshare" >&5
+$as_echo_n "checking for cloudshare... " >&6; }
+
+if test -n "$cloudshare_CFLAGS"; then
+    pkg_cv_cloudshare_CFLAGS="$cloudshare_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libcloudshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libcloudshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_cloudshare_CFLAGS=`$PKG_CONFIG --cflags "libcloudshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$cloudshare_LIBS"; then
+    pkg_cv_cloudshare_LIBS="$cloudshare_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libcloudshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libcloudshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_cloudshare_LIBS=`$PKG_CONFIG --libs "libcloudshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        cloudshare_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libcloudshare" 2>&1`
+        else
+	        cloudshare_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libcloudshare" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$cloudshare_PKG_ERRORS" >&5
+
+	enable_cloudshare=no
+ if test x"$enable_cloudshare" = "xyes"; then :
+  as_fn_error $? "Library libcloudshare needed for cloudshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libcloudshare needed for cloudshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libcloudshare needed for cloudshare was not found" >&2;}
+
+fi
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	enable_cloudshare=no
+ if test x"$enable_cloudshare" = "xyes"; then :
+  as_fn_error $? "Library libcloudshare needed for cloudshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libcloudshare needed for cloudshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libcloudshare needed for cloudshare was not found" >&2;}
+
+fi
+else
+	cloudshare_CFLAGS=$pkg_cv_cloudshare_CFLAGS
+	cloudshare_LIBS=$pkg_cv_cloudshare_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	enable_cloudshare=yes
+
+
+    LTLIBcloudshare=libcloudshare_plugin.la
+
+
+
+
+
+
+    eval "CFLAGS_cloudshare="'"$'"{CFLAGS_cloudshare} $cloudshare_CFLAGS "'"'
+
+
+
+
+
+    eval "LIBS_cloudshare="'"'"$cloudshare_LIBS  "'$'"{LIBS_cloudshare}"'"'
+
+
+
+fi ;; #(
+  *) :
+     ;;
+esac
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Check whether --enable-remoteshare was given.
+if test "${enable_remoteshare+set}" = set; then :
+  enableval=$enable_remoteshare;
+else
+  enable_remoteshare=auto
+fi
+
+
+case $enable_remoteshare in #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for remoteshare" >&5
+$as_echo_n "checking for remoteshare... " >&6; }
+
+if test -n "$remoteshare_CFLAGS"; then
+    pkg_cv_remoteshare_CFLAGS="$remoteshare_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libremoteshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libremoteshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_remoteshare_CFLAGS=`$PKG_CONFIG --cflags "libremoteshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$remoteshare_LIBS"; then
+    pkg_cv_remoteshare_LIBS="$remoteshare_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libremoteshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libremoteshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_remoteshare_LIBS=`$PKG_CONFIG --libs "libremoteshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        remoteshare_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libremoteshare" 2>&1`
+        else
+	        remoteshare_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libremoteshare" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$remoteshare_PKG_ERRORS" >&5
+
+	if test x"$enable_remoteshare" = "xyes"; then :
+  as_fn_error $? "Library libremoteshare needed for remoteshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libremoteshare needed for remoteshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libremoteshare needed for remoteshare was not found" >&2;}
+
+fi
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	if test x"$enable_remoteshare" = "xyes"; then :
+  as_fn_error $? "Library libremoteshare needed for remoteshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libremoteshare needed for remoteshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libremoteshare needed for remoteshare was not found" >&2;}
+
+fi
+else
+	remoteshare_CFLAGS=$pkg_cv_remoteshare_CFLAGS
+	remoteshare_LIBS=$pkg_cv_remoteshare_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	LTLIBremoteshare=libremoteshare_plugin.la
+
+
+
+
+
+
+    eval "CFLAGS_remoteshare="'"$'"{CFLAGS_remoteshare} $remoteshare_CFLAGS "'"'
+
+
+
+
+
+    eval "LIBS_remoteshare="'"'"$remoteshare_LIBS  "'$'"{LIBS_remoteshare}"'"'
+
+
+
+fi ;; #(
+  auto) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for remoteshare" >&5
+$as_echo_n "checking for remoteshare... " >&6; }
+
+if test -n "$remoteshare_CFLAGS"; then
+    pkg_cv_remoteshare_CFLAGS="$remoteshare_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libremoteshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libremoteshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_remoteshare_CFLAGS=`$PKG_CONFIG --cflags "libremoteshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$remoteshare_LIBS"; then
+    pkg_cv_remoteshare_LIBS="$remoteshare_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libremoteshare\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libremoteshare") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_remoteshare_LIBS=`$PKG_CONFIG --libs "libremoteshare" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        remoteshare_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libremoteshare" 2>&1`
+        else
+	        remoteshare_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libremoteshare" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$remoteshare_PKG_ERRORS" >&5
+
+	enable_remoteshare=no
+ if test x"$enable_remoteshare" = "xyes"; then :
+  as_fn_error $? "Library libremoteshare needed for remoteshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libremoteshare needed for remoteshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libremoteshare needed for remoteshare was not found" >&2;}
+
+fi
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	enable_remoteshare=no
+ if test x"$enable_remoteshare" = "xyes"; then :
+  as_fn_error $? "Library libremoteshare needed for remoteshare was not found" "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Library libremoteshare needed for remoteshare was not found" >&5
+$as_echo "$as_me: WARNING: Library libremoteshare needed for remoteshare was not found" >&2;}
+
+fi
+else
+	remoteshare_CFLAGS=$pkg_cv_remoteshare_CFLAGS
+	remoteshare_LIBS=$pkg_cv_remoteshare_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	enable_remoteshare=yes
+
+
+    LTLIBremoteshare=libremoteshare_plugin.la
+
+
+
+
+
+
+    eval "CFLAGS_remoteshare="'"$'"{CFLAGS_remoteshare} $remoteshare_CFLAGS "'"'
+
+
+
+
+
+    eval "LIBS_remoteshare="'"'"$remoteshare_LIBS  "'$'"{LIBS_remoteshare}"'"'
+
+
+
+fi ;; #(
+  *) :
+     ;;
+esac
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Check whether --enable-libxml2 was given.
 if test "${enable_libxml2+set}" = set; then :
   enableval=$enable_libxml2;
@@ -56043,21 +56818,19 @@ echo "
 To build vlc and its plugins, type \`$MAKE', or \`./compile' if you like nice colors."
 
 
-#add by zhangwanchun, 2015-08-11
+#add by zhangwanchun, 2015-10-27
 sed -i "s/-Werror-implicit-function-declaration//g" ./modules/packetizer/Makefile
 rcode=$?
-if [ $rcode != 0 ];then
+if test $rcode != 0 ;then
 	echo "modify ./modules/packetizer/Makefile error"
 	exit 1
 fi
 
 echo "-----------------------------Compile minidlna-1.1.4 begin----------------------------"
-echo "argments: [$dlna_configure_arg]"
-
 cd ./minidlna-1.1.4
-./configure $dlna_configure_arg
+./configure --prefix=$prefix
 rcode=$?
-if [ $rcode == 0 ];then
+if test $rcode == 0 ;then
 	echo "Compile minidlna-1.1.4 completed"
 else
 	echo "Compile minidlna-1.1.4 uncompleted, Some error occurred"
@@ -56065,11 +56838,5 @@ else
 fi
 cd ..
 echo "------------------------------Compile minidlna-1.1.4 end-----------------------------"
-
-
-
-
-
-
 
 

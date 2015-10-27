@@ -4312,3 +4312,27 @@ echo "build vlc executable  : no"
 fi
 echo "
 To build vlc and its plugins, type \`$MAKE', or \`./compile' if you like nice colors."
+
+
+#add by zhangwanchun, 2015-10-27
+sed -i "s/-Werror-implicit-function-declaration//g" ./modules/packetizer/Makefile
+rcode=$?
+if test $rcode != 0 ;then
+	echo "modify ./modules/packetizer/Makefile error"
+	exit 1
+fi
+
+echo "-----------------------------Compile minidlna-1.1.4 begin----------------------------"
+cd ./minidlna-1.1.4
+./configure --prefix=$prefix
+rcode=$?
+if test $rcode == 0 ;then
+	echo "Compile minidlna-1.1.4 completed"
+else
+	echo "Compile minidlna-1.1.4 uncompleted, Some error occurred"
+	exit 1
+fi
+cd ..
+echo "------------------------------Compile minidlna-1.1.4 end-----------------------------"
+
+
