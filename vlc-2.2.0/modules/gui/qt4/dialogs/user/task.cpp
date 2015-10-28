@@ -498,13 +498,18 @@ void TaskDialog::stopItemTask()
 		QModelIndex index = downloadTree->currentIndex();
 		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
 		QString file = model->index(index.row(), 0).data().toString();
+		int fileindex = model->index(index.row(), 6).data().toInt();
+		UserOption *user = UserOption::getInstance(p_intf);
+		user->stopDownload(fileindex);
+#if 0
 		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
 		pthread_cancel(thread_id);
+#endif
 
 		/*update item state for Task Window*/
 		int process = model->index(index.row(), 1).data().toString().remove("%").toInt();
 		QString state = qtr("已停止");
-		qDebug() << file << "->thread_id = " << thread_id;
+	//	qDebug() << file << "->thread_id = " << thread_id;
 		updateDownloadItem(file, process, state);
 	}
 	else if(uploadTree == mainWidget->currentWidget())
@@ -631,6 +636,7 @@ void TaskDialog::toggleUploadState(const QModelIndex &index)
 
 void TaskDialog::toggleDownloadState(const QModelIndex &index)
 {
+	qDebug() <<"-----------------"<< __func__<<"-----------------";
 	UserOption *user = UserOption::getInstance(p_intf);
 	QAbstractItemModel *model = (QAbstractItemModel*)index.model();
 	QString state = model->index(index.row(), 2).data().toString();
@@ -647,12 +653,17 @@ void TaskDialog::toggleDownloadState(const QModelIndex &index)
 		int process = model->index(index.row(), 1).data().toString().remove("%").toInt();
 		QString newstate = qtr("已停止");
 
+		int fileindex = model->index(index.row(), 6).data().toInt();
+		user->stopDownload(fileindex);
+		qDebug("--------%s:fileindex = %d---------------", __func__, fileindex);
+#if 0
 		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
 		pthread_cancel(thread_id);
-
+#endif 
 		updateDownloadItem(file, process, newstate);
-		qDebug() << file << "->thread_id = " << thread_id;
+	//	qDebug() << file << "->thread_id = " << thread_id;
 	}
+	qDebug("----------%s:%d----------------", __func__, __LINE__);
 }
 
 /*
@@ -726,23 +737,21 @@ void TaskDialog::updateDownloadTasks()
 	for(i = 0; i < rowCount; i++)
 	{
 		//updateDownloadTask
+		QString filename = model->index(i, 0, QModelIndex()).data().toString();
 		int fileindex = model->index(i, 6, QModelIndex()).data().toInt();
 		printf("%s:fileindex = %d\n", __func__, fileindex);
+		QString state = model->index(i, 2, QModelIndex()).data().toString();
+		if(state.startsWith(qtr("已停止")))
+		{
+			qDebug()<< filename << " download stoped";
+			continue;
+		}
+
 		UserOption *user = UserOption::getInstance(p_intf);
 		int process = user->getProcess(fileindex);
 		printf("%s:process = %d\n", __func__, process);
-
-		QString filename = model->index(i, 0, QModelIndex()).data().toString();
-
-#if 0
-		QString processString = model->index(i, 1, QModelIndex()).data().toString();
-		processString.remove("%");
-		int process = processString.toInt() + 10;
-#endif
 		if(process > 100)
 			continue;
-
-		QString state = model->index(i, 2, QModelIndex()).data().toString();
 		if(process == 100)
 			state = qtr("已完成");
 
@@ -770,11 +779,11 @@ void TaskDialog::delUploadTask()
 	--nUploadTasks;
 	qDebug() << "nUploadTasks = " << nUploadTasks;
 
+	/*尝试关闭定时器，注：只有上传任务和下载任务都完成才能停止成功*/
+	tryStopUpdateTimer();
 	if(nUploadTasks < 0)
 	{
 		nUploadTasks = 0;
-		/*尝试关闭定时器，注：只有上传任务和下载任务都完成才能停止成功*/
-		tryStopUpdateTimer();
 	}
 }
 
@@ -794,9 +803,10 @@ void TaskDialog::delDownloadTask()
 	--nDownloadTasks;
 	qDebug() << "nDownloadTasks = " << nDownloadTasks;
 
+	tryStopUpdateTimer();
 	if(nDownloadTasks < 0)
 	{
 		nDownloadTasks = 0;
-		tryStopUpdateTimer();
+	//	tryStopUpdateTimer();
 	}
 }

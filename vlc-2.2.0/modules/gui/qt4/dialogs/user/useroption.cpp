@@ -1138,6 +1138,7 @@ static void* thread_dwncloud( void *data )
 #endif
 int thread_dwncloud( void *data )
 {
+	printf("-----------%s---------------\n", __func__);
 	int ret;
 #if 0
 	if( (ret = pthread_detach( pthread_self())) != 0 )
@@ -1254,6 +1255,51 @@ int UserOption::getProcess(int index)
 	PyGILState_Release( state );
 	
 	return pro;
+}
+void UserOption::stopDownload(int index)
+{
+	PyGILState_STATE state  = PyGILState_Ensure( );
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+
+	PyObject *pName = PyString_FromString( "download" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find download.py\n" );
+		PyGILState_Release( state );
+		return ;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from download.py\n" );
+		PyGILState_Release( state );
+		return ;
+	}
+
+	PyObject *pFunc1 = PyDict_GetItemString( pDict, "stop_download" );
+	if( !pFunc1 || !PyCallable_Check( pFunc1 ) )
+	{
+		printf( "can't find function [stop_download]" );
+		PyGILState_Release( state );
+		return ;
+	}
+
+	//PyObject *pArgs = PyTuple_New( 3 );
+	PyObject *pArgs = PyTuple_New( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", index));
+
+	PyObject *pRetValue = PyObject_CallObject( pFunc1, pArgs );
+	//int pro = _PyInt_AsInt( pRetValue );
+	//printf("pro = %d\n", pro);
+	PyGILState_Release( state );
+	
+	return ;
 }
 
 void UserOption::downloadCloudShareFile( const QString url, const QString file )

@@ -25,7 +25,7 @@ class AxelPython(Thread, urllib.FancyURLopener):
 
         run() is a vitural method of Thread.
     '''
-    def __init__(self, threadname, url, filename, ranges=0, proxies={}):
+    def __init__(self, threadname, url, filename, theindex, ranges=0, proxies={}):
         Thread.__init__(self, name=threadname)
         urllib.FancyURLopener.__init__(self, proxies)
         self.name = threadname
@@ -33,6 +33,7 @@ class AxelPython(Thread, urllib.FancyURLopener):
         self.filename = filename
         self.ranges = ranges
         self.downloaded = 0
+        self.theindex = theindex
 
     def run(self):
         '''vertual function in Thread'''
@@ -59,6 +60,8 @@ class AxelPython(Thread, urllib.FancyURLopener):
 
         data = self.urlhandle.read( self.oneTimeSize )
         while data:
+            if isStop(self.theindex)==1:
+                break
             filehandle = open( self.filename, 'ab+' )
             filehandle.write( data )
             filehandle.close()
@@ -68,6 +71,8 @@ class AxelPython(Thread, urllib.FancyURLopener):
             #progress = u'\r...'
 
             data = self.urlhandle.read( self.oneTimeSize )
+            #print "download=%d"%(self.downloaded)
+        print "thread %d is finished"%(self.downloaded)
         
 def GetUrlFileSize(url, proxies={}):
     urlHandler = urllib.urlopen( url, proxies=proxies )
@@ -97,36 +102,39 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
     ''' paxel
     '''
     global loading
-    global mutex
+    global datamutex
     print "loading=[%d] theindex=[%d]"%(loading[theindex],theindex)
     size = GetUrlFileSize( url, proxies )
     ranges = SpliteBlocks( size, blocks )
 
     threadname = [ "thread_%d" % i for i in range(0, blocks) ]
-    filename = [ "tmpfile_%d" % i for i in range(0, blocks) ]
+    filename = [ str(output)+"tmpfile_%d" % i for i in range(0, blocks) ]
   
     tasks = []
     for i in range(0,blocks):
-        task = AxelPython( threadname[i], url, filename[i], ranges[i] )
+        task = AxelPython( threadname[i], url, filename[i], theindex, ranges[i] )
         task.setDaemon( True )
         task.start()
         tasks.append( task )
         
     time.sleep( 2 )
     while islive(tasks):
+        if isStop(theindex)==1:
+            return
         downloaded = sum( [task.downloaded for task in tasks] )
         process = downloaded/float(size)*100
-        mutex.acquire()
+        datamutex[theindex].acquire()
         loading[theindex] = process
-        mutex.release()
+        datamutex[theindex].release()
         show = u'\rFilesize:%d Downloaded:%d Completed:%.2f%%' % (size, downloaded, process)
         sys.stdout.write(show)
         sys.stdout.flush()
         time.sleep( 1 )
-     
-    #loading[theindex] = 100       
+    
     filehandle = open( output, 'wb+' )
     for i in filename:
+        if isStop(theindex)==1:
+            return
         f = open( i, 'rb' )
         filehandle.write( f.read() )
         f.close()
@@ -137,48 +145,89 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
             pass
 
     filehandle.close()
+    datamutex[theindex].acquire()
+    loading[theindex] = 100
+    datamutex[theindex].release()
+    print "load is finished"
 
 global index
 index=0
 global loading
-loading=[0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0]
+loading=[0 for col in range(30)]
+global exitflag
+exitflag=[0 for col in range(30)]
+global datamutex
+datamutex = [threading.Lock() for col in range(30)]
 
 global mutex
 mutex = threading.Lock()
 
+
+def isStop(index):
+    global exitflag
+    global datamutex
+    
+    stopflag = 0
+    datamutex[index].acquire()
+    stopflag = exitflag[index]
+    datamutex[index].release()
+    return stopflag
+
+
+def stop_download(index):
+    global exitflag
+    global datamutex
+
+    datamutex[index].acquire()
+    exitflag[index]=1
+    datamutex[index].release()
+    print "index=%d threads is exited"%(index)
+
+
 def printf(index):
     global loading
-    global mutex
-#    print loading[index]
-    mutex.acquire()
+    global datamutex
+    datamutex[index].acquire()
     process=loading[index]
-    mutex.release()    
+    datamutex[index].release()    
+    print "index=%d loading is %d"%(index,process)
     return process
 
 def start_download(url,output):
     global loading
     global index
     global mutex
+    global datamutex
+    global exitflag
+
+    theindex = 0
+    mutex.acquire()
     theindex = index
     index = index + 1
-    mutex.acquire()
-    loading[theindex] = 0
     mutex.release()
+
+    datamutex[index].acquire()
+    loading[theindex] = 0
+    exitflag[theindex] = 0
+    datamutex[index].release()  
+
     p = threading.Thread(target=paxel,args=(url,output,theindex,8,{},))
     p.start()
-    print "theindex=[%d]"%(theindex)
+    print "start_download theindex=[%d] finished"%(theindex)
     return theindex
-
 
 if __name__ == '__main__':
    url = "http://192.168.7.97/download/5/baofengyu1.mp4"
 
-   output = 'baofeng.mp4'
-   start_download(url,output)
+   output = 'baofengyu1.mp4'
+   index = start_download(url,output)
+   i = 0
+   while 1:
+      printf(index)
+      time.sleep(1)
+      i = i+1
+      if i==30:
+          stop_download(index)
+      if i==60:
+          break
 
-#    p = threading.Thread(target=paxel,args=(url,output,8,{},))
-#    p.start()
-
-#    while p:
-#        printf()
-#        time.sleep(0.1)
