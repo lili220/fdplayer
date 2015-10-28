@@ -413,11 +413,20 @@ void PLSelector::setSource( QTreeWidgetItem *item )
                 user->setLanSharedStart(true);
                 sd_loaded = false;
             }
-            if ( qs.startsWith("cloud") || qs.startsWith("remote") )
+            else if ( qs.startsWith("cloud") )
             {
-                if( (!user->getRemoteSharedStart()) || (!user->getCloudSharedStart()) )
+                if(!user->getCloudSharedStart())
                 {
-                    printf( "need refresh service.\n");
+                    printf( "cloud need refresh service.\n");
+                    playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+                    sd_loaded = false;
+                }
+            }
+            else if ( qs.startsWith("remote") )
+            {
+                if (!user->getRemoteSharedStart())
+                {
+                    printf( "remote need refresh service.\n");
                     playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
                     sd_loaded = false;
                 }
