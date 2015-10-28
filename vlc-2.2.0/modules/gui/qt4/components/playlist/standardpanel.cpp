@@ -778,7 +778,7 @@ void StandardPLPanel::popupAction( QAction *action )
                 PyRun_SimpleString( "import sys" );
                 //PyRun_SimpleString( "sys.path.append('./modules/services_discovery')" );
                 PyRun_SimpleString( "sys.path.append('./share/python')" );
-		PyRun_SimpleString( "sys.path.append('../share/python')" );
+		PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
                 pName1 = PyString_FromString("sharefile");
                 pModule1 = PyImport_Import(pName1);
 
@@ -1111,7 +1111,7 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 
        PyRun_SimpleString( "import sys" );
        PyRun_SimpleString( "sys.path.append('./share/python')" );
-	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
        pName = PyString_FromString("remotemsg");
        pModule = PyImport_Import(pName);
 
@@ -1300,7 +1300,7 @@ void StandardPLPanel::createRemoteShareFileList( const QModelIndex &index )
 
 	PyRun_SimpleString( "import sys" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
-	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
 	pName1 = PyString_FromString("sharefile");
 	pModule1 = PyImport_Import(pName1);
 
