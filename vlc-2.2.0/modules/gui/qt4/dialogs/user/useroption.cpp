@@ -1376,6 +1376,7 @@ void UserOption::toggleNetShared( bool state )
 	//	nfschina_keepalive("0.0.0.0", 8000, getLUid(), state, getServerUrl() );
 	//	nfschina_keeponline( getLUid(), getNetShared() );
 	printf("line:%d\n", __LINE__);
+	setRemoteSharedStart(false);
 	emit netShareState(b_netShared);
 }
 

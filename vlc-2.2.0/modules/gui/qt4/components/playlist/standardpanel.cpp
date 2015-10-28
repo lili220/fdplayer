@@ -1082,6 +1082,15 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 		return ;
 	}
 
+	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+       if( play_item == NULL ) {
+    	     printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+	     return;
+       }
+       if( play_item->i_children > 0 ){
+    	    return;
+       }
+
 	user->setRemoteSharedStart(true);
 
 	mid = user->getLUid();
@@ -1131,16 +1140,6 @@ void StandardPLPanel::createRemoteShareItems( const QModelIndex &index )
 	}
 
        printf("msgList.size = %d\n", msgList.size());
-       playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-       if( play_item == NULL ) {
-    	    printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
-            PyGILState_Release( state );
-	    return;
-       }
-       if( play_item->i_children > 0 ){
-            PyGILState_Release( state );
-    	    return;
-       }
 
        for (ii = msgList.begin(); ii != msgList.end(); ++ii)
        {
