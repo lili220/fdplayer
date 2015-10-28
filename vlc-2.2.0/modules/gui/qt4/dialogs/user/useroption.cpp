@@ -1062,14 +1062,17 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	return PyString_AsString( PyList_GetItem( pRetValue, 0) );
 }
 
+#if 0
 static void* thread_dwncloud( void *data )
 {
 	int ret;
+#if 0
 	if( (ret = pthread_detach( pthread_self())) != 0 )
 	{
 		fprintf( stderr, "pthread_detach failed for thread_dwncloud:%s\n", strerror(ret) );
 		return (void*)-1;
 	}
+#endif
 	ThreadArg *arg = (ThreadArg*)data;
 /*
 	if( !Py_IsInitialized() )
@@ -1104,7 +1107,8 @@ static void* thread_dwncloud( void *data )
 		return (void*)-1;
 	}
 
-	PyObject *pFunc = PyDict_GetItemString( pDict, "paxel" );
+	//PyObject *pFunc = PyDict_GetItemString( pDict, "paxel" );
+	PyObject *pFunc = PyDict_GetItemString( pDict, "start_download" );
 	if( !pFunc || !PyCallable_Check( pFunc ) )
 	{
 		printf( "can't find function [paxel]" );
@@ -1112,12 +1116,15 @@ static void* thread_dwncloud( void *data )
 		return (void*)-1;
 	}
 
-	PyObject *pArgs = PyTuple_New( 3 );
+	//PyObject *pArgs = PyTuple_New( 3 );
+	PyObject *pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
-	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", 4 ) );
+//	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", 4 ) );
 
-	PyObject_CallObject( pFunc, pArgs );
+	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
+	int index = _PyInt_AsInt( pRetValue );
+	printf("index = %d\n", index);
 
 	Py_DECREF( pName );
 	Py_DECREF( pArgs );
@@ -1126,8 +1133,129 @@ static void* thread_dwncloud( void *data )
 	//Py_Finalize();
 	PyGILState_Release( state );
 
-	return (void*)0;
+	return (void*)index;
 }
+#endif
+int thread_dwncloud( void *data )
+{
+	int ret;
+#if 0
+	if( (ret = pthread_detach( pthread_self())) != 0 )
+	{
+		fprintf( stderr, "pthread_detach failed for thread_dwncloud:%s\n", strerror(ret) );
+		return (void*)-1;
+	}
+#endif
+	ThreadArg *arg = (ThreadArg*)data;
+/*
+	if( !Py_IsInitialized() )
+	{
+		Py_Initialize();
+		printf( "Python initialize failed! \n" );
+		//return (void*)-1;
+	}
+*/
+	PyGILState_STATE state  = PyGILState_Ensure( );
+	PyRun_SimpleString( "import sys" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+
+	PyObject *pName = PyString_FromString( "download" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find download.py\n" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from download.py\n" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	//PyObject *pFunc = PyDict_GetItemString( pDict, "paxel" );
+	PyObject *pFunc = PyDict_GetItemString( pDict, "start_download" );
+	if( !pFunc || !PyCallable_Check( pFunc ) )
+	{
+		printf( "can't find function [paxel]" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	//PyObject *pArgs = PyTuple_New( 3 );
+	PyObject *pArgs = PyTuple_New( 2 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+//	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", 4 ) );
+
+	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
+	int index = _PyInt_AsInt( pRetValue );
+	printf("index = %d\n", index);
+
+	Py_DECREF( pName );
+	Py_DECREF( pArgs );
+	Py_DECREF( pModule );
+
+	//Py_Finalize();
+	PyGILState_Release( state );
+
+	return index;
+}
+
+int UserOption::getProcess(int index)
+{
+	PyGILState_STATE state  = PyGILState_Ensure( );
+	PyRun_SimpleString( "import sys" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+
+	PyObject *pName = PyString_FromString( "download" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find download.py\n" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from download.py\n" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pFunc1 = PyDict_GetItemString( pDict, "printf" );
+	if( !pFunc1 || !PyCallable_Check( pFunc1 ) )
+	{
+		printf( "can't find function [paxel]" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	//PyObject *pArgs = PyTuple_New( 3 );
+	PyObject *pArgs = PyTuple_New( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", index));
+
+	PyObject *pRetValue = PyObject_CallObject( pFunc1, pArgs );
+	int pro = _PyInt_AsInt( pRetValue );
+	printf("pro = %d\n", pro);
+	PyGILState_Release( state );
+	
+	return pro;
+}
+
 void UserOption::downloadCloudShareFile( const QString url, const QString file )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
@@ -1136,18 +1264,30 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 
 	int ret;
 	initpython();
+#if 0
 	if( (ret = pthread_create( &dwncloud_thread_id, NULL, thread_dwncloud, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create failed for download cloudshare file:%s\n", strerror( ret ));
 		return ;
 	}
 
+	
+	int index = -1;
+	if((ret = pthread_join(dwncloud_thread_id, (void**)&index)) != 0)
+	{
+		fprintf( stderr, "pthread_join failed for download cloudshare file:%s\n", strerror( ret ));
+		return ;
+	}
+#endif
+	int index = thread_dwncloud((void*)arg);
+	printf("%s:index = %d\n", __func__, index);
+
 #if 1
 	int userid = getLUid();
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getDownloadItemProcess(file);
 	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url);
-	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id);
+	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id, index);
 #endif
 }
 

@@ -14,8 +14,11 @@ import os
 import time
 import urllib
 from threading import Thread
+import threading
+from multiprocessing import  Value, Process
 
 local_proxies = {'http': 'http://131.139.58.200:8080'}
+
 
 class AxelPython(Thread, urllib.FancyURLopener):
     '''Multi-thread downloading class.
@@ -90,17 +93,17 @@ def islive(tasks):
             return True
     return False
 
-def paxel(url, output, blocks=6, proxies={}):
+def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
     ''' paxel
     '''
+    global loading
+    global mutex
+    print "loading=[%d] theindex=[%d]"%(loading[theindex],theindex)
     size = GetUrlFileSize( url, proxies )
     ranges = SpliteBlocks( size, blocks )
 
     threadname = [ "thread_%d" % i for i in range(0, blocks) ]
-    filename = []
-    for i in range(0, blocks):
-        filename.append(".%s_%d.tmp" % (output, i))
-#    filename = [ "tmpfile_%d" % i for i in range(0, blocks) ]
+    filename = [ "tmpfile_%d" % i for i in range(0, blocks) ]
   
     tasks = []
     for i in range(0,blocks):
@@ -113,11 +116,15 @@ def paxel(url, output, blocks=6, proxies={}):
     while islive(tasks):
         downloaded = sum( [task.downloaded for task in tasks] )
         process = downloaded/float(size)*100
+        mutex.acquire()
+        loading[theindex] = process
+        mutex.release()
         show = u'\rFilesize:%d Downloaded:%d Completed:%.2f%%' % (size, downloaded, process)
         sys.stdout.write(show)
         sys.stdout.flush()
-       # time.sleep( 0.0001 )
-            
+        time.sleep( 1 )
+     
+    #loading[theindex] = 100       
     filehandle = open( output, 'wb+' )
     for i in filename:
         f = open( i, 'rb' )
@@ -131,8 +138,47 @@ def paxel(url, output, blocks=6, proxies={}):
 
     filehandle.close()
 
-if __name__ == '__main__':
-    url = "http://192.168.7.97/download/2/guigu.mp4"
-    output = 'guigu.mp4'
-    paxel( url, output, blocks=8, proxies={} )
+global index
+index=0
+global loading
+loading=[0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
+global mutex
+mutex = threading.Lock()
+
+def printf(index):
+    global loading
+    global mutex
+#    print loading[index]
+    mutex.acquire()
+    process=loading[index]
+    mutex.release()    
+    return process
+
+def start_download(url,output):
+    global loading
+    global index
+    global mutex
+    theindex = index
+    index = index + 1
+    mutex.acquire()
+    loading[theindex] = 0
+    mutex.release()
+    p = threading.Thread(target=paxel,args=(url,output,theindex,8,{},))
+    p.start()
+    print "theindex=[%d]"%(theindex)
+    return theindex
+
+
+if __name__ == '__main__':
+   url = "http://192.168.7.97/download/5/baofengyu1.mp4"
+
+   output = 'baofeng.mp4'
+   start_download(url,output)
+
+#    p = threading.Thread(target=paxel,args=(url,output,8,{},))
+#    p.start()
+
+#    while p:
+#        printf()
+#        time.sleep(0.1)

@@ -128,13 +128,14 @@ QTreeView* TaskDialog::initDownloadTreeView()
 
 	QTreeView *tree = new QTreeView;
 	//QStandardItemModel *model = new QStandardItemModel( 0, 3, this );
-	downloadModel = new QStandardItemModel( 0, 6, this );
+	downloadModel = new QStandardItemModel( 0, 7, this );
 	downloadModel->setHeaderData( 0, Qt::Horizontal, qtr("文件名") );
 	downloadModel->setHeaderData( 1, Qt::Horizontal, qtr("进度") );
 	downloadModel->setHeaderData( 2, Qt::Horizontal, qtr("状态") );
 	downloadModel->setHeaderData( 3, Qt::Horizontal, qtr("id") );
 	downloadModel->setHeaderData( 4, Qt::Horizontal, qtr("url") );
 	downloadModel->setHeaderData( 5, Qt::Horizontal, qtr("threadId") );
+	downloadModel->setHeaderData( 6, Qt::Horizontal, qtr("index") );
 	tree->setModel( downloadModel );
 	tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 #if 0
@@ -156,13 +157,14 @@ QTreeView* TaskDialog::initUploadTreeView()
 
 	QTreeView *tree = new QTreeView;
 	//QStandardItemModel *model = new QStandardItemModel( 0, 3, this );
-	uploadModel = new QStandardItemModel( 0, 6, this );
+	uploadModel = new QStandardItemModel( 0, 7, this );
 	uploadModel->setHeaderData( 0, Qt::Horizontal, qtr("文件名") );
 	uploadModel->setHeaderData( 1, Qt::Horizontal, qtr("进度") );
 	uploadModel->setHeaderData( 2, Qt::Horizontal, qtr("状态") );
 	uploadModel->setHeaderData( 3, Qt::Horizontal, qtr("id") );
 	uploadModel->setHeaderData( 4, Qt::Horizontal, qtr("filePath") );
 	uploadModel->setHeaderData( 5, Qt::Horizontal, qtr("threadId") );
+	uploadModel->setHeaderData( 6, Qt::Horizontal, qtr("index") );
 	tree->setModel( uploadModel );
 	tree->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 #if 0
@@ -230,7 +232,7 @@ void TaskDialog::initDownloadItems(QSettings &settings, int uid)
 	settings.endGroup();
 }
 
-void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, pthread_t thread_id )
+void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, pthread_t thread_id, int fileindex )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
 	/*如果是新增上传任务，上传任务数加1*/
@@ -249,6 +251,8 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 		model->setItem(index.row(), 4, new QStandardItem(path));
 		if(thread_id > 0)
 			model->setItem(index.row(), 5, new QStandardItem(QString::number(thread_id)));
+		if(fileindex >= 0)
+			model->setItem(index.row(), 6, new QStandardItem(QString::number(fileindex)));
 	}
 	else
 	{
@@ -260,10 +264,13 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(path));
 		if(thread_id > 0)
 			model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
+		
+		if(fileindex >= 0)
+			model->setItem(model->indexFromItem(item).row(), 6, new QStandardItem(QString::number(fileindex)));
 	}
 }
 
-void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, pthread_t thread_id )
+void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, pthread_t thread_id, int fileindex )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
 	/*如果是新增下载任务，下载任务数加1*/
@@ -282,6 +289,8 @@ void TaskDialog::addDownloadItem(const QString filename, int process, const QStr
 		model->setItem(index.row(), 4, new QStandardItem(url));
 		if(thread_id > 0)
 			model->setItem(index.row(), 5, new QStandardItem(QString::number(thread_id)));
+		if(fileindex >= 0)
+			model->setItem(index.row(), 6, new QStandardItem(QString::number(fileindex)));
 	}
 	else
 	{
@@ -293,6 +302,9 @@ void TaskDialog::addDownloadItem(const QString filename, int process, const QStr
 		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(url));
 		if(thread_id > 0)
 			model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
+
+		if(fileindex >= 0)
+			model->setItem(model->indexFromItem(item).row(), 6, new QStandardItem(QString::number(fileindex)));
 
 	}
 }
@@ -677,10 +689,18 @@ void TaskDialog::updateUploadTasks()
 	for(i = 0; i < rowCount; i++)
 	{
 		/*获取最新进度信息//TODO*/
+		int fileindex = model->index(i, 6, QModelIndex()).data().toInt();
+		printf("%s:fileindex = %d\n", __func__, fileindex);
+		UserOption *user = UserOption::getInstance(p_intf);
 		QString filename = model->index(i, 0, QModelIndex()).data().toString();
+		int process = user->getProcess(fileindex);
+		printf("%s:process = %d\n", __func__, process);
+#if 0
 		QString processString = model->index(i, 1, QModelIndex()).data().toString();
 		processString.remove("%");
 		int process = processString.toInt() + 10;
+#endif
+
 		if(process > 100)
 			continue;
 
@@ -706,10 +726,19 @@ void TaskDialog::updateDownloadTasks()
 	for(i = 0; i < rowCount; i++)
 	{
 		//updateDownloadTask
+		int fileindex = model->index(i, 6, QModelIndex()).data().toInt();
+		printf("%s:fileindex = %d\n", __func__, fileindex);
+		UserOption *user = UserOption::getInstance(p_intf);
+		int process = user->getProcess(fileindex);
+		printf("%s:process = %d\n", __func__, process);
+
 		QString filename = model->index(i, 0, QModelIndex()).data().toString();
+
+#if 0
 		QString processString = model->index(i, 1, QModelIndex()).data().toString();
 		processString.remove("%");
 		int process = processString.toInt() + 10;
+#endif
 		if(process > 100)
 			continue;
 
@@ -733,7 +762,7 @@ void TaskDialog::addUploadTask()
 
 	 /*如果定时器未开启，则打开定时器，更新时间为5秒*/
 	 if(!isTimerRun())
-		 startUpdateTimer(5);
+		 startUpdateTimer(1);
 }
 
 void TaskDialog::delUploadTask()
@@ -741,7 +770,7 @@ void TaskDialog::delUploadTask()
 	--nUploadTasks;
 	qDebug() << "nUploadTasks = " << nUploadTasks;
 
-	if(nUploadTasks <= 0)
+	if(nUploadTasks < 0)
 	{
 		nUploadTasks = 0;
 		/*尝试关闭定时器，注：只有上传任务和下载任务都完成才能停止成功*/
@@ -757,7 +786,7 @@ void TaskDialog::addDownloadTask()
 
 	/*如果定时器未开启，则打开定时器，更新时间为5秒*/
 	if(!isTimerRun())
-		startUpdateTimer(5);
+		startUpdateTimer(1);
 }
 
 void TaskDialog::delDownloadTask()
@@ -765,7 +794,7 @@ void TaskDialog::delDownloadTask()
 	--nDownloadTasks;
 	qDebug() << "nDownloadTasks = " << nDownloadTasks;
 
-	if(nDownloadTasks <= 0)
+	if(nDownloadTasks < 0)
 	{
 		nDownloadTasks = 0;
 		tryStopUpdateTimer();

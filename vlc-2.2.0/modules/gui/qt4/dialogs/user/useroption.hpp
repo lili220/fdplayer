@@ -126,6 +126,7 @@ public:
 	QString nfschina_download( int userid, QString filename );//return the URL of the selected cloudshare file
 
 	void downloadCloudShareFile( const QString url, const QString filename );
+	int getProcess(int index);
 
 	QList<QString> getFileList(){ return fileList; }
 	int getRUid(){ return ruid; }
