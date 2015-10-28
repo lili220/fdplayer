@@ -6,8 +6,10 @@
 # something. DIST_SUBDIRS stores the directories where nothing is built but
 # which have makefiles with distribution information.
 #  - src (libvlccore) is nedeed by modules
-DIST_SUBDIRS = m4 compat doc po share src modules lib bin test
-SUBDIRS = compat doc po share src modules lib
+
+#modify by zhangwanchun, 2015-10-27, add subdir minidlna-1.1.4
+DIST_SUBDIRS = m4 compat doc po share src modules lib bin test minidlna-1.1.4
+SUBDIRS = compat doc po share src modules lib minidlna-1.1.4
 if BUILD_VLC
 SUBDIRS += bin
 endif

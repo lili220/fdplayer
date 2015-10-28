@@ -111,7 +111,9 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__nobase_dist_vlcdata_SCRIPTS_DIST = utils/gnome-vlc-default.sh \
-	utils/audio-vlc-default.sh utils/video-vlc-default.sh
+	utils/audio-vlc-default.sh utils/video-vlc-default.sh \
+	python/clientrg.py python/download.py python/remotemsg.py \
+	python/sharefile.py
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -219,6 +221,7 @@ CFLAGS_access_output_shout = @CFLAGS_access_output_shout@
 CFLAGS_bonjour = @CFLAGS_bonjour@
 CFLAGS_caca = @CFLAGS_caca@
 CFLAGS_cdda = @CFLAGS_cdda@
+CFLAGS_cloudshare = @CFLAGS_cloudshare@
 CFLAGS_dc1394 = @CFLAGS_dc1394@
 CFLAGS_deinterlace = @CFLAGS_deinterlace@
 CFLAGS_dtstofloat32 = @CFLAGS_dtstofloat32@
@@ -236,6 +239,7 @@ CFLAGS_kate = @CFLAGS_kate@
 CFLAGS_libbluray = @CFLAGS_libbluray@
 CFLAGS_libmpeg2 = @CFLAGS_libmpeg2@
 CFLAGS_libvlccore = @CFLAGS_libvlccore@
+CFLAGS_localshare = @CFLAGS_localshare@
 CFLAGS_mmal_codec = @CFLAGS_mmal_codec@
 CFLAGS_mmal_vout = @CFLAGS_mmal_vout@
 CFLAGS_mod = @CFLAGS_mod@
@@ -252,6 +256,7 @@ CFLAGS_opus = @CFLAGS_opus@
 CFLAGS_postproc = @CFLAGS_postproc@
 CFLAGS_qsv = @CFLAGS_qsv@
 CFLAGS_rdp = @CFLAGS_rdp@
+CFLAGS_remoteshare = @CFLAGS_remoteshare@
 CFLAGS_samplerate = @CFLAGS_samplerate@
 CFLAGS_schroedinger = @CFLAGS_schroedinger@
 CFLAGS_sftp = @CFLAGS_sftp@
@@ -288,6 +293,7 @@ CPPFLAGS_access_mtp = @CPPFLAGS_access_mtp@
 CPPFLAGS_access_output_shout = @CPPFLAGS_access_output_shout@
 CPPFLAGS_bonjour = @CPPFLAGS_bonjour@
 CPPFLAGS_caca = @CPPFLAGS_caca@
+CPPFLAGS_cloudshare = @CPPFLAGS_cloudshare@
 CPPFLAGS_dc1394 = @CPPFLAGS_dc1394@
 CPPFLAGS_decklink = @CPPFLAGS_decklink@
 CPPFLAGS_decklinkoutput = @CPPFLAGS_decklinkoutput@
@@ -309,6 +315,7 @@ CPPFLAGS_kate = @CPPFLAGS_kate@
 CPPFLAGS_libass = @CPPFLAGS_libass@
 CPPFLAGS_libbluray = @CPPFLAGS_libbluray@
 CPPFLAGS_libmpeg2 = @CPPFLAGS_libmpeg2@
+CPPFLAGS_localshare = @CPPFLAGS_localshare@
 CPPFLAGS_mpgatofixed32 = @CPPFLAGS_mpgatofixed32@
 CPPFLAGS_mtp = @CPPFLAGS_mtp@
 CPPFLAGS_mux_ogg = @CPPFLAGS_mux_ogg@
@@ -319,6 +326,7 @@ CPPFLAGS_opencv_wrapper = @CPPFLAGS_opencv_wrapper@
 CPPFLAGS_opus = @CPPFLAGS_opus@
 CPPFLAGS_qsv = @CPPFLAGS_qsv@
 CPPFLAGS_rdp = @CPPFLAGS_rdp@
+CPPFLAGS_remoteshare = @CPPFLAGS_remoteshare@
 CPPFLAGS_samplerate = @CPPFLAGS_samplerate@
 CPPFLAGS_schroedinger = @CPPFLAGS_schroedinger@
 CPPFLAGS_sftp = @CPPFLAGS_sftp@
@@ -477,6 +485,7 @@ LIBS_bonjour = @LIBS_bonjour@
 LIBS_caca = @LIBS_caca@
 LIBS_cdda = @LIBS_cdda@
 LIBS_chorus_flanger = @LIBS_chorus_flanger@
+LIBS_cloudshare = @LIBS_cloudshare@
 LIBS_colorthres = @LIBS_colorthres@
 LIBS_compressor = @LIBS_compressor@
 LIBS_crystalhd = @LIBS_crystalhd@
@@ -515,6 +524,7 @@ LIBS_libvlc = @LIBS_libvlc@
 LIBS_libvlccore = @LIBS_libvlccore@
 LIBS_lirc = @LIBS_lirc@
 LIBS_live555 = @LIBS_live555@
+LIBS_localshare = @LIBS_localshare@
 LIBS_macosx = @LIBS_macosx@
 LIBS_macosx_dialog_provider = @LIBS_macosx_dialog_provider@
 LIBS_minimal_macosx = @LIBS_minimal_macosx@
@@ -548,6 +558,7 @@ LIBS_quartztext = @LIBS_quartztext@
 LIBS_quicktime = @LIBS_quicktime@
 LIBS_rdp = @LIBS_rdp@
 LIBS_remoteosd = @LIBS_remoteosd@
+LIBS_remoteshare = @LIBS_remoteshare@
 LIBS_ripple = @LIBS_ripple@
 LIBS_samplerate = @LIBS_samplerate@
 LIBS_sap = @LIBS_sap@
@@ -623,6 +634,7 @@ LTLIBavcapture = @LTLIBavcapture@
 LTLIBbonjour = @LTLIBbonjour@
 LTLIBcaca = @LTLIBcaca@
 LTLIBcdda = @LTLIBcdda@
+LTLIBcloudshare = @LTLIBcloudshare@
 LTLIBcrystalhd = @LTLIBcrystalhd@
 LTLIBdc1394 = @LTLIBdc1394@
 LTLIBdirect2d = @LTLIBdirect2d@
@@ -656,6 +668,7 @@ LTLIBlinsys_hdsdi = @LTLIBlinsys_hdsdi@
 LTLIBlinsys_sdi = @LTLIBlinsys_sdi@
 LTLIBlirc = @LTLIBlirc@
 LTLIBlive555 = @LTLIBlive555@
+LTLIBlocalshare = @LTLIBlocalshare@
 LTLIBmacosx = @LTLIBmacosx@
 LTLIBmacosx_dialog_provider = @LTLIBmacosx_dialog_provider@
 LTLIBminimal_macosx = @LTLIBminimal_macosx@
@@ -686,6 +699,7 @@ LTLIBqtsound = @LTLIBqtsound@
 LTLIBquartztext = @LTLIBquartztext@
 LTLIBquicktime = @LTLIBquicktime@
 LTLIBrdp = @LTLIBrdp@
+LTLIBremoteshare = @LTLIBremoteshare@
 LTLIBsamplerate = @LTLIBsamplerate@
 LTLIBschroedinger = @LTLIBschroedinger@
 LTLIBscreen = @LTLIBscreen@
@@ -924,6 +938,8 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
+cloudshare_CFLAGS = @cloudshare_CFLAGS@
+cloudshare_LIBS = @cloudshare_LIBS@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -942,6 +958,8 @@ install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
+localshare_CFLAGS = @localshare_CFLAGS@
+localshare_LIBS = @localshare_LIBS@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
@@ -950,6 +968,8 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+remoteshare_CFLAGS = @remoteshare_CFLAGS@
+remoteshare_LIBS = @remoteshare_LIBS@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 soliddatadir = @soliddatadir@
@@ -1010,10 +1030,16 @@ icons256dir = $(iconsdatadir)/256x256/apps
 @HAVE_WIN32_FALSE@dist_icons48_DATA = icons/48x48/vlc.png icons/48x48/vlc-xmas.png
 @HAVE_WIN32_FALSE@dist_icons128_DATA = icons/128x128/vlc.png icons/128x128/vlc-xmas.png
 @HAVE_WIN32_FALSE@dist_icons256_DATA = icons/256x256/vlc.png
+
+#modify by zhangwanchun, 2015-10-27, install python script
 @HAVE_WIN32_FALSE@nobase_dist_vlcdata_SCRIPTS = \
 @HAVE_WIN32_FALSE@	utils/gnome-vlc-default.sh \
 @HAVE_WIN32_FALSE@	utils/audio-vlc-default.sh \
 @HAVE_WIN32_FALSE@	utils/video-vlc-default.sh \
+@HAVE_WIN32_FALSE@	python/clientrg.py \
+@HAVE_WIN32_FALSE@	python/download.py \
+@HAVE_WIN32_FALSE@	python/remotemsg.py \
+@HAVE_WIN32_FALSE@	python/sharefile.py \
 @HAVE_WIN32_FALSE@	$(NULL)
 
 nobase_vlcdata_DATA = $(am__append_1) $(am__append_3)

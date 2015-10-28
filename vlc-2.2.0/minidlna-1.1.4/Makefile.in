@@ -97,8 +97,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-#modify by zhangwanchun, 2015-08-12
-sbin_PROGRAMS = minidlnad$(EXEEXT) minidlna.conf dlna_tools
+sbin_PROGRAMS = minidlnad$(EXEEXT)
 check_PROGRAMS = testupnpdescgen$(EXEEXT)
 subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
@@ -550,13 +549,6 @@ minidlnad$(EXEEXT): $(minidlnad_OBJECTS) $(minidlnad_DEPENDENCIES) $(EXTRA_minid
 	@rm -f minidlnad$(EXEEXT)
 	$(AM_V_CCLD)$(minidlnad_LINK) $(minidlnad_OBJECTS) $(minidlnad_LDADD) $(LIBS)
 
-#add by zhangwanchun, 2015-08-12
-dlna_tools:
-	@cp dlna_tools.template dlna_tools
-
-minidlna.conf:
-	@cp minidlna.conf.template minidlna.conf
-
 testupnpdescgen$(EXEEXT): $(testupnpdescgen_OBJECTS) $(testupnpdescgen_DEPENDENCIES) $(EXTRA_testupnpdescgen_DEPENDENCIES) 
 	@rm -f testupnpdescgen$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(testupnpdescgen_OBJECTS) $(testupnpdescgen_LDADD) $(LIBS)
@@ -917,7 +909,8 @@ installdirs-am:
 	for dir in "$(DESTDIR)$(sbindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-recursive
+#modify by zhangwanchun, 2015-10-27, add install-dlna_tools install-minidlna.conf
+install: install-recursive install-dlna_tools install-minidlna.conf
 install-exec: install-exec-recursive
 install-data: install-data-recursive
 uninstall: uninstall-recursive
@@ -961,6 +954,12 @@ distclean: distclean-recursive
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
+
+#add by zhangwanchun, 2015-08-12
+install-dlna_tools:
+	@cp dlna_tools ${prefix}/sbin
+install-minidlna.conf:
+	@cp minidlna.conf ${prefix}/sbin
 
 dvi: dvi-recursive
 
