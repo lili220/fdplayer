@@ -87,7 +87,7 @@ static void AddDesktop(services_discovery_t *sd)
 	PyRun_SimpleString( "import sys" );
 	printf( "------------------%s:%d----------------\n", __func__, __LINE__ );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
-	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
 	printf( "------------------%s:%d----------------\n", __func__, __LINE__ );
 	PyObject *pModule = PyImport_ImportModule( "clientrg" );
 	if( pModule  == NULL )

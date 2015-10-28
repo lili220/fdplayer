@@ -745,6 +745,9 @@ static int init_config(void)
 	ini_free(conf);
 
 	conf = ini_load("./minidlna-1.1.4/minidlna.conf");
+	if (conf == NULL) {
+		conf = ini_load("../sbin/minidlna.conf");
+	}
 	if (conf == NULL) { 
 		printf("init_config(): %s(errno: %d)\n", strerror(errno), errno);
 		return -1;
