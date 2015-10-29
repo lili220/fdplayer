@@ -10,3 +10,5 @@ if [ -d $docdir ] && [ ! -L $docdir ]; then
 fi
 
 #DEBHELPER#
+
+chmod 777 /usr/sbin/minidlna.conf
