@@ -150,6 +150,36 @@ static int make_home_dir(void)
 	return 0;
 }
 
+static int config_minidlna_conf(void)
+{
+	char minidlna_conf[256];
+	if (access("../sbin/minidlna.conf", F_OK) == 0) {
+		snprintf(minidlna_conf, 256, "../sbin/minidlna.conf");
+	} else if (access("./minidlna-1.1.4/minidlna.conf", F_OK) == 0) {
+		snprintf(minidlna_conf, 256, "./minidlna-1.1.4/minidlna.conf");
+	} else {
+		printf("ERROR: minidlna.conf不存在, [%s]\n", strerror(errno));
+		return -1;
+	}
+	char cmd[256];
+	snprintf(cmd, 256, "sed -i \"s#^media_dir=.*#media_dir=AVP,%s/.vlc/media#g\" %s", \
+		getenv("HOME"), minidlna_conf);
+	if (system(cmd) != 0) {
+		printf("ERROR: 修改minidlna.conf的media_dir失败, [%s]\n", strerror(errno));
+	}
+	snprintf(cmd, 256, "sed -i \"s/^friendly_name=.*/friendly_name=%s/g\" %s", \
+		getenv("USER"), minidlna_conf);
+	if (system(cmd) != 0) {
+		printf("ERROR: 修改minidlna.conf的friendly_name失败, [%s]\n", strerror(errno));
+	}
+	snprintf(cmd, 256, "sed -i \"s#^db_dir=.*#db_dir=%s/.vlc/minidlna#g\" %s", \
+		getenv("HOME"), minidlna_conf);
+	if (system(cmd) != 0) {
+		printf("ERROR: 修改minidlna.conf的db_dir失败, [%s]\n", strerror(errno));
+	}
+	return 0;
+}
+
 /*****************************************************************************
  * main: parse command line, start interface and spawn threads.
  *****************************************************************************/
@@ -162,6 +192,9 @@ int main( int i_argc, const char *ppsz_argv[] )
 	char buf[256];
 	printf("当前工作路径: [%s]\n", getcwd(buf, sizeof(buf)));
 	if (make_home_dir() < 0) {
+		return -1;
+	}
+	if (config_minidlna_conf() < 0) {
 		return -1;
 	}
 
