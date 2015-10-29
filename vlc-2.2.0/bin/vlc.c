@@ -122,7 +122,7 @@ static int make_home_dir(void)
 	char vlc_dir[256];
 	char media_dir[256];
 	char minidlna_dir[256];
-	snprintf(vlc_dir, 256, "%s/.vlc", home);
+	snprintf(vlc_dir, 256, "%s/vlc_data", home);
 	snprintf(media_dir, 256, "%s/media", vlc_dir);
 	snprintf(minidlna_dir, 256, "%s/minidlna", vlc_dir);
 	
@@ -162,7 +162,7 @@ static int config_minidlna_conf(void)
 		return -1;
 	}
 	char cmd[256];
-	snprintf(cmd, 256, "sed -i \"s#^media_dir=.*#media_dir=AVP,%s/.vlc/media#g\" %s", \
+	snprintf(cmd, 256, "sed -i \"s#^media_dir=.*#media_dir=AVP,%s/vlc_data/media#g\" %s", \
 		getenv("HOME"), minidlna_conf);
 	if (system(cmd) != 0) {
 		printf("ERROR: 修改minidlna.conf的media_dir失败, [%s]\n", strerror(errno));
@@ -172,7 +172,7 @@ static int config_minidlna_conf(void)
 	if (system(cmd) != 0) {
 		printf("ERROR: 修改minidlna.conf的friendly_name失败, [%s]\n", strerror(errno));
 	}
-	snprintf(cmd, 256, "sed -i \"s#^db_dir=.*#db_dir=%s/.vlc/minidlna#g\" %s", \
+	snprintf(cmd, 256, "sed -i \"s#^db_dir=.*#db_dir=%s/vlc_data/minidlna#g\" %s", \
 		getenv("HOME"), minidlna_conf);
 	if (system(cmd) != 0) {
 		printf("ERROR: 修改minidlna.conf的db_dir失败, [%s]\n", strerror(errno));
