@@ -161,21 +161,45 @@ static int config_minidlna_conf(void)
 		printf("ERROR: minidlna.conf不存在, [%s]\n", strerror(errno));
 		return -1;
 	}
+
 	char cmd[256];
-	snprintf(cmd, 256, "sed -i \"s#^media_dir=.*#media_dir=AVP,%s/vlc_data/media#g\" %s", \
-		getenv("HOME"), minidlna_conf);
+	snprintf(cmd, 256, "cp %s %s/vlc_data/minidlna.conf.tmp", minidlna_conf, getenv("HOME"));
 	if (system(cmd) != 0) {
-		printf("ERROR: 修改minidlna.conf的media_dir失败, [%s]\n", strerror(errno));
+		printf("ERROR: 创建临时文件minidlna.conf.tmp失败, [%s]\n", strerror(errno));
+		return -1;
 	}
-	snprintf(cmd, 256, "sed -i \"s/^friendly_name=.*/friendly_name=%s/g\" %s", \
-		getenv("USER"), minidlna_conf);
+
+	snprintf(cmd, 256, "sed -i \"s#^media_dir=.*#media_dir=AVP,%s/vlc_data/media#g\" "\
+		"%s/vlc_data/minidlna.conf.tmp", getenv("HOME"), getenv("HOME"));
 	if (system(cmd) != 0) {
-		printf("ERROR: 修改minidlna.conf的friendly_name失败, [%s]\n", strerror(errno));
+		printf("ERROR: 修改minidlna.conf.tmp的media_dir失败, [%s]\n", strerror(errno));
+		return -1;
 	}
-	snprintf(cmd, 256, "sed -i \"s#^db_dir=.*#db_dir=%s/vlc_data/minidlna#g\" %s", \
-		getenv("HOME"), minidlna_conf);
+
+	snprintf(cmd, 256, "sed -i \"s/^friendly_name=.*/friendly_name=%s/g\" "\
+		"%s/vlc_data/minidlna.conf.tmp", getenv("USER"), getenv("HOME"));
 	if (system(cmd) != 0) {
-		printf("ERROR: 修改minidlna.conf的db_dir失败, [%s]\n", strerror(errno));
+		printf("ERROR: 修改minidlna.conf.tmp的friendly_name失败, [%s]\n", strerror(errno));
+		return -1;
+	}
+
+	snprintf(cmd, 256, "sed -i \"s#^db_dir=.*#db_dir=%s/vlc_data/minidlna#g\" "\
+		"%s/vlc_data/minidlna.conf.tmp", getenv("HOME"), getenv("HOME"));
+	if (system(cmd) != 0) {
+		printf("ERROR: 修改minidlna.conf.tmp的db_dir失败, [%s]\n", strerror(errno));
+		return -1;
+	}
+
+	snprintf(cmd, 256, "cat %s/vlc_data/minidlna.conf.tmp > %s", getenv("HOME"), minidlna_conf);
+	if (system(cmd) != 0) {
+		printf("ERROR: 更新minidlna.conf失败, [%s]\n", strerror(errno));
+		return -1;
+	}
+
+	snprintf(cmd, 256, "rm -f %s/vlc_data/minidlna.conf.tmp", getenv("HOME"));
+	if (system(cmd) != 0) {
+		printf("ERROR: 删除minidlna.conf.tmp失败, [%s]\n", strerror(errno));
+		return -1;
 	}
 	return 0;
 }
