@@ -37,9 +37,11 @@
 #include <locale.h>
 #include <signal.h>
 #ifdef HAVE_PTHREAD_H
-# include <pthread.h>
+#include <pthread.h>
 #endif
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <python2.7/Python.h>
 
 #ifdef __OS2__
@@ -110,11 +112,58 @@ static void exit_timeout (int signum)
     signal (SIGINT, SIG_DFL);
 }
 
+static int make_home_dir(void)
+{
+	const char *home = getenv("HOME");
+	if (home == NULL) {
+		printf("ERROR: 获取环境变量HOME失败\n");
+		return -1;
+	}
+	char vlc_dir[256];
+	char media_dir[256];
+	char minidlna_dir[256];
+	snprintf(vlc_dir, 256, "%s/.vlc", home);
+	snprintf(media_dir, 256, "%s/media", vlc_dir);
+	snprintf(minidlna_dir, 256, "%s/minidlna", vlc_dir);
+	
+	if (access(vlc_dir, F_OK) != 0) {
+		if (mkdir(vlc_dir, 0755) != 0) {
+			printf("ERROR: 创建vlc家目录失败, [%s]\n", strerror(errno));
+			return -1;
+		}
+		printf("INFO: 创建vlc家目录: [%s]\n", vlc_dir);
+	}
+	if (access(media_dir, F_OK) != 0) {
+		if (mkdir(media_dir, 0755) != 0) {
+			printf("ERROR: 创建vlc本地共享目录失败, [%s]\n", strerror(errno));
+			return -1;
+		}
+		printf("INFO: 创建vlc本地共享目录: [%s]\n", media_dir);
+	}
+	if (access(minidlna_dir, F_OK) != 0) {
+		if (mkdir(minidlna_dir, 0755) != 0) {
+			printf("ERROR: 创建minidlna数据存储目录失败, [%s]\n", strerror(errno));
+			return -1;
+		}
+		printf("INFO: 创建minidlna数据存储目录: [%s]\n", minidlna_dir);
+	}
+	return 0;
+}
+
 /*****************************************************************************
  * main: parse command line, start interface and spawn threads.
  *****************************************************************************/
 int main( int i_argc, const char *ppsz_argv[] )
 {
+	//add by zhangwanchun, 2015-10-29
+#if 0
+	chdir("/usr/bin");
+#endif
+	char buf[256];
+	printf("当前工作路径: [%s]\n", getcwd(buf, sizeof(buf)));
+	if (make_home_dir() < 0) {
+		return -1;
+	}
 
 #if 1
 	/*add by lili*/
