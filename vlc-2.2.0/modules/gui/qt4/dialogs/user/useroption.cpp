@@ -498,6 +498,7 @@ int UserOption::nfschina_keeponline( int userid, bool b_share )
 	return err;
 }
 
+#if 0
 static void *thread_upload( void *data )
 {
 	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
@@ -570,6 +571,50 @@ static void *thread_upload( void *data )
 	
 	return (void*)err;
 }
+#endif
+static int thread_upload( void *data )
+{
+	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
+
+    ThreadArg *arg = (ThreadArg*)data;
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "upload" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import clientrg! \n" );
+                PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *fileupload = PyObject_GetAttrString(pModule,"start_upload");
+	if(fileupload == NULL)
+	{
+		printf("fileupload is NULL\n");
+                PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pArgs = PyTuple_New( 4 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", arg->url.toStdString().c_str() ) );
+	//PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", arg->httpurl.toStdString().c_str() ) );
+
+	PyObject *pRetValue = PyObject_CallObject( fileupload, pArgs );
+	int fileindex = _PyInt_AsInt( pRetValue );
+	PyGILState_Release( state );
+
+	printf( "%s index = %d \n",arg->file.toStdString().c_str(), fileindex );
+	
+	return fileindex;
+}
 
 //int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
 int UserOption::nfschina_upLoad( int userid, const char* filename, const char* filepath )
@@ -599,20 +644,23 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl, p_intf );
 	int ret = 0;
 	pthread_t upthread_id;
+#if 0
 	if( (ret = pthread_create( &upthread_id, NULL, thread_upload, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for upload:%s\n", strerror(ret) );
 		return -1;
 	}
+#endif
+    int fileindex = thread_upload((void*)arg);
+    printf("fileindex = %d\n", fileindex);
 
 #if 1
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getUploadItemProcess(filename);
 	task->saveNewTask("upload", userid, filename, process, qtr("上传中..."), filepath);
-	task->addUploadItem(filename, process, qtr("上传中..."), userid, filepath, upthread_id);
+	task->addUploadItem(filename, process, qtr("上传中..."), userid, filepath, upthread_id, fileindex);
 #endif
 
-//	pthread_join(upthread_id, (void**)&ret);
 	printf("thread_upload return value: ret = %d\n", ret);
 
 	return ret;
@@ -1140,29 +1188,13 @@ int thread_dwncloud( void *data )
 {
 	printf("-----------%s---------------\n", __func__);
 	int ret;
-#if 0
-	if( (ret = pthread_detach( pthread_self())) != 0 )
-	{
-		fprintf( stderr, "pthread_detach failed for thread_dwncloud:%s\n", strerror(ret) );
-		return (void*)-1;
-	}
-#endif
 	ThreadArg *arg = (ThreadArg*)data;
-/*
-	if( !Py_IsInitialized() )
-	{
-		Py_Initialize();
-		printf( "Python initialize failed! \n" );
-		//return (void*)-1;
-	}
-*/
+
 	PyGILState_STATE state  = PyGILState_Ensure( );
 	PyRun_SimpleString( "import sys" );
-	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
-
 
 	PyObject *pName = PyString_FromString( "download" );
 	PyObject *pModule = PyImport_Import( pName );
@@ -1190,11 +1222,9 @@ int thread_dwncloud( void *data )
 		return -1;
 	}
 
-	//PyObject *pArgs = PyTuple_New( 3 );
 	PyObject *pArgs = PyTuple_New( 2 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
-//	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", 4 ) );
 
 	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
 	int index = _PyInt_AsInt( pRetValue );
@@ -1256,6 +1286,53 @@ int UserOption::getProcess(int index)
 	
 	return pro;
 }
+
+int UserOption::getUploadProcess(int index)
+{
+	PyGILState_STATE state  = PyGILState_Ensure( );
+	PyRun_SimpleString( "import sys" );
+	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+
+	PyObject *pName = PyString_FromString( "upload" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find upload.py\n" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from upload.py\n" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pFunc1 = PyDict_GetItemString( pDict, "get_process" );
+	if( !pFunc1 || !PyCallable_Check( pFunc1 ) )
+	{
+		printf( "can't find function [printf]" );
+		PyGILState_Release( state );
+		return -1;
+	}
+
+	PyObject *pArgs = PyTuple_New( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", index));
+
+	PyObject *pRetValue = PyObject_CallObject( pFunc1, pArgs );
+	int pro = _PyInt_AsInt( pRetValue );
+	printf("pro = %d\n", pro);
+	PyGILState_Release( state );
+	
+	return pro;
+}
+
 void UserOption::stopDownload(int index)
 {
 	PyGILState_STATE state  = PyGILState_Ensure( );
@@ -1263,7 +1340,6 @@ void UserOption::stopDownload(int index)
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('../share/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
-
 
 	PyObject *pName = PyString_FromString( "download" );
 	PyObject *pModule = PyImport_Import( pName );
@@ -1297,6 +1373,49 @@ void UserOption::stopDownload(int index)
 	PyObject *pRetValue = PyObject_CallObject( pFunc1, pArgs );
 	//int pro = _PyInt_AsInt( pRetValue );
 	//printf("pro = %d\n", pro);
+	PyGILState_Release( state );
+	
+	return ;
+}
+
+void UserOption::stopUpload(int index)
+{
+    qDebug() << "-----------" << __func__ << "index:" << index << "-------------------";
+	PyGILState_STATE state  = PyGILState_Ensure( );
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pName = PyString_FromString( "upload" );
+	PyObject *pModule = PyImport_Import( pName );
+	if( !pModule )
+	{
+		printf( "can't find upload.py\n" );
+		PyGILState_Release( state );
+		return ;
+	}
+
+	PyObject *pDict = PyModule_GetDict( pModule );
+	if( !pDict )
+	{
+		printf( "can't get dict from upload.py\n" );
+		PyGILState_Release( state );
+		return ;
+	}
+
+	PyObject *pFunc = PyDict_GetItemString( pDict, "stop_upload" );
+	if( !pFunc || !PyCallable_Check( pFunc ) )
+	{
+		printf( "can't find function [stop_upload]" );
+		PyGILState_Release( state );
+		return ;
+	}
+
+	PyObject *pArgs = PyTuple_New( 1 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", index));
+
+	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
 	PyGILState_Release( state );
 	
 	return ;

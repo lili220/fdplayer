@@ -127,9 +127,11 @@ public:
 
 	void downloadCloudShareFile( const QString url, const QString filename );
 	int getProcess(int index);
+    int getUploadProcess(int index);
 
 	/*停止下载任务*/
 	void stopDownload(int index);
+    void stopUpload(int index);
 
 	QList<QString> getFileList(){ return fileList; }
 	int getRUid(){ return ruid; }

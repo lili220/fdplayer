@@ -235,6 +235,7 @@ void TaskDialog::initDownloadItems(QSettings &settings, int uid)
 void TaskDialog::addUploadItem( const QString filename, int process, const QString state, int uid, const QString path, pthread_t thread_id, int fileindex )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
+	qDebug() << __func__ << "fileindex = " << fileindex;
 	/*如果是新增上传任务，上传任务数加1*/
 	if(state.startsWith(qtr("上传中")))
 		addUploadTask();
@@ -496,13 +497,13 @@ void TaskDialog::stopItemTask()
 {
 	qDebug() << __func__;
 	/*stop download or upload task*/
+    UserOption *user = UserOption::getInstance(p_intf);
 	if(downloadTree == mainWidget->currentWidget())
 	{
 		QModelIndex index = downloadTree->currentIndex();
 		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
 		QString file = model->index(index.row(), 0).data().toString();
 		int fileindex = model->index(index.row(), 6).data().toInt();
-		UserOption *user = UserOption::getInstance(p_intf);
 		user->stopDownload(fileindex);
 #if 0
 		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
@@ -521,13 +522,18 @@ void TaskDialog::stopItemTask()
 		QModelIndex index = uploadTree->currentIndex();
 		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
 		QString file = model->index(index.row(), 0).data().toString();
+#if 0
 		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
 		pthread_cancel(thread_id);
+#endif
+
+		int fileindex = model->index(index.row(), 6).data().toInt();
+		user->stopUpload(fileindex);
 
 		/*update item state for Task Window*/
 		int process = model->index(index.row(), 1).data().toString().remove("%").toInt();
 		QString state = qtr("已停止");
-		qDebug() << file << "->thread_id = " << thread_id;
+		//qDebug() << file << "->thread_id = " << thread_id;
 		updateUploadItem(file, process, state);
 	}
 }
@@ -563,6 +569,7 @@ void TaskDialog::deleteItemTask()
 {
 	qDebug() << __func__;
 	/*delete download/upload task*/
+    UserOption *user = UserOption::getInstance(p_intf);
 	if(downloadTree == mainWidget->currentWidget())
 	{
 		QModelIndex index = downloadTree->currentIndex();
@@ -574,8 +581,12 @@ void TaskDialog::deleteItemTask()
 		/*如果选中文件正在下载，先停止文件下载*/
 		if(state.startsWith(qtr("下载中")))
 		{
+#if 0
 			pthread_t thread_id = model->index(index.row(), 5).data().toInt();
 			pthread_cancel(thread_id);
+#endif
+		int fileindex = model->index(index.row(), 6).data().toInt();
+		user->stopDownload(fileindex);
 
 		qDebug("-----------%s:%d call delDownloadTask----------", __func__, __LINE__);
 			/*下载任务数减1*/
@@ -599,8 +610,12 @@ void TaskDialog::deleteItemTask()
 		/*stop upload task if the selected file is Uploading....*/
 		if(state.startsWith(qtr("上传中")))
 		{
+#if 0
 			pthread_t thread_id = model->index(index.row(), 5).data().toInt();
 			pthread_cancel(thread_id);
+#endif
+		int fileindex = model->index(index.row(), 6).data().toInt();
+		user->stopUpload(fileindex);
 
 			/*上传任务数减1*/
 			delUploadTask();
@@ -631,11 +646,15 @@ void TaskDialog::toggleUploadState(const QModelIndex &index)
 		int process = model->index(index.row(), 1).data().toString().remove("%").toInt();
 		QString newstate = qtr("已停止");
 
+#if 0
 		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
 		pthread_cancel(thread_id);
+#endif
+		int fileindex = model->index(index.row(), 6).data().toInt();
+		user->stopUpload(fileindex);
 
 		updateUploadItem(file, process, newstate);
-		qDebug() << file << "->thread_id = " << thread_id;
+	//	qDebug() << file << "->thread_id = " << thread_id;
 	}
 }
 
@@ -716,7 +735,7 @@ void TaskDialog::updateUploadTasks()
 		if(!state.startsWith(qtr("上传中")))
 			continue;
 
-		int process = user->getProcess(fileindex);
+		int process = user->getUploadProcess(fileindex);
 		printf("%s:process = %d\n", __func__, process);
 #if 0
 		QString processString = model->index(i, 1, QModelIndex()).data().toString();
