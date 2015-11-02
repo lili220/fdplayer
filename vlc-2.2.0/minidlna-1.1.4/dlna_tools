@@ -38,7 +38,7 @@ fi
 #new_md="media_dir=AVP,$HOME"
 #sed -i "s#^media_dir=.*#$new_md#g" ./minidlna.conf
 
-pid_file="`pwd`/minidlna.pid"
+pid_file="$HOME/vlc_data/minidlna/minidlna.pid"
 if [ $switch == start ];then
     nohup ./minidlnad -f ./minidlna.conf -P $pid_file >/dev/null 2>&1 & 
 elif [ $switch == stop ];then
