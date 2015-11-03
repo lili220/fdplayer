@@ -628,13 +628,14 @@ void StandardPLPanel::popupAction( QAction *action )
 					url.append( filename );
 
 					/*upload selected file to server */
-					printf( "before upload: %s\n", file.toStdString().c_str() );
+					printf( "before upload: %s\n", qtu(file) );
 					printf( "filename:%s\n", filename.toStdString().c_str());
 					QString upfile = filename;
 
 					/*continue if upload failed*/
 					printf( "upfile:%s\n", upfile.toStdString().c_str());
-					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) < 0 )
+					//if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) < 0 )
+					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), qtu(file)) < 0 )
 					{
 						printf("Upload %s to server failed!\n", upfile.toStdString().c_str());
 						return;
@@ -1046,10 +1047,12 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 		url.append("/download/");
 		url.append(uidstr.setNum( uid ));
 		url.append( "/" );
-		url.append( qtu(file) );
+		//url.append( qtu(file) );
+		url.append( file.toStdString().c_str() );
 		printf( "url:%s\n", url.toStdString().c_str() );
 		RecentsMRL::getInstance( p_intf )->addRecent( url );
-		input_item_t *item = input_item_NewWithType ( qtu(url), qtu(file), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+		//input_item_t *item = input_item_NewWithType ( qtu(url), qtu(file), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+		input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), file.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 		if ( item == NULL )
 			return;
 		playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);

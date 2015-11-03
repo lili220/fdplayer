@@ -1,3 +1,4 @@
+#-*- coding=utf-8 -*-
 
 import urllib2 ,requests,time, threading,thread
 import sys, httplib, re, urllib2,os
@@ -197,7 +198,7 @@ def stop_upload(index):
 
 if __name__ == '__main__':
 #	s1 = threading.Thread(target=start_upload,args=(9,"haha.mp4","/home/nfschina/forDjangoClient/haha.mp4","http://127.0.0.1:8000/haha/service/wsdl"))
-	start_upload(1,"haha.mp4","/home/lili/haha.mp4","http://192.168.7.97/haha/service/wsdl")
+	start_upload(1,"硅谷.mp4","/home/lili/share/硅谷.mp4","http://192.168.7.97/haha/service/wsdl")
 	start_upload(1,"hehe.mp4","/home/lili/hehe.mp4","http://192.168.7.97/haha/service/wsdl")
 
 	print "sleep...."

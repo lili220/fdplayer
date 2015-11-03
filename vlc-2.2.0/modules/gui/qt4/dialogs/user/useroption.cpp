@@ -657,8 +657,8 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 #if 1
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getUploadItemProcess(filename);
-	task->saveNewTask("upload", userid, filename, process, qtr("上传中..."), filepath);
-	task->addUploadItem(filename, process, qtr("上传中..."), userid, filepath, upthread_id, fileindex);
+	task->saveNewTask("upload", userid, qtr(filename), process, qtr("上传中..."), qtr(filepath));
+	task->addUploadItem(qtr(filename), process, qtr("上传中..."), userid, qtr(filepath), upthread_id, fileindex);
 #endif
 
 	printf("thread_upload return value: ret = %d\n", ret);
@@ -991,7 +991,8 @@ int UserOption::nfschina_delete( int userid, QString filename )
 	QString url = buildURL( getServerIp(), URLTAIL );
 	printf( "before thread_delete url: %s\n", url.toStdString().c_str() );
 
-	ThreadArg *arg = new ThreadArg( userid, filename, NULL, url );
+	printf("before delete filename=%s\n", qtu(filename));
+	ThreadArg *arg = new ThreadArg( userid, qtu(filename), NULL, url );
 	if( (ret = pthread_create(&delthread_id, NULL, thread_delete, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for nfschina_delete:%s\n", strerror(ret) );

@@ -236,6 +236,7 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
 	qDebug() << __func__ << "fileindex = " << fileindex;
+	qDebug() << __func__ << "filepath = " << path;
 	/*如果是新增上传任务，上传任务数加1*/
 	if(state.startsWith(qtr("上传中")))
 		addUploadTask();
@@ -638,7 +639,8 @@ void TaskDialog::toggleUploadState(const QModelIndex &index)
 		QString file = model->index(index.row(), 0).data().toString();
 		int uid = model->index(index.row(), 3).data().toInt();
 		QString filepath = model->index(index.row(), 4).data().toString();
-		user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
+		//user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
+		user->nfschina_upLoad(uid, qtu(file), qtu(filepath));
 	}
 	else if(state.startsWith(qtr("上传中")))
 	{
