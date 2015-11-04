@@ -714,17 +714,17 @@ void StandardPLPanel::popupAction( QAction *action )
 			{
 				/* get the name of the selected file*/
 				QString file = index.data().toString();
-				printf( "down cloud file:%s\n", file.toStdString().c_str());
+				printf( "down cloud file:%s\n", qtu(file));
 
 				/*get the URL of the selected file*/
 				UserOption *user = UserOption::getInstance( p_intf );
 				int uid = user->getLUid();
 
-				QString url = user->nfschina_download( uid, file );
+				QString url = user->nfschina_download( uid, qtu(file) );
 				printf( "download cloudfile url:%s\n", url.toStdString().c_str() );
 				if( url == NULL )
 				{
-					printf( "get url for %s from server failed!\n", file.toStdString().c_str() );
+					printf( "get url for %s from server failed!\n", qtu(file) );
 					return;
 				}
 

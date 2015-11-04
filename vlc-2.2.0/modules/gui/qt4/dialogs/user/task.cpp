@@ -498,13 +498,14 @@ void TaskDialog::stopItemTask()
 {
 	qDebug() << __func__;
 	/*stop download or upload task*/
-    UserOption *user = UserOption::getInstance(p_intf);
+	UserOption *user = UserOption::getInstance(p_intf);
 	if(downloadTree == mainWidget->currentWidget())
 	{
 		QModelIndex index = downloadTree->currentIndex();
 		QAbstractItemModel *model = (QAbstractItemModel*)index.model();
 		QString file = model->index(index.row(), 0).data().toString();
 		int fileindex = model->index(index.row(), 6).data().toInt();
+		printf("stopItemTask:fileindex = %d\n", fileindex);
 		user->stopDownload(fileindex);
 #if 0
 		pthread_t thread_id = model->index(index.row(), 5).data().toInt();
@@ -550,7 +551,7 @@ void TaskDialog::continueItemTask()
 		QString file = model->index(index.row(), 0).data().toString();
 		QString url = model->index(index.row(), 4).data().toString();
 		UserOption *user = UserOption::getInstance(p_intf);
-		user->downloadCloudShareFile(url, file);
+		user->downloadCloudShareFile(qtu(url), file);
 	}
 	else if(uploadTree == mainWidget->currentWidget())
 	{
@@ -560,7 +561,7 @@ void TaskDialog::continueItemTask()
 		int uid = model->index(index.row(), 3).data().toInt();
 		QString filepath = model->index(index.row(), 4).data().toString();
 		UserOption *user = UserOption::getInstance(p_intf);
-		user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
+		user->nfschina_upLoad(uid, qtu(file), qtu(filepath));
 	}
 
 	/*update item state form Task Window*/
@@ -670,7 +671,7 @@ void TaskDialog::toggleDownloadState(const QModelIndex &index)
 	{
 		QString file = model->index(index.row(), 0).data().toString();
 		QString url = model->index(index.row(), 4).data().toString();
-		user->downloadCloudShareFile(url, file);
+		user->downloadCloudShareFile(qtu(url), file);
 		downloadTree->update(index);
 	}
 	else if(state.startsWith(qtr("下载中")))

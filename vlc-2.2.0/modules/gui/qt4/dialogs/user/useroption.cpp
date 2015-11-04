@@ -1425,6 +1425,7 @@ void UserOption::stopUpload(int index)
 void UserOption::downloadCloudShareFile( const QString url, const QString file )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
+	printf("before download url=%s\n", url.toStdString().c_str());
 	pthread_t dwncloud_thread_id;
 	ThreadArg *arg = new ThreadArg( file, url );//user the path memeber of TreadArg as url
 
@@ -1452,8 +1453,8 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 	int userid = getLUid();
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getDownloadItemProcess(file);
-	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url);
-	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id, index);
+	task->saveNewTask("download", userid, file, process, qtr("下载中..."), qtr(url.toStdString().c_str()));
+	task->addDownloadItem(file, process, qtr("下载中..."), userid, qtr(url.toStdString().c_str()), dwncloud_thread_id, index);
 #endif
 }
 
