@@ -729,10 +729,14 @@ void StandardPLPanel::popupAction( QAction *action )
 				}
 
 				/*download the selected file*/
-				QString dest = qtu( QString(sharePath) );
+				//QString dest = qtu( QString(sharePath) );
+                QString dest = QFileDialog::getExistingDirectory( this, qtr("下载文件保存路径"),  qtr(sharePath), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+                printf("dest = [%s]\n", dest.toStdString().c_str());
 				dest.append( "/" );
 				dest.append( file );
-				user->downloadCloudShareFile( url, file );
+                printf("dest = %s\n", dest.toStdString().c_str());
+				//user->downloadCloudShareFile( url, file );
+				user->downloadCloudShareFile( url, dest );
 			}
 			break;
         case VLCModelSubInterface::ACTION_ADDSHARE:
