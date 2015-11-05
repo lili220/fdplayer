@@ -1224,8 +1224,11 @@ int thread_dwncloud( void *data )
 	}
 
 	PyObject *pArgs = PyTuple_New( 2 );
+
+	printf("before python download url = %s\n", arg->path.toStdString().c_str() );
+	printf("before python download file = %s\n", qtu(arg->file));
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", qtu(arg->file) ) );
 
 	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
 	int index = _PyInt_AsInt( pRetValue );

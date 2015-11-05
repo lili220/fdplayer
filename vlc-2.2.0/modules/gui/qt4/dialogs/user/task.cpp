@@ -463,8 +463,9 @@ void TaskDialog::saveNewTask(const QString type, int uid, const QString file, in
 {
 	QSettings settings(organization, application);
 	QString key = buildKeyString(type, uid, file);
+	printf("key = %s\n", qtu(key));
 	QString value = buildValueString(file, process, state, url);
-	settings.setValue(key, value);
+	settings.setValue(qtu(key), value);
 }
 
 void TaskDialog::deleteTask(const QString type, int uid, const QString file)
