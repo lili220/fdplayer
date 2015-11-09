@@ -795,7 +795,7 @@ QMenu *VLCMenuBar::HelpMenu( QWidget *parent )
 QMenu *VLCMenuBar::UserMenu( intf_thread_t *p_intf,  QWidget *parent )
 {
     QMenu *menu = new QMenu( parent );
-    addDPStaticEntry( menu, qtr( "登陆(&L)" ) ,
+    addDPStaticEntry( menu, qtr( "登录(&L)" ) ,
         ":/menu/help", SLOT( loginDialog() ), "F3" );
 
 	addDPStaticEntry( menu, qtr( "注册(&R)" ),

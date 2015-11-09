@@ -463,9 +463,10 @@ void TaskDialog::saveNewTask(const QString type, int uid, const QString file, in
 {
 	QSettings settings(organization, application);
 	QString key = buildKeyString(type, uid, file);
-	printf("key = %s\n", qtu(key));
+	printf("qtu:key = %s\n", qtu(key));
+	printf("no qtu:key = %s\n", key.toStdString().c_str());
 	QString value = buildValueString(file, process, state, url);
-	settings.setValue(qtu(key), value);
+	settings.setValue(key, value);
 }
 
 void TaskDialog::deleteTask(const QString type, int uid, const QString file)
@@ -552,7 +553,8 @@ void TaskDialog::continueItemTask()
 		QString file = model->index(index.row(), 0).data().toString();
 		QString url = model->index(index.row(), 4).data().toString();
 		UserOption *user = UserOption::getInstance(p_intf);
-		user->downloadCloudShareFile(qtu(url), file);
+		//user->downloadCloudShareFile(qtu(url), file);
+		user->downloadCloudShareFile(url, file);
 	}
 	else if(uploadTree == mainWidget->currentWidget())
 	{
@@ -562,7 +564,7 @@ void TaskDialog::continueItemTask()
 		int uid = model->index(index.row(), 3).data().toInt();
 		QString filepath = model->index(index.row(), 4).data().toString();
 		UserOption *user = UserOption::getInstance(p_intf);
-		user->nfschina_upLoad(uid, qtu(file), qtu(filepath));
+		user->nfschina_upLoad(uid, file, filepath);
 	}
 
 	/*update item state form Task Window*/
@@ -642,7 +644,7 @@ void TaskDialog::toggleUploadState(const QModelIndex &index)
 		int uid = model->index(index.row(), 3).data().toInt();
 		QString filepath = model->index(index.row(), 4).data().toString();
 		//user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
-		user->nfschina_upLoad(uid, qtu(file), qtu(filepath));
+		user->nfschina_upLoad(uid, file, filepath);
 	}
 	else if(state.startsWith(qtr("上传中")))
 	{
@@ -672,7 +674,8 @@ void TaskDialog::toggleDownloadState(const QModelIndex &index)
 	{
 		QString file = model->index(index.row(), 0).data().toString();
 		QString url = model->index(index.row(), 4).data().toString();
-		user->downloadCloudShareFile(qtu(url), file);
+		//user->downloadCloudShareFile(qtu(url), file);
+		user->downloadCloudShareFile(url, file);
 		downloadTree->update(index);
 	}
 	else if(state.startsWith(qtr("下载中")))

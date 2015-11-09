@@ -65,7 +65,7 @@
 
 LoginDialog::LoginDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 {
-	setWindowTitle( qtr( "用户登陆" ) );
+	setWindowTitle( qtr( "用户登录" ) );
 	setWindowRole( "vlc-login" );
 	setFixedSize( 350, 300 );
 
@@ -109,7 +109,7 @@ void LoginDialog::init()
 
 	/*login button*/
 	loginBtn = new QPushButton( this );
-	loginBtn->setText( qtr("登陆") );
+	loginBtn->setText( qtr("登录") );
 	bottomlayout->addWidget( loginBtn );
 
 	/* main layout */
@@ -216,7 +216,7 @@ bool LoginDialog::login()
 		toggleVisible();
 		message = new QMessageBox( QMessageBox::Information,
 				qtr( "用户登录" ),
-				qtr( "登陆成功" ),
+				qtr( "登录成功" ),
 				QMessageBox::Ok,
 				NULL );
 		message->exec();
@@ -242,7 +242,7 @@ void LoginDialog::logout()
 	{
 		QMessageBox msgBox( QMessageBox::Information,
 				qtr( "用户退出" ),
-				qtr( "当前没有用户登陆，不需要退出!" ),
+				qtr( "当前没有用户登录，不需要退出!" ),
 				QMessageBox::Ok ,
 				NULL );
 		msgBox.exec();

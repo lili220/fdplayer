@@ -86,7 +86,7 @@ RegistorDialog::RegistorDialog( intf_thread_t *_p_intf ) : QVLCFrame( _p_intf )
 	/*login and registor buttons*/
 	QHBoxLayout *bottomlayout = new QHBoxLayout;
 	loginBtn = new QPushButton( this );
-	loginBtn->setText( qtr( "直接登陆" ) );
+	loginBtn->setText( qtr( "直接登录" ) );
 	bottomlayout->addStretch();
 	bottomlayout->addWidget( loginBtn );
 

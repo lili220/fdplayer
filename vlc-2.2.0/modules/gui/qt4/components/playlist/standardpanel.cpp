@@ -606,92 +606,90 @@ void StandardPLPanel::popupAction( QAction *action )
 			}
 			break;
 		case VLCModelSubInterface::ACTION_ADDCLOUD:
-			{
-				printf("this->threadid=[%lu]\n",pthread_self());
-				UserOption *user = UserOption::getInstance( p_intf );
-				int uid = user->getLUid();
-				QString uidstr; uidstr.setNum( uid );
+            {
+                printf("this->threadid=[%lu]\n",pthread_self());
+                UserOption *user = UserOption::getInstance( p_intf );
+                int uid = user->getLUid();
+                QString uidstr; uidstr.setNum( uid );
 
-				uris = THEDP->showSimpleOpen();
-				if ( uris.isEmpty() ) return;
-				uris.sort();
-				foreach( const QString &file, uris )
-				{
-					a.uris << qtu( toURI( toNativeSeparators( file ) ) );
-					action->setData( QVariant::fromValue( a ) );
+                uris = THEDP->showSimpleOpen();
+                if ( uris.isEmpty() ) return;
+                uris.sort();
+                foreach( const QString &file, uris )
+                {
+                    a.uris << qtu( toURI( toNativeSeparators( file ) ) );
+                    action->setData( QVariant::fromValue( a ) );
 
-					/* Get local file information */
-					QString filename = qtu(QString(file.right( file.count() - file.lastIndexOf("/") - 1 )));
-					QString url = "http://192.168.7.97/download/";
-					url.append( uidstr );
-					url.append( "/" );
-					url.append( filename );
+                    /* Get local file information */
+                    QString filename = file.right( file.count() - file.lastIndexOf("/") - 1 );
+                    QString url = "http://192.168.7.97/download/";
+                    url.append( uidstr );
+                    url.append( "/" );
+                    url.append( filename );
 
-					/*upload selected file to server */
-					printf( "before upload: %s\n", qtu(file) );
-					printf( "filename:%s\n", filename.toStdString().c_str());
-					QString upfile = filename;
+                    /*upload selected file to server */
+                    printf( "before upload: %s\n", qtu(file) );
+                    printf( "filename:%s\n", qtu(filename));
+                    QString upfile = filename;
 
-					/*continue if upload failed*/
-					printf( "upfile:%s\n", upfile.toStdString().c_str());
-					//if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() ) < 0 )
-					if( user->nfschina_upLoad( uid, upfile.toStdString().c_str(), qtu(file)) < 0 )
-					{
-						printf("Upload %s to server failed!\n", upfile.toStdString().c_str());
-						return;
-					}
-					 //user->nfschina_upLoad( uid, upfile.toStdString().c_str(), file.toStdString().c_str() );
+                    /*continue if upload failed*/
+                    printf( "upfile:%s\n", qtu(upfile));
+                    if( user->nfschina_upLoad( uid, qtu(upfile), qtu(file)) < 0 )
+                    {
+                        printf("Upload %s to server failed!\n", qtu(upfile));
+                        return;
+                    }
 
-					 /*add the selected file to current window*/
-					input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), filename.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
-					playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-					if( play_item == NULL )
-						printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
-					else
-					{
-						if (play_item->i_children >= 0)
-							playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
-						else
-							playlist_NodeAddInput( THEPL, item, play_item->p_parent, PLAYLIST_APPEND, PLAYLIST_END, false);
-					}
-				}
-			}
+                    /*add the selected file to current window*/
+                    input_item_t *item = input_item_NewWithType ( qtu(url), qtu(filename), 0, NULL, 0, -1, ITEM_TYPE_FILE);
+                    playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+                    if( play_item == NULL )
+                        printf( "-------line:%d:play_item is NULL-------\n", __LINE__ );
+                    else
+                    {
+                        if (play_item->i_children >= 0)
+                            playlist_NodeAddInput( THEPL, item, play_item, PLAYLIST_APPEND, PLAYLIST_END, false);
+                        else
+                            playlist_NodeAddInput( THEPL, item, play_item->p_parent, PLAYLIST_APPEND, PLAYLIST_END, false);
+                    }
+                }
+            }
 			break;
 		case VLCModelSubInterface::ACTION_DELCLOUD:
-                        {
-                            printf("this->threadid=[%lu]\n",pthread_self());
-                            int model_count = list.count();
-                            printf("dele file model_count=[%d]\n",model_count);
-                            if (model_count <= 0)
-                                break; 
-                            QMessageBox msgBox( QMessageBox::Information,
-			        qtr( "删除文件" ),
-			        qtr( "您确定要删除该云端共享文件吗？" ),
-			        QMessageBox::Yes | QMessageBox::No,
-			        NULL );
-                            int ret =  msgBox.exec();
-                            if( ret == QMessageBox::No )
-                            {
-                                qDebug() << "do not remove file";
-                                break;
-                            }
-                            UserOption *user = UserOption::getInstance( p_intf );
-                            user->initpython();
-                            for (int i=0;i < model_count; i++) 
-                            {
-                                index = list[i];
-                                if (index.data().toString().toStdString().length())
-                                {
-                                    QString file = index.data().toString();
-                                    user->nfschina_delete( user->getLUid(), file );
-                                    playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
-                                    if( play_item == NULL )
-                                        printf( "can't get root item for cloudshare module!\n" );
-                                    else
-                                        playlist_NodeDelete( THEPL, play_item, true , true );
-                                }
-                            }
-                        }
+            {
+                printf("this->threadid=[%lu]\n",pthread_self());
+                int model_count = list.count();
+                printf("dele file model_count=[%d]\n",model_count);
+                if (model_count <= 0)
+                    break; 
+                QMessageBox msgBox( QMessageBox::Information,
+                        qtr( "删除文件" ),
+                        qtr( "您确定要删除该云端共享文件吗？" ),
+                        QMessageBox::Yes | QMessageBox::No,
+                        NULL );
+                int ret =  msgBox.exec();
+                if( ret == QMessageBox::No )
+                {
+                    qDebug() << "do not remove file";
+                    break;
+                }
+                UserOption *user = UserOption::getInstance( p_intf );
+                user->initpython();
+                for (int i=0;i < model_count; i++)
+                {
+                    index = list[i];
+                    if (index.data().toString().toStdString().length())
+                    {
+                        QString file = index.data().toString();
+                        user->nfschina_delete( user->getLUid(), qtu(file) );
+                        playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
+                        if( play_item == NULL )
+                            printf( "can't get root item for cloudshare module!\n" );
+                        else
+                            playlist_NodeDelete( THEPL, play_item, true , true );
+                    }
+                }
+            }
 
 #if 0
 			{
@@ -722,22 +720,26 @@ void StandardPLPanel::popupAction( QAction *action )
 
 				QString url = user->nfschina_download( uid, qtu(file) );
 				printf( "download cloudfile url:%s\n", url.toStdString().c_str() );
+				printf( "qtu download cloudfile url:%s\n", qtu(url) );
 				if( url == NULL )
 				{
 					printf( "get url for %s from server failed!\n", qtu(file) );
 					return;
 				}
+                printf("sharePath = %s\n", sharePath);
+                printf("user->getSharePath = %s\n", qtu(user->getSharePath()));
 
 				/*download the selected file*/
 				//QString dest = qtu( QString(sharePath) );
-#if 0
+#if 1
                 QString dest = QFileDialog::getExistingDirectory( this, qtr("下载文件保存路径"),  qtr(sharePath), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
                 printf("dest = [%s]\n", dest.toStdString().c_str());
 				dest.append( "/" );
 				dest.append( file );
-                printf("dest = %s\n", dest.toStdString().c_str());
+                printf("qtu dest = %s\n", qtu(dest));
+				user->downloadCloudShareFile( qtu(url), qtu(dest) );
 #endif
-				user->downloadCloudShareFile( url, file );
+				//user->downloadCloudShareFile( qtu(url), qtu(file) );
 				//user->downloadCloudShareFile( url, dest );
 			}
 			break;
@@ -1696,7 +1698,7 @@ void StandardPLPanel::activate( const QModelIndex &index )
                 QString filename = index.data().toString();
                 qDebug() << "filename:" <<filename;
                 printf("uid = %d\n", uid);
-                QString url = user->nfschina_download( uid, filename );
+                QString url = user->nfschina_download( uid, qtu(filename) );
                 printf("real url:%s\n", url.toStdString().c_str());
                 model->reURINode( index, url );
                 printf("p_item->p_input->psz_uri=%s\n", p_item->p_input->psz_uri);

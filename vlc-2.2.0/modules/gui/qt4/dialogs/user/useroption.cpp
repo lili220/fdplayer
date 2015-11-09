@@ -616,8 +616,7 @@ static int thread_upload( void *data )
 	return fileindex;
 }
 
-//int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
-int UserOption::nfschina_upLoad( int userid, const char* filename, const char* filepath )
+int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
 {
 	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
 	printf("this->threadid=[%lu]\n",pthread_self());
@@ -633,54 +632,27 @@ int UserOption::nfschina_upLoad( int userid, const char* filename, const char* f
 		return -1;// ?????
 	}
 
-#if 1
 	QString url = buildURL( getServerIp(), URLTAIL );
 	printf( "before nfschina_upLoad url: %s\n", url.toStdString().c_str() );
 
 	QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
 	printf( "before nfschina_upLoad httpurl: %s\n", httpurl.toStdString().c_str() );
         initpython();
-	//ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl );
 	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl, p_intf );
 	int ret = 0;
 	pthread_t upthread_id;
-#if 0
-	if( (ret = pthread_create( &upthread_id, NULL, thread_upload, (void*)arg)) != 0 )
-	{
-		fprintf( stderr, "pthread_create for upload:%s\n", strerror(ret) );
-		return -1;
-	}
-#endif
+
     int fileindex = thread_upload((void*)arg);
     printf("fileindex = %d\n", fileindex);
 
-#if 1
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getUploadItemProcess(filename);
-	task->saveNewTask("upload", userid, qtr(filename), process, qtr("上传中..."), qtr(filepath));
-	task->addUploadItem(qtr(filename), process, qtr("上传中..."), userid, qtr(filepath), upthread_id, fileindex);
-#endif
+	task->saveNewTask("upload", userid, filename, process, qtr("上传中..."), filepath);
+	task->addUploadItem(filename, process, qtr("上传中..."), userid, filepath, upthread_id, fileindex);
 
 	printf("thread_upload return value: ret = %d\n", ret);
 
 	return ret;
-#endif
-#if 0
-	pArgs = PyTuple_New( 3 );
-	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
-	//PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
-	//PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", filepath.toStdString().c_str() ) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename ) );
-	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", filepath ) );
-
-	pRetValue = PyObject_CallObject( fileupload, pArgs );
-	int err =0;
-	err = _PyInt_AsInt( pRetValue );
-
-	printf( "upload retvalue: %d \n", err );
-	
-	return err;
-#endif
 }
 
 void UserOption::nfschina_listMyFile( int userid )
@@ -908,17 +880,8 @@ static void* thread_delete( void *data )
 		return (void*)-1;
 	}
 	ThreadArg *arg = (ThreadArg*)data;
-#if 0
-	Py_Initialize();
-	if( !Py_IsInitialized() )
-	{
-		printf( "Python initialize failed! \n" );
-		return (void*)-1;
-	}
-#endif
-	// grab the global interpreter lock
-	//PyEval_AcquireLock();
-        PyGILState_STATE state = PyGILState_Ensure();
+
+    PyGILState_STATE state = PyGILState_Ensure();
 	printf( "----------%s:%s-----------\n", __FILE__, __func__ );
 
 	PyRun_SimpleString( "import sys" );
@@ -951,9 +914,7 @@ static void* thread_delete( void *data )
 	int err = _PyInt_AsInt( pRetValue );
 	printf( "filedelete retvalue: %d\n", err );
 
-        // release the lock
-	//PyEval_ReleaseLock();
-         PyGILState_Release( state );
+    PyGILState_Release( state );
 
 	return (void*)err;
 }
@@ -984,61 +945,20 @@ int UserOption::nfschina_delete( int userid, QString filename )
 
 		return -1;// ?????
 	}
-#if 1
 
 	pthread_t delthread_id;
 	int ret;
 	QString url = buildURL( getServerIp(), URLTAIL );
 	printf( "before thread_delete url: %s\n", url.toStdString().c_str() );
 
-	printf("before delete filename=%s\n", qtu(filename));
-	ThreadArg *arg = new ThreadArg( userid, qtu(filename), NULL, url );
+	printf("before delete filename=%s\n", filename.toStdString().c_str());
+	ThreadArg *arg = new ThreadArg( userid, filename, NULL, url );
 	if( (ret = pthread_create(&delthread_id, NULL, thread_delete, (void*)arg)) != 0 )
 	{
 		fprintf( stderr, "pthread_create for nfschina_delete:%s\n", strerror(ret) );
 		return -1;
 	}
 	return 0;
-#endif
-
-#if 0
-	Py_Initialize();
-	if( !Py_IsInitialized() )
-	{
-		printf( "Python initialize failed! \n" );
-		return -1;
-	}
-
-	PyRun_SimpleString( "import sys" );
-	PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
-	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
-	PyRun_SimpleString( "sys.path.append('.')" );
-
-	PyObject *pModule = PyImport_ImportModule( "clientrg" );
-	if( pModule  == NULL )
-	{
-		printf( "Can't Import clientrg! \n" );
-		return -1;
-	}
-
-	PyObject *filedelete = PyObject_GetAttrString(pModule,"nfschina_delete");
-	if(filedelete == NULL)
-	{
-		printf("delete is NULL\n");
-		return false;
-	}
-
-	PyObject *pArgs = PyTuple_New( 2 );
-	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", filename.toStdString().c_str() ) );
-
-	PyObject *pRetValue = PyObject_CallObject( filedelete, pArgs );
-	int err = _PyInt_AsInt( pRetValue );
-	printf( "filedelete retvalue: %d\n", err );
-
-	return err;
-#endif
-
 }
 
 QString UserOption::nfschina_download( int userid, QString filename )
@@ -1054,19 +974,11 @@ QString UserOption::nfschina_download( int userid, QString filename )
 
 		return NULL;// ?????
 	}
-/*
-	Py_Initialize();
-	if( !Py_IsInitialized() )
-	{
-		printf( "Python initialize failed! \n" );
-		return NULL;
-	}
-*/
+
 	initpython();
 	PyGILState_STATE state  = PyGILState_Ensure( );
 
 	PyRun_SimpleString( "import sys" );
-	//PyRun_SimpleString( "sys.path.append('./modules/gui/qt4/dialogs/user')" );
 	PyRun_SimpleString( "sys.path.append('./share/python')" );
 	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
@@ -1104,9 +1016,6 @@ QString UserOption::nfschina_download( int userid, QString filename )
 		return NULL;
 	}
 
-	//int i;
-	//for( i = 0; i < s; i++ )
-	//printf( "get url:%s\n", PyString_AsString( pRetValue ) );
 	PyGILState_Release( state );
 	return PyString_AsString( PyList_GetItem( pRetValue, 0) );
 }
@@ -1434,31 +1343,15 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 
 	int ret;
 	initpython();
-#if 0
-	if( (ret = pthread_create( &dwncloud_thread_id, NULL, thread_dwncloud, (void*)arg)) != 0 )
-	{
-		fprintf( stderr, "pthread_create failed for download cloudshare file:%s\n", strerror( ret ));
-		return ;
-	}
 
-	
-	int index = -1;
-	if((ret = pthread_join(dwncloud_thread_id, (void**)&index)) != 0)
-	{
-		fprintf( stderr, "pthread_join failed for download cloudshare file:%s\n", strerror( ret ));
-		return ;
-	}
-#endif
 	int index = thread_dwncloud((void*)arg);
 	printf("%s:index = %d\n", __func__, index);
 
-#if 1
 	int userid = getLUid();
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getDownloadItemProcess(file);
-	task->saveNewTask("download", userid, file, process, qtr("下载中..."), qtr(url.toStdString().c_str()));
-	task->addDownloadItem(file, process, qtr("下载中..."), userid, qtr(url.toStdString().c_str()), dwncloud_thread_id, index);
-#endif
+	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url);
+	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id, index);
 }
 
 void UserOption::toggleLocalShared( bool state )
