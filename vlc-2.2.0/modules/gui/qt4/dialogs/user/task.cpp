@@ -787,7 +787,7 @@ void TaskDialog::updateUploadTasks()
 
 		/*更新窗口进度信息*/
 		updateUploadItem(filename, process, state);
-		saveNewTask("upload", uid, filename, process, state,  url);
+		saveNewTask("upload", uid, qtu(filename), process, state,  qtu(url));
 	}
 }
 
