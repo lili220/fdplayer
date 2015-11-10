@@ -40,7 +40,7 @@ fi
 
 pid_file="$HOME/vlc_data/minidlna/minidlna.pid"
 if [ $switch == start ];then
-    nohup ./minidlnad -f ./minidlna.conf -P $pid_file >/dev/null 2>&1 & 
+    nohup ./minidlnad -f ./minidlna.conf -R -P $pid_file >/dev/null 2>&1 &
 elif [ $switch == stop ];then
     if [ ! -f $pid_file ];then
         pid=`pidof ./minidlnad`
