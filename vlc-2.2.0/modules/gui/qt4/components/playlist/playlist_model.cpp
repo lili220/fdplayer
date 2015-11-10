@@ -951,7 +951,8 @@ void PLModel::reURINode( QModelIndex index, QString uri )
     PL_LOCK;
     if ( !index.isValid() ) index = rootIndex();
     input_item_t* p_input = this->getInputItem( index );
-    input_item_SetURI( p_input, qtu( uri ) );
+    //input_item_SetURI( p_input, qtu( uri ) );
+    input_item_SetURI( p_input,  uri.toStdString().c_str()  );
     playlist_t *p_playlist = THEPL;
     input_item_WriteMeta( VLC_OBJECT(p_playlist), p_input );
     PL_UNLOCK;
