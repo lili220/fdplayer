@@ -633,7 +633,12 @@ void StandardPLPanel::popupAction( QAction *action )
                     QString upfile = filename;
 
                     /*continue if upload failed*/
-                    printf( "upfile:%s\n", qtu(upfile));
+#if 0
+                    printf( "%s: upfile:%s\n",__func__, upfile.toStdString().c_str());
+                    printf( "%s: qtu upfile:%s\n", __func__, qtu(upfile));
+                    printf( "%s: file:%s\n",__func__, file.toStdString().c_str());
+                    printf( "%s: qtu file:%s\n", __func__, qtu(file));
+#endif
                     if( user->nfschina_upLoad( uid, qtu(upfile), qtu(file)) < 0 )
                     {
                         printf("Upload %s to server failed!\n", qtu(upfile));
@@ -719,8 +724,10 @@ void StandardPLPanel::popupAction( QAction *action )
 				int uid = user->getLUid();
 
 				QString url = user->nfschina_download( uid, qtu(file) );
+#if 0
 				printf( "download cloudfile url:%s\n", url.toStdString().c_str() );
 				printf( "qtu download cloudfile url:%s\n", qtu(url) );
+#endif
 				if( url == NULL )
 				{
 					printf( "get url for %s from server failed!\n", qtu(file) );
@@ -733,14 +740,10 @@ void StandardPLPanel::popupAction( QAction *action )
 				//QString dest = qtu( QString(sharePath) );
 #if 1
                 QString dest = QFileDialog::getExistingDirectory( this, qtr("下载文件保存路径"),  qtr(sharePath), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-                printf("dest = [%s]\n", dest.toStdString().c_str());
 				dest.append( "/" );
 				dest.append( file );
-                printf("qtu dest = %s\n", qtu(dest));
-				user->downloadCloudShareFile( qtu(url), qtu(dest) );
+				user->downloadCloudShareFile( url, qtu(dest) );
 #endif
-				//user->downloadCloudShareFile( qtu(url), qtu(file) );
-				//user->downloadCloudShareFile( url, dest );
 			}
 			break;
         case VLCModelSubInterface::ACTION_ADDSHARE:

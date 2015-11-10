@@ -633,7 +633,10 @@ int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath 
 	}
 
 	QString url = buildURL( getServerIp(), URLTAIL );
-	printf( "before nfschina_upLoad url: %s\n", url.toStdString().c_str() );
+#if 0
+	printf( "%s: url: %s\n", __func__, url.toStdString().c_str() );
+	printf( "%s: qtu url: %s\n", __func__, qtu(url));
+#endif
 
 	QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
 	printf( "before nfschina_upLoad httpurl: %s\n", httpurl.toStdString().c_str() );
@@ -1134,10 +1137,14 @@ int thread_dwncloud( void *data )
 
 	PyObject *pArgs = PyTuple_New( 2 );
 
-	printf("before python download url = %s\n", arg->path.toStdString().c_str() );
-	printf("before python download file = %s\n", qtu(arg->file));
+#if 0
+	printf("%s:before python download url = %s\n", __func__, arg->path.toStdString().c_str() );
+	printf("%s:before python download file = %s\n",__func__, arg->file.toStdString().c_str());
+	printf("%s:qtu before python download url = %s\n", __func__, qtu(arg->path));
+	printf("%s:qtu before python download file = %s\n",__func__, qtu(arg->file));
+#endif
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
-	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", qtu(arg->file) ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
 	int index = _PyInt_AsInt( pRetValue );
@@ -1337,7 +1344,7 @@ void UserOption::stopUpload(int index)
 void UserOption::downloadCloudShareFile( const QString url, const QString file )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
-	printf("before download url=%s\n", url.toStdString().c_str());
+	//printf("before download url=%s\n", url.toStdString().c_str());
 	pthread_t dwncloud_thread_id;
 	ThreadArg *arg = new ThreadArg( file, url );//user the path memeber of TreadArg as url
 
@@ -1350,7 +1357,13 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file )
 	int userid = getLUid();
 	TaskDialog *task = TaskDialog::getInstance(p_intf);
 	int process = task->getDownloadItemProcess(file);
-	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url);
+#if 0
+	printf("%s:before add to Task Window file = %s\n", __func__, file.toStdString().c_str());
+	printf("%s:before add to Task Window url = %s\n", __func__, url.toStdString().c_str());
+	printf("%s:qtu before add to Task Window file = %s\n", __func__, qtu(file));
+	printf("%s:qtu before add to Task Window url = %s\n", __func__, qtu(url));
+#endif
+	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url.toStdString().c_str());
 	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id, index);
 }
 

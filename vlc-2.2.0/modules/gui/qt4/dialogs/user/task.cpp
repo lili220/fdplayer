@@ -208,12 +208,14 @@ void TaskDialog::initUploadItems(QSettings &settings, int uid)
 
 void TaskDialog::initDownloadItems(QSettings &settings, int uid)
 {
+	qDebug() << "func:" << __func__;
 	QString downloadkey = "download-";
 	downloadkey.append(QString::number(uid));
 	
 	settings.beginGroup("");
 	foreach(QString key, settings.childKeys())
 	{
+		printf("%s:key = %s\n", __func__, key.toStdString().c_str());
 		if(key.startsWith(downloadkey))
 		{
 			QString tmp = settings.value(key).toString();
@@ -244,13 +246,13 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 	QString pro = QString::number(process).append("%");
 	QStandardItemModel *model = getUploadModel();
 
-	QModelIndex index = getUploadItemIndex(filename);
+	QModelIndex index = getUploadItemIndex(qtr(filename.toStdString().c_str()));
 	if(index.isValid())
 	{
 		model->setItem(index.row(), 1, new QStandardItem(pro));
 		model->setItem(index.row(), 2, new QStandardItem(state));
 		model->setItem(index.row(), 3, new QStandardItem(QString::number(uid)));
-		model->setItem(index.row(), 4, new QStandardItem(path));
+		model->setItem(index.row(), 4, new QStandardItem(qtr(path.toStdString().c_str())));
 		if(thread_id > 0)
 			model->setItem(index.row(), 5, new QStandardItem(QString::number(thread_id)));
 		if(fileindex >= 0)
@@ -258,12 +260,12 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 	}
 	else
 	{
-		QStandardItem *item = new QStandardItem( filename );
+		QStandardItem *item = new QStandardItem( qtr(filename.toStdString().c_str()) );
 		model->appendRow( item );
 		model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
 		model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
 		model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
-		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(path));
+		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(qtr(path.toStdString().c_str())));
 		if(thread_id > 0)
 			model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
 		
@@ -275,6 +277,12 @@ void TaskDialog::addUploadItem( const QString filename, int process, const QStri
 void TaskDialog::addDownloadItem(const QString filename, int process, const QString state , int uid, const QString url, pthread_t thread_id, int fileindex )
 {
 	qDebug() << __func__ << "thread_id = " << thread_id;
+#if 0
+	printf("%s:before TaskDialog::addDownloadItem filename = %s\n", __func__, filename.toStdString().c_str());
+	printf("%s:before TaskDialog::addDownloadItem url = %s\n", __func__, url.toStdString().c_str());
+	printf("%s:qtu before TaskDialog::addDownloadItem filename = %s\n", __func__, qtu(filename));
+	printf("%s:qtu before TaskDialog::addDownloadItem url = %s\n", __func__, qtu(url));
+#endif
 	/*如果是新增下载任务，下载任务数加1*/
 	if(state.startsWith(qtr("下载中")))
 		addDownloadTask();
@@ -282,13 +290,13 @@ void TaskDialog::addDownloadItem(const QString filename, int process, const QStr
 	QString pro = QString::number(process).append("%");
 	QStandardItemModel *model = getDownloadModel();
 
-	QModelIndex index = getDownloadItemIndex(filename);
+	QModelIndex index = getDownloadItemIndex(qtr(filename.toStdString().c_str()));
 	if(index.isValid())
 	{
 		model->setItem(index.row(), 1, new QStandardItem(pro));
 		model->setItem(index.row(), 2, new QStandardItem(state));
 		model->setItem(index.row(), 3, new QStandardItem(QString::number(uid)));
-		model->setItem(index.row(), 4, new QStandardItem(url));
+		model->setItem(index.row(), 4, new QStandardItem(qtr(url.toStdString().c_str())));
 		if(thread_id > 0)
 			model->setItem(index.row(), 5, new QStandardItem(QString::number(thread_id)));
 		if(fileindex >= 0)
@@ -296,12 +304,12 @@ void TaskDialog::addDownloadItem(const QString filename, int process, const QStr
 	}
 	else
 	{
-		QStandardItem *item = new QStandardItem( filename );
+		QStandardItem *item = new QStandardItem( qtr(filename.toStdString().c_str()) );
 		model->appendRow( item );
 		model->setItem(model->indexFromItem(item).row(), 1, new QStandardItem(pro));
 		model->setItem(model->indexFromItem(item).row(), 2, new QStandardItem(state));
 		model->setItem(model->indexFromItem(item).row(), 3, new QStandardItem(QString::number(uid)));
-		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(url));
+		model->setItem(model->indexFromItem(item).row(), 4, new QStandardItem(qtr(url.toStdString().c_str())));
 		if(thread_id > 0)
 			model->setItem(model->indexFromItem(item).row(), 5, new QStandardItem(QString::number(thread_id)));
 
@@ -454,6 +462,10 @@ QString TaskDialog::buildValueString(const QString file, int process, const QStr
 	 * eg. download:"aaa.mp4-30-Uploading-http://192.168.7.97:80/download/157/test.mp4"
 	 * */
 	QString value = file;
+#if 0
+	printf("%s: file = %s\n", __func__, file.toStdString().c_str());
+	printf("%s: qtu file = %s\n", __func__, qtu(file));
+#endif
 	value.append("-").append(QString::number(process)).append("-").append(state).append("-").append(url);
 
 	return value;
@@ -463,9 +475,16 @@ void TaskDialog::saveNewTask(const QString type, int uid, const QString file, in
 {
 	QSettings settings(organization, application);
 	QString key = buildKeyString(type, uid, file);
+#if 0
 	printf("qtu:key = %s\n", qtu(key));
 	printf("no qtu:key = %s\n", key.toStdString().c_str());
+#endif
 	QString value = buildValueString(file, process, state, url);
+#if 0
+	printf("qtu:value = %s\n", qtu(value));
+	printf("no qtu:value = %s\n", value.toStdString().c_str());
+#endif
+	key.replace("/", "!");
 	settings.setValue(key, value);
 }
 
@@ -564,7 +583,7 @@ void TaskDialog::continueItemTask()
 		int uid = model->index(index.row(), 3).data().toInt();
 		QString filepath = model->index(index.row(), 4).data().toString();
 		UserOption *user = UserOption::getInstance(p_intf);
-		user->nfschina_upLoad(uid, file, filepath);
+		user->nfschina_upLoad(uid, qtu(file), qtu(filepath));
 	}
 
 	/*update item state form Task Window*/
@@ -644,7 +663,7 @@ void TaskDialog::toggleUploadState(const QModelIndex &index)
 		int uid = model->index(index.row(), 3).data().toInt();
 		QString filepath = model->index(index.row(), 4).data().toString();
 		//user->nfschina_upLoad(uid, file.toStdString().c_str(), filepath.toStdString().c_str());
-		user->nfschina_upLoad(uid, file, filepath);
+		user->nfschina_upLoad(uid, qtu(file), qtu(filepath));
 	}
 	else if(state.startsWith(qtr("上传中")))
 	{
@@ -675,7 +694,14 @@ void TaskDialog::toggleDownloadState(const QModelIndex &index)
 		QString file = model->index(index.row(), 0).data().toString();
 		QString url = model->index(index.row(), 4).data().toString();
 		//user->downloadCloudShareFile(qtu(url), file);
-		user->downloadCloudShareFile(url, file);
+#if 0
+		qDebug() << "url == " << url;
+		printf("%s: url = %s\n", __func__, url.toStdString().c_str());
+		printf("%s: file = %s\n", __func__, file.toStdString().c_str());
+		printf("%s: qtu url = %s\n", __func__, qtu(url));
+		printf("%s: qtu file = %s\n", __func__, qtu(file));
+#endif
+		user->downloadCloudShareFile(qtu(url), qtu(file));
 		downloadTree->update(index);
 	}
 	else if(state.startsWith(qtr("下载中")))
@@ -803,7 +829,13 @@ void TaskDialog::updateDownloadTasks()
 
 		qDebug("-----------%s:%d call updateDownloadItem----------", __func__, __LINE__);
 		updateDownloadItem(filename, process, state);
-		saveNewTask("download", uid, filename, process, state,  url);
+#if 0
+		printf("%s: filename = %s\n", __func__, filename.toStdString().c_str());
+		printf("%s: url = %s\n", __func__, url.toStdString().c_str());
+		printf("%s: qtu filename = %s\n", __func__, qtu(filename));
+		printf("%s: qtu url = %s\n", __func__, qtu(url));
+#endif
+		saveNewTask("download", uid, qtu(filename), process, state,  qtu(url));
 	}
 }
 
