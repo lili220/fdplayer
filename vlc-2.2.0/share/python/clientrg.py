@@ -1,3 +1,5 @@
+# -*- coding=utf-8 -*-
+
 import urllib2 
 import sys, httplib 
 import re
@@ -265,7 +267,8 @@ def nfschina_download(userid, filename, url):
 	print "Response: ", statuscode, statusmessage 
 	print "headers: ", header 
 	#print webservice.getfile().read() 
-	results = webservice.getfile().read() 
+	results = webservice.getfile().read()
+	print str(results)
 	p = re.compile(r'(?<=<tns:string>)(.*?)(?=</tns:string>)')
 	match = p.findall(results)
 	if match:
@@ -279,10 +282,10 @@ def nfschina_download(userid, filename, url):
 	#return match
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
 #	nfschina_register("tjiajiandong","123456","http://192.168.7.97/haha/service/?wsdl")
 #	nfschina_login("tjiajiandong","123456","http://192.168.7.97/haha/service/?wsdl")
 #	nfschina_listmyfile(2,"http://192.168.7.97/haha/service/?wsdl")
 #	nfschina_delete(2,"duolaameng.mkv","http://192.168.7.97/haha/service/?wsdl")
-#	nfschina_download(2,"haha.mp4", "http://192.168.7.97/haha/service/?wsdl")
+	nfschina_download(9,"哈哈.mp4", "http://192.168.7.97/haha/service/wsdl")
 #	nfschina_upload(2,"test.mp4","/home/nfschina/test.mp4","http://192.168.7.97/haha/service/?wsdl",'http://192.168.7.97/haha/service/uploadfile')

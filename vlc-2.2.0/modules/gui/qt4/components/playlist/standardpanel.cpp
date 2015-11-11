@@ -723,7 +723,9 @@ void StandardPLPanel::popupAction( QAction *action )
 				UserOption *user = UserOption::getInstance( p_intf );
 				int uid = user->getLUid();
 
-				QString url = user->nfschina_download( uid, qtu(file) );
+				//QString url = user->nfschina_download( uid, qtu(file) );
+                QString tmpurl = user->buildURL( user->getServerIp(), "/haha/service/wsdl" );
+				QString url = user->nfschina_getresource( uid, 1, qtu(file), tmpurl );
 #if 0
 				printf( "download cloudfile url:%s\n", url.toStdString().c_str() );
 				printf( "qtu download cloudfile url:%s\n", qtu(url) );
@@ -1701,7 +1703,9 @@ void StandardPLPanel::activate( const QModelIndex &index )
                 QString filename = index.data().toString();
                 qDebug() << "filename:" <<filename;
                 printf("uid = %d\n", uid);
-                QString url = user->nfschina_download( uid, qtu(filename) );
+                //QString url = user->nfschina_download( uid, qtu(filename) );
+                QString tmpurl = user->buildURL( user->getServerIp(), "/haha/service/wsdl" );
+				QString url = user->nfschina_getresource( uid, 1, qtu(filename), tmpurl );
                 printf("real url:%s\n", url.toStdString().c_str());
                 model->reURINode( index, url );
                 printf("p_item->p_input->psz_uri=%s\n", p_item->p_input->psz_uri);

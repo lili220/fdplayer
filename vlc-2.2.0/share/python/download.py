@@ -124,7 +124,7 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
         downloaded = sum( [task.downloaded for task in tasks] )
         process = downloaded/float(size)*100
         datamutex[theindex].acquire()
-        loading[theindex] = process
+        loading[theindex] = process - 1
         datamutex[theindex].release()
         show = u'\rFilesize:%d Downloaded:%d Completed:%.2f%%' % (size, downloaded, process)
         sys.stdout.write(show)

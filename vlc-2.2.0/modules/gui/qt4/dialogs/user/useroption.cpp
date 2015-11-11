@@ -627,7 +627,7 @@ QString UserOption::nfschina_getresource(int userid, int type, QString filename,
 	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
 	PyRun_SimpleString( "sys.path.append('.')" );
 
-	PyObject *pModule = PyImport_ImportModule( "upload" );
+	PyObject *pModule = PyImport_ImportModule( "clientgets" );
 	if( pModule  == NULL )
 	{
 		printf( "Can't Import upload! \n" );
@@ -651,7 +651,12 @@ QString UserOption::nfschina_getresource(int userid, int type, QString filename,
 
 	PyObject *pRetValue = PyObject_CallObject( getresource, pArgs );
 
-	//int s = PyList_Size( pRetValue );
+	int s = PyList_Size( pRetValue );
+    if( s <= 0 )
+    {
+        PyGILState_Release( state );
+        return NULL;
+    }
 	//for( i = 0; i < s; i++ )
 	//{
     QString serverIp = PyString_AsString( PyList_GetItem( pRetValue, 0 ) );
@@ -1058,7 +1063,9 @@ QString UserOption::nfschina_download( int userid, QString filename )
 	}
 
 
-	QString url = buildURL( getServerIp(), URLTAIL );
+#define URLTAIL "/haha/service/wsdl"
+	//QString url = buildURL( getServerIp(), URLTAIL );
+	QString url = buildURL( getServerIp(), "/haha/service/?wsdl" );
 	printf( "before nfschina_download url: %s\n", url.toStdString().c_str() );
 	PyObject *pArgs = PyTuple_New( 3 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
