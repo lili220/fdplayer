@@ -1,4 +1,4 @@
-#-*- coding=utf-8 -*-
+# -*- coding=utf-8 -*-
 
 import urllib2 ,requests,time, threading,thread
 import sys, httplib, re, urllib2,os
@@ -20,14 +20,54 @@ datamutex = [threading.Lock() for col in range(30)]
 global mutex
 mutex = threading.Lock()
 
-
-
-
 def parse_url(url):
 	s1 =  url.split("//")
 	s2 = s1[1].split("/")
 	s3 = s1[1].split("/",1)
 	return s3
+
+def nfschina_getresource(userid, stype, filename,url):
+	SENDTPL = \
+'''<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="nfschina.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+<SOAP-ENV:Header/>
+<ns0:Body>
+	<ns1:nfschina_getresource>
+		<ns1:userid>%d</ns1:userid>
+		<ns1:stype>%d</ns1:stype>
+		<ns1:filename>%s</ns1:filename>
+	</ns1:nfschina_getresource>
+</ns0:Body>
+</SOAP-ENV:Envelope>'''
+	SoapMessage = SENDTPL % (userid,stype, filename)
+	purl = parse_url(url)
+	ip = purl[0]
+	postpath = "/" + purl[1]
+	soapaction = url
+
+	webservice = httplib.HTTP(ip)
+	webservice.putrequest("POST", postpath)
+	webservice.putheader("Host", ip)
+	webservice.putheader("User-Agent", "Python Post")
+	webservice.putheader("Content-type", "text/xml; charset=\"UTF-8\"")
+	webservice.putheader("Content-length", "%d" % len(SoapMessage))
+	webservice.putheader("SOAPAction", url)
+
+	webservice.endheaders()
+	webservice.send(SoapMessage)
+	# get the response 
+	statuscode, statusmessage, header = webservice.getreply()
+	#print "Response: ", statuscode, statusmessage 
+	#print "headers: ", header 
+	results = webservice.getfile().read()
+	print str(results)
+	p1=re.compile(r'nfschina_getresourceResult>(.*?)nfschina_getresourceResult')
+	p2=re.compile(r'(.*?)</')
+	match = p1.findall(results)
+	server_ip = p2.findall(match[0])
+	return server_ip
+
+
 
 def nfschina_upload_file(theindex,userid, filename, filesize, url, block_size=1024*1024*2, finish=0):
 	global loading
@@ -77,7 +117,7 @@ def nfschina_upload_file(theindex,userid, filename, filesize, url, block_size=10
 	print loading[theindex]
 
 
-def post_file(theindex,file_path,filename,userid,block_size=2*1024*1024,url='http://192.168.7.97/haha/service/upload_file'):
+def post_file(theindex,file_path,filename,userid,block_size,upload_url):
 	global loading,lock, process,datamutex
 #	print loading
 	sfile = open(file_path,"rb")
@@ -105,10 +145,10 @@ def post_file(theindex,file_path,filename,userid,block_size=2*1024*1024,url='htt
 		tfb = sfile.read(block_size)
 		files = {"file":tfb}
 		payload = {'userid': userid, 'filename':filename, 'offset':offset,'block_size':block_size}
-		result = requests.post(url,payload,files=files)
+		result = requests.post(upload_url,payload,files=files)
 
 		lock.acquire()
-#		print str(result.text)
+		print str("result.text = ") + str(result.text)
 		if result.text == str(1):
 			if loading[theindex][offset] == '2':
 				loading[theindex][offset] = '1'
@@ -141,16 +181,16 @@ def isStop(index):
 
 
 
-def upload_post(theindex, userid, filepath, filename, url):
+def upload_post(theindex, userid, filepath, filename, url,upload_url):
 	global loading
 	filesize = os.path.getsize(filepath)
 	block_size = 2*1024*1024
 #	userid, filename, filesize, url, block_size=1024*1024*2, finish=0
-	nfschina_upload_file(theindex,userid, filename, filesize, url,block_size, 0)
+	nfschina_upload_file(theindex,userid, filename, filesize, url, block_size, 0)
 #	print loading
-	t1 = threading.Thread(target=post_file,args=(theindex,filepath,filename,userid,))
+	t1 = threading.Thread(target=post_file,args=(theindex,filepath,filename,userid,block_size,upload_url))
 	t1.start()
-	t2 = threading.Thread(target=post_file,args=(theindex,filepath,filename,userid,))
+	t2 = threading.Thread(target=post_file,args=(theindex,filepath,filename,userid,block_size,upload_url))
 	t2.start()
 	
 	while t1.isAlive() or t2.isAlive():
@@ -163,7 +203,7 @@ def upload_post(theindex, userid, filepath, filename, url):
 	nfschina_upload_file(theindex,userid, filename, filesize, url=url, finish=1)
 
 
-def start_upload(userid, filename, filepath, url):
+def start_upload(userid, filename, filepath, url, upload_url):
 	global index
 	global mutex
 	global datamutex
@@ -182,7 +222,7 @@ def start_upload(userid, filename, filepath, url):
 	exitflag[theindex] = 0
 	datamutex[index].release()
 
-	s1 = threading.Thread(target=upload_post,args=(theindex, userid, filepath, filename, url,))
+	s1 = threading.Thread(target=upload_post,args=(theindex, userid, filepath, filename, url, upload_url,))
 	s1.start()
 	return theindex	
 
@@ -198,14 +238,10 @@ def stop_upload(index):
 
 if __name__ == '__main__':
 #	s1 = threading.Thread(target=start_upload,args=(9,"haha.mp4","/home/nfschina/forDjangoClient/haha.mp4","http://127.0.0.1:8000/haha/service/wsdl"))
-	start_upload(1,"硅谷.mp4","/home/lili/share/硅谷.mp4","http://192.168.7.97/haha/service/wsdl")
-	start_upload(1,"hehe.mp4","/home/lili/hehe.mp4","http://192.168.7.97/haha/service/wsdl")
-
-	print "sleep...."
-	while 1:
-		print "0 -> %d" % (get_process(0))
-		print "1 -> %d" % (get_process(1))
-		time.sleep(1)
-#	stop_download(0)
-#	print  get_process(0)
+	server_ip = nfschina_getresource(9,3,"guigu.mp4",'http://192.168.6.160/haha/service/wsdl')
+	print server_ip[0]
+	url = "http://" + str(server_ip[0]) + "/haha/service/wsdl"
+	upload_url = "http://" + str(server_ip[0]) + "/haha/service/upload_file"
 	
+	s1 = threading.Thread(target=start_upload,args=(9,"guigu.mp4","/home/jiajiandong/nfstation/django/clientxml/guigu.mp4",url,upload_url))
+	s1.start()

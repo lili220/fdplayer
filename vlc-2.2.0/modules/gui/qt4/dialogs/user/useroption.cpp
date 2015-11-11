@@ -71,8 +71,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define URLTAIL "/haha/service/?wsdl"
-#define HTTPURLTAIL "/haha/service/uploadfile"
+#define URLTAIL "/haha/service/wsdl"
+#define HTTPURLTAIL "/haha/service/upload_file"
 
 UserOption::UserOption( intf_thread_t *_p_intf ) : p_intf( _p_intf )
 {
@@ -600,12 +600,12 @@ static int thread_upload( void *data )
 		return -1;
 	}
 
-	PyObject *pArgs = PyTuple_New( 4 );
+	PyObject *pArgs = PyTuple_New( 5 );
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", arg->uid ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", arg->url.toStdString().c_str() ) );
-	//PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", arg->httpurl.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 4, Py_BuildValue( "s", arg->httpurl.toStdString().c_str() ) );
 
 	PyObject *pRetValue = PyObject_CallObject( fileupload, pArgs );
 	int fileindex = _PyInt_AsInt( pRetValue );
@@ -614,6 +614,55 @@ static int thread_upload( void *data )
 	printf( "%s index = %d \n",arg->file.toStdString().c_str(), fileindex );
 	
 	return fileindex;
+}
+
+QString UserOption::nfschina_getresource(int userid, int type, QString filename, QString url)
+{
+	printf( "-----------%s:%d--------\n", __func__, __LINE__ );
+
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	PyRun_SimpleString( "import sys" );
+	PyRun_SimpleString( "sys.path.append('./share/python')" );
+	PyRun_SimpleString( "sys.path.append('../share/vlc/python')" );
+	PyRun_SimpleString( "sys.path.append('.')" );
+
+	PyObject *pModule = PyImport_ImportModule( "upload" );
+	if( pModule  == NULL )
+	{
+		printf( "Can't Import upload! \n" );
+                PyGILState_Release( state );
+		return NULL;
+	}
+
+	PyObject *getresource = PyObject_GetAttrString(pModule,"nfschina_getresource");
+	if(getresource == NULL)
+	{
+		printf("nfschina_getresource is NULL\n");
+                PyGILState_Release( state );
+		return NULL;
+	}
+
+	PyObject *pArgs = PyTuple_New( 4 );
+	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "i", userid ) );
+	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "i", type ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "s", filename.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 3, Py_BuildValue( "s", url.toStdString().c_str() ) );
+
+	PyObject *pRetValue = PyObject_CallObject( getresource, pArgs );
+
+	//int s = PyList_Size( pRetValue );
+	//for( i = 0; i < s; i++ )
+	//{
+    QString serverIp = PyString_AsString( PyList_GetItem( pRetValue, 0 ) );
+	//	printf( "file[%d]:%s\n", i,  PyString_AsString( PyList_GetItem( pRetValue, i ) ));
+	//}
+
+	PyGILState_Release( state );
+
+	printf( "%s serverIp = %s \n",filename.toStdString().c_str(), serverIp.toStdString().c_str() );
+	
+	return serverIp;
 }
 
 int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath )
@@ -633,15 +682,21 @@ int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath 
 	}
 
 	QString url = buildURL( getServerIp(), URLTAIL );
+#if 1
+    QString serverIp = nfschina_getresource(userid, 3, filename, url);
+    printf("%s: serverIp = %s\n", __func__, serverIp.toStdString().c_str() );
+    QString serverurl = buildURL(serverIp, URLTAIL );
+#endif
 #if 0
 	printf( "%s: url: %s\n", __func__, url.toStdString().c_str() );
 	printf( "%s: qtu url: %s\n", __func__, qtu(url));
 #endif
 
-	QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
+	//QString httpurl = buildURL( getServerIp(), HTTPURLTAIL );
+	QString httpurl = buildURL( serverIp, HTTPURLTAIL );
 	printf( "before nfschina_upLoad httpurl: %s\n", httpurl.toStdString().c_str() );
         initpython();
-	ThreadArg *arg = new ThreadArg( userid, filename, filepath, url, httpurl, p_intf );
+	ThreadArg *arg = new ThreadArg( userid, filename, filepath, serverurl, httpurl, p_intf );
 	int ret = 0;
 	pthread_t upthread_id;
 

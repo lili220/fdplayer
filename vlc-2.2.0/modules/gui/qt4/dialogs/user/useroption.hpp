@@ -118,6 +118,7 @@ public:
 	int nfschina_logout( int userid );
 	int nfschina_keeponline( int userid, bool b_share );//droped
 	void nfschina_keepalive(QString localIp, int localPort, int userid, bool is_share, QString ServerUrl);
+    QString nfschina_getresource(int userid, int type, QString filename, QString url);
 	int nfschina_upLoad( int userid, QString filename, QString filepath );
 	//int nfschina_upLoad( int userid, const char* filename, const char* filepath );
 	void nfschina_listMyFile( int userid );
