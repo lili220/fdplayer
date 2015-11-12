@@ -321,6 +321,8 @@ bool StandardPLPanel::popup( const QPoint &point )
 		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("下载云共享文件"), VLCModelSubInterface::ACTION_DWNCLOUD );
 
 		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("删除云共享文件"), VLCModelSubInterface::ACTION_DELCLOUD );
+        menu.addSeparator();
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("刷新文件列表"), VLCModelSubInterface::ACTION_UPDATECLOUD );
     }
 
     if (p_selector->getCurrentItemCategory() == REMOTESHARE )
@@ -748,6 +750,14 @@ void StandardPLPanel::popupAction( QAction *action )
 #endif
 			}
 			break;
+		case VLCModelSubInterface::ACTION_UPDATECLOUD:
+            {
+                printf("update cloud window\n");
+                UserOption *user = UserOption::getInstance(p_intf);
+                user->setCloudSharedStart(false);
+                p_selector->updateWindow();
+            }
+            break;
         case VLCModelSubInterface::ACTION_ADDSHARE:
             {
                 printf("%d\n", __LINE__);
@@ -1034,7 +1044,7 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	char *server_ip = NULL;
 	int server_port = 0;
 	ini_t *conf = ini_load("vlc.conf");
-	if (conf == NULL) { 
+	if (conf == NULL) {
 		printf("init_config(): %s(errno: %d)\n", strerror(errno), errno);
 		return ;
 	}
@@ -1051,7 +1061,6 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 	foreach( const QString& file, files )
 	{
 		printf( "share file:%s\n", file.toStdString().c_str() );
-		//QString url = "http://192.168.7.97/download/";
 		
 		QString url = "http://"; QString uidstr;
 		url.append(server_ip);
@@ -1060,11 +1069,9 @@ void StandardPLPanel::createCloudItems( const QModelIndex &index )
 		url.append("/download/");
 		url.append(uidstr.setNum( uid ));
 		url.append( "/" );
-		//url.append( qtu(file) );
 		url.append( file.toStdString().c_str() );
 		printf( "url:%s\n", url.toStdString().c_str() );
 		RecentsMRL::getInstance( p_intf )->addRecent( url );
-		//input_item_t *item = input_item_NewWithType ( qtu(url), qtu(file), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 		input_item_t *item = input_item_NewWithType ( url.toStdString().c_str(), file.toStdString().c_str(), 0, NULL, 0, -1, ITEM_TYPE_FILE);
 		if ( item == NULL )
 			return;

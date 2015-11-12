@@ -1072,6 +1072,7 @@ bool PLModel::isSupportedAction( actions action, const QModelIndex &index ) cons
     case ACTION_ADDCLOUD://add by lili
     case ACTION_DWNCLOUD://add by lili
     case ACTION_DELCLOUD://add by lili
+    case ACTION_UPDATECLOUD://add by lili
 		return true;
     case ACTION_ADDSHARE:
         return true;

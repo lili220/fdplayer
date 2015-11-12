@@ -162,6 +162,10 @@ PLSelector::PLSelector( QWidget *p, intf_thread_t *_p_intf )
              this, setSource( QTreeWidgetItem *) );
     CONNECT( this, itemClicked( QTreeWidgetItem *, int ),
              this, setSource( QTreeWidgetItem *) );
+
+    /*add by lili*/
+    CONNECT( this, updateSourceActivated( QTreeWidgetItem *),
+             this, updateSource( QTreeWidgetItem *) );
 }
 
 PLSelector::~PLSelector()
@@ -380,6 +384,123 @@ void PLSelector::createItems()
     if( share->childCount() == 0 ) delete share;
 }
 
+void PLSelector::updateWindow( )
+{
+    printf("---------------%s-----------------\n", __func__);
+    emit updateSourceActivated(curItem);
+}
+void PLSelector::updateSource( QTreeWidgetItem *item )
+{
+    printf("---------------%s-----------------\n", __func__);
+    if( !item || item != curItem )
+        return;
+
+    bool b_ok;
+    int i_type = item->data(0, TYPE_ROLE).toInt(&b_ok);
+    if( !b_ok || i_type == CATEGORY_TYPE )
+        return;
+
+    bool sd_loaded;
+    if( i_type == SD_TYPE )
+    {
+        QString qs = item->data( 0, NAME_ROLE ).toString();
+        sd_loaded = playlist_IsServicesDiscoveryLoaded( THEPL, qtu( qs ) );
+
+        printf( "###################PLSelector::setSource-qs:%s, %d\n", qs.toStdString().c_str(), sd_loaded );//add by lili
+	 UserOption *user = UserOption::getInstance( p_intf );
+	 if( user == NULL )
+	 {
+		printf( "Failed to UerOption::getInstance\n" );
+		return;
+	 }
+	
+	 if( sd_loaded )
+	 {
+            if ( qs.startsWith("upnp") && (!user->getLanSharedStart()) )
+            {
+                printf( "qs.startsWith upnp, need refresh service.\n");
+                playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+                user->setLanSharedStart(true);
+                sd_loaded = false;
+            }
+            else if ( qs.startsWith("cloud") )
+            {
+                if(!user->getCloudSharedStart())
+                {
+                    printf( "cloud need refresh service.\n");
+                    playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+                    sd_loaded = false;
+                }
+            }
+            else if ( qs.startsWith("remote") )
+            {
+                if (!user->getRemoteSharedStart())
+                {
+                    printf( "remote need refresh service.\n");
+                    playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+                    sd_loaded = false;
+                }
+            }
+        }
+
+        if( !sd_loaded )
+        {
+            if ( playlist_ServicesDiscoveryAdd( THEPL, qtu( qs ) ) != VLC_SUCCESS )
+                return ;
+
+            services_discovery_descriptor_t *p_test = new services_discovery_descriptor_t;
+            int i_ret = playlist_ServicesDiscoveryControl( THEPL, qtu( qs ), SD_CMD_DESCRIPTOR, p_test );
+            if( i_ret == VLC_SUCCESS && p_test->i_capabilities & SD_CAP_SEARCH )
+                item->setData( 0, CAP_SEARCH_ROLE, true );
+        }
+    }
+
+    curItem = item;
+
+    /* */
+    playlist_Lock( THEPL );
+    playlist_item_t *pl_item = NULL;
+
+    /* Special case for podcast */
+    // FIXME: simplify
+    if( i_type == SD_TYPE )
+    {
+        /* Find the right item for the SD */
+        pl_item = playlist_ChildSearchName( THEPL->p_root,
+                      qtu( item->data(0, LONGNAME_ROLE ).toString() ) );
+
+		printf( "item->data(0, LONGNAME_ROLE).toUtf8 == %s\n", qtu(item->data(0, LONGNAME_ROLE).toString()));//add by lili
+        /* Podcasts */
+        if( item->data( 0, SPECIAL_ROLE ).toInt() == IS_PODCAST )
+        {
+            if( pl_item && !sd_loaded )
+            {
+                podcastsParentId = pl_item->i_id;
+                for( int i=0; i < pl_item->i_children; i++ )
+                    addPodcastItem( pl_item->pp_children[i] );
+            }
+            pl_item = NULL; //to prevent activating it
+        }
+    }
+    else
+	{
+        pl_item = item->data( 0, PL_ITEM_ROLE ).value<playlist_item_t*>();
+		printf( "in else branch \n" );//add by lili
+	}
+
+    playlist_Unlock( THEPL );
+
+    /* */
+    if( pl_item )
+    {
+		printf( "-----------------emit categoryActivated------------------\n" );
+        emit categoryActivated( pl_item, false );
+        int i_cat = item->data( 0, SD_CATEGORY_ROLE ).toInt();
+        // emit SDCategorySelected( i_cat == SD_CAT_INTERNET
+        //                          || i_cat == SD_CAT_LAN );       /*wangpei*/
+    }
+
+}
 void PLSelector::setSource( QTreeWidgetItem *item )
 {
     if( !item || item == curItem )

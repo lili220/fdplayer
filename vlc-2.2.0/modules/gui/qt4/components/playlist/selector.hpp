@@ -133,6 +133,7 @@ public:
 
 	/*add by lili*/
 	QTreeWidgetItem  *getCurrentItem(){ return curItem; }
+    void updateWindow();
 
 protected:
     virtual void drawBranches ( QPainter *, const QRect &, const QModelIndex & ) const;
@@ -158,7 +159,9 @@ private:
     int               podcastsParentId;
     QTreeWidgetItem  *curItem;
 
+
 private slots:
+    void updateSource( QTreeWidgetItem *item );//add by lili
     void setSource( QTreeWidgetItem *item );
     void plItemAdded( int, int );
     void plItemRemoved( int );
@@ -169,6 +172,7 @@ private slots:
 signals:
     void categoryActivated( playlist_item_t *, bool );
     void SDCategorySelected( bool );
+    void updateSourceActivated( QTreeWidgetItem *item );//add by lili
 };
 
 #endif

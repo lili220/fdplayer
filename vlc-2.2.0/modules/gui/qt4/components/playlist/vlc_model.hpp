@@ -102,6 +102,7 @@ public:
         ACTION_ADDCLOUD,
         ACTION_DELCLOUD,
         ACTION_DWNCLOUD,
+        ACTION_UPDATECLOUD,
         ACTION_ADDSHARE,
     };
     struct actionsContainerType

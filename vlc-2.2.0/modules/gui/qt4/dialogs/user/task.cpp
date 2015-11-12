@@ -780,7 +780,10 @@ void TaskDialog::updateUploadTasks()
 			continue;
 
 		if(process == 100)
+        {
 			state = qtr("已完成");
+            user->setCloudSharedStart(false);
+        }
 
 		int uid = model->index(i, 3, QModelIndex()).data().toInt();
 		QString url = model->index(i, 4, QModelIndex()).data().toString();
