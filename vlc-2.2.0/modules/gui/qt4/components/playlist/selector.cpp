@@ -423,6 +423,15 @@ void PLSelector::updateSource( QTreeWidgetItem *item )
                 user->setLanSharedStart(true);
                 sd_loaded = false;
             }
+            else if ( qs.startsWith("local") )
+            {
+                if(!user->getLocalSharedStart())
+                {
+                    printf( "local need refresh service.\n");
+                    playlist_ServicesDiscoveryRemove( THEPL, qtu(qs) );
+                    sd_loaded = false;
+                }
+            }
             else if ( qs.startsWith("cloud") )
             {
                 if(!user->getCloudSharedStart())

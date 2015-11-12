@@ -308,6 +308,8 @@ bool StandardPLPanel::popup( const QPoint &point )
 		//ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr(I_POP_DELLOCAL),
 		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("删除本地共享文件"),
 				VLCModelSubInterface::ACTION_DELLOCAL );
+        menu.addSeparator();
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("刷新文件列表"), VLCModelSubInterface::ACTION_UPDATELOCAL );
 #endif
     }
 
@@ -607,6 +609,14 @@ void StandardPLPanel::popupAction( QAction *action )
 				}
 			}
 			break;
+		case VLCModelSubInterface::ACTION_UPDATELOCAL:
+            {
+                printf("update local window\n");
+                UserOption *user = UserOption::getInstance(p_intf);
+                user->setLocalSharedStart(false);
+                p_selector->updateWindow();
+            }
+            break;
 		case VLCModelSubInterface::ACTION_ADDCLOUD:
             {
                 printf("this->threadid=[%lu]\n",pthread_self());
@@ -1218,6 +1228,8 @@ void StandardPLPanel::createLocalShareItems( const QModelIndex &index )
 {	
 	UserOption *user = UserOption::getInstance( p_intf );
 	printf( "local sharepath == [%s]\n", user->getSharePath().toStdString().c_str() );
+
+	user->setCloudSharedStart(true);
 
 	playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
        if( play_item == NULL ) {

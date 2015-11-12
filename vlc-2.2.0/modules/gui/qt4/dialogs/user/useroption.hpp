@@ -154,9 +154,11 @@ public:
 	bool getLocalShared(){ return b_localShared == true; }
 	bool getNetShared(){ return b_netShared == true; }
 
+	void setLocalSharedStart( bool state ){ b_localModeStart = state; }
 	void setRemoteSharedStart( bool state ){ b_remoteModeStart = state; }
 	void setCloudSharedStart( bool state ){ b_cloudModeStart = state; }
 	void setLanSharedStart( bool state ){ b_lanModeStart = state; }
+	bool getLocalSharedStart(){ return b_localModeStart == true; }
 	bool getRemoteSharedStart(){ return b_remoteModeStart == true; }
 	bool getCloudSharedStart(){ return b_cloudModeStart == true; }
 	bool getLanSharedStart(){ return b_lanModeStart == true; }
@@ -192,6 +194,7 @@ private:
 
 	bool b_localShared;
 	bool b_netShared;
+	bool b_localModeStart;
 	bool b_cloudModeStart;
 	bool b_remoteModeStart;
 	bool b_lanModeStart;

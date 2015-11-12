@@ -99,6 +99,7 @@ public:
 		/*add by lili*/
         ACTION_DELLOCAL,
         ACTION_ADDLOCAL,
+        ACTION_UPDATELOCAL,
         ACTION_ADDCLOUD,
         ACTION_DELCLOUD,
         ACTION_DWNCLOUD,
