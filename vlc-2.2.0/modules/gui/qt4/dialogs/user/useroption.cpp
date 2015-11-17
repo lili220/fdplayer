@@ -712,7 +712,7 @@ int UserOption::nfschina_upLoad( int userid, QString filename, QString filepath 
 	int process = task->getUploadItemProcess(filename);
 	task->saveNewTask("upload", userid, filename, process, qtr("上传中..."), filepath);
 	task->addUploadItem(filename, process, qtr("上传中..."), userid, filepath, upthread_id, fileindex);
-	task->toggleVisible();
+	task->show();
 
 	printf("thread_upload return value: ret = %d\n", ret);
 
@@ -1429,7 +1429,7 @@ void UserOption::downloadCloudShareFile( const QString url, const QString file, 
 #endif
 	task->saveNewTask("download", userid, file, process, qtr("下载中..."), url.toStdString().c_str());
 	task->addDownloadItem(file, process, qtr("下载中..."), userid, url, dwncloud_thread_id, index);
-	task->toggleVisible();
+	task->show();
 }
 
 void UserOption::toggleLocalShared( bool state )
