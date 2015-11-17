@@ -102,9 +102,11 @@ void LoginDialog::init()
 
 	/*remember login info selection */
 	QHBoxLayout *bottomlayout = new QHBoxLayout;
+#if 0
 	rememberBtn = new QCheckBox( this );
 	rememberBtn->setText( qtr( "记住密码" ) );
 	bottomlayout->addWidget( rememberBtn );
+#endif
 	bottomlayout->addStretch();
 
 	/*login button*/
