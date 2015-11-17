@@ -301,7 +301,6 @@ bool StandardPLPanel::popup( const QPoint &point )
         //menu.addAction( qtr( "ADD LOCAL SHARE" ), this, SLOT( increaseZoom() ) );
         //menu.addAction( qtr( "增加本地共享文件" ), this, SLOT( addLocalShareFile() ) );
         //menu.addAction( qtr( "DELETE LOCAL SHARE" ), this, SLOT( increaseZoom() ) );
-#if 1
 		//ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr(I_POP_ADDLOCAL),
 		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("增加本地共享文件"),
 				VLCModelSubInterface::ACTION_ADDLOCAL );
@@ -310,8 +309,13 @@ bool StandardPLPanel::popup( const QPoint &point )
 				VLCModelSubInterface::ACTION_DELLOCAL );
         menu.addSeparator();
 		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("刷新文件列表"), VLCModelSubInterface::ACTION_UPDATELOCAL );
-#endif
     }
+#if 1
+    if (p_selector->getCurrentItemCategory() == LANSHARE )
+	{
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("下载局域网共享文件"), VLCModelSubInterface::ACTION_DWNLAN );
+	}
+#endif
 
     if (p_selector->getCurrentItemCategory() == CLOUDSHARE )
     {
@@ -333,6 +337,7 @@ bool StandardPLPanel::popup( const QPoint &point )
         //menu.addAction( qtr( "DELETE REMOTE SHARE" ), this, SLOT( increaseZoom() ) );
         //ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("获取远端文件列表"),
         //        VLCModelSubInterface::ACTION_ADDSHARE );
+		ADD_MENU_ENTRY( QIcon( ":/buttons/playlist/playlist_remove" ), qtr("下载远端共享文件"), VLCModelSubInterface::ACTION_DWNREMOTE );
     }
 
     CONNECT( &menu, triggered( QAction * ), this, popupAction( QAction * ) );
@@ -617,6 +622,88 @@ void StandardPLPanel::popupAction( QAction *action )
                 p_selector->updateWindow();
             }
             break;
+		case VLCModelSubInterface::ACTION_DWNLAN:
+			{
+				printf("download lan file\n");
+				QString url = model->getURI( index );
+				if ( url.isEmpty() )
+				{
+					printf("failed to get Url for lan file!\n");
+					return ;
+				}
+				printf("url = %s\n", url.toStdString().c_str());
+
+
+				/* get the name of the selected file*/
+				QString file = index.data().toString();
+				printf("down lan file:%s\n", qtu(file));
+
+				/*get the URL of the selected file*/
+				UserOption *user = UserOption::getInstance( p_intf );
+				int uid = user->getLUid();
+
+				printf("sharePath = %s\n", sharePath);
+				printf("user->getSharePath = %s\n", qtu(user->getSharePath()));
+
+				/*download the selected file*/
+#if 1
+				QString dest = QFileDialog::getExistingDirectory( this, qtr("下载文件保存路径"),  qtr(sharePath), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+				if(dest.isEmpty())
+				{
+					printf("download Lan file canceled!\n");
+					return;
+				}
+				dest.append( "/" );
+				dest.append( file );
+
+				/*获取扩展名*/
+				QString tmp = url;
+				int tmpindex = tmp.lastIndexOf(".");
+				printf("tmp = %s\n", tmp.right(tmp.length() - tmpindex).toStdString().c_str());
+				QString tmpString = tmp.right(tmp.length() - tmpindex).toStdString().c_str();
+				dest.append(tmpString);
+				user->downloadCloudShareFile( url, qtu(dest) );
+#endif
+			}
+            break;
+		case VLCModelSubInterface::ACTION_DWNREMOTE:
+			{
+				printf("download remote file\n");
+				QString url = model->getURI( index );
+				if ( url.isEmpty() )
+				{
+					printf("failed to get Url for remote file!\n");
+					return ;
+				}
+				printf("url = %s\n", url.toStdString().c_str());
+
+
+				/* get the name of the selected file*/
+				QString file = index.data().toString();
+				printf("down remote file:%s\n", qtu(file));
+
+				/*get the URL of the selected file*/
+				UserOption *user = UserOption::getInstance( p_intf );
+				int uid = user->getLUid();
+
+				printf("sharePath = %s\n", sharePath);
+				printf("user->getSharePath = %s\n", qtu(user->getSharePath()));
+
+				/*download the selected file*/
+#if 1
+				QString dest = QFileDialog::getExistingDirectory( this, qtr("下载文件保存路径"),  qtr(sharePath), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+				if(dest.isEmpty())
+				{
+					printf("download Remote file canceled!\n");
+					return;
+				}
+				dest.append( "/" );
+				dest.append( file );
+
+				user->downloadCloudShareFile( url, qtu(dest), 1 );
+#endif
+			}
+			break;
 		case VLCModelSubInterface::ACTION_ADDCLOUD:
             {
                 printf("this->threadid=[%lu]\n",pthread_self());
@@ -754,6 +841,11 @@ void StandardPLPanel::popupAction( QAction *action )
 				//QString dest = qtu( QString(sharePath) );
 #if 1
                 QString dest = QFileDialog::getExistingDirectory( this, qtr("下载文件保存路径"),  qtr(sharePath), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+				if(dest.isEmpty())
+				{
+					printf("download cloud file canceled!\n");
+					return;
+				}
 				dest.append( "/" );
 				dest.append( file );
 				user->downloadCloudShareFile( url, qtu(dest) );

@@ -1066,6 +1066,10 @@ bool PLModel::isSupportedAction( actions action, const QModelIndex &index ) cons
     case ACTION_INFO:
     case ACTION_REMOVE:
         return index.isValid() && index != rootIndex();
+    case ACTION_DWNLAN://add by lili
+		return true;
+    case ACTION_DWNREMOTE://add by lili
+		return true;
     case ACTION_DELLOCAL://add by lili
     case ACTION_ADDLOCAL://add by lili
     case ACTION_UPDATELOCAL://add by lili

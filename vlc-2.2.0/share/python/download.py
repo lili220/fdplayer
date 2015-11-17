@@ -47,6 +47,7 @@ class AxelPython(Thread, urllib.FancyURLopener):
         self.startpoint = self.ranges[0] + self.downloaded
         
         # This part is completed
+        print "self.startpoint=%d, self.ranges[1]=%d" %(self.startpoint, self.ranges[1])
         if self.startpoint >= self.ranges[1]:
             print 'Part %s has been downloaded over.' % self.filename
             return
@@ -57,9 +58,9 @@ class AxelPython(Thread, urllib.FancyURLopener):
         self.addheader("Range", "bytes=%d-%d" % (self.startpoint, self.ranges[1]))
             
         self.urlhandle = self.open( self.url )
-
         data = self.urlhandle.read( self.oneTimeSize )
         while data:
+            #print "---------------------"
             if isStop(self.theindex)==1:
                 break
             filehandle = open( self.filename, 'ab+' )
@@ -67,7 +68,7 @@ class AxelPython(Thread, urllib.FancyURLopener):
             filehandle.close()
 
             self.downloaded += len( data )
-            #print "%s" % (self.name)
+            #print "%s-->downloaded %d" % (self.name, self.downloaded)
             #progress = u'\r...'
 
             data = self.urlhandle.read( self.oneTimeSize )
@@ -77,11 +78,13 @@ class AxelPython(Thread, urllib.FancyURLopener):
 def GetUrlFileSize(url, proxies={}):
     urlHandler = urllib.urlopen( url, proxies=proxies )
     headers = urlHandler.info().headers
+    print "DEBUG: url:%s"%url 
     length = 0
     for header in headers:
         if header.find('Length') != -1:
             length = header.split(':')[-1].strip()
             length = int(length)
+    print "GetUrlFileSize file size =%d" %(length)
     return length
 
 def SpliteBlocks(totalsize, blocknumber):
@@ -105,10 +108,14 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
     global datamutex
     print "loading=[%d] theindex=[%d]"%(loading[theindex],theindex)
     size = GetUrlFileSize( url, proxies )
+    print str("size is ") + str(size)
     ranges = SpliteBlocks( size, blocks )
+    print str(ranges)
 
     threadname = [ "thread_%d" % i for i in range(0, blocks) ]
-    filename = [ str(output)+"tmpfile_%d" % i for i in range(0, blocks) ]
+    filename = [ str(output)+str("tmpfile_") + str(i) for i in range(0, blocks) ]
+    print str("filename is ") + str(filename) +str("   ") + str(threadname)
+    #filename = [ str(output)+"tmpfile_%d" % i for i in range(0, blocks) ]
   
     tasks = []
     for i in range(0,blocks):
@@ -133,6 +140,7 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
     
     filehandle = open( output, 'wb+' )
     for i in filename:
+        print str(filename)
         if isStop(theindex)==1:
             return
         f = open( i, 'rb' )
@@ -193,7 +201,7 @@ def printf(index):
     print "index=%d loading is %d"%(index,process)
     return process
 
-def start_download(url,output):
+def start_download(url,output,nthread=8):
     global loading
     global index
     global mutex
@@ -211,23 +219,26 @@ def start_download(url,output):
     exitflag[theindex] = 0
     datamutex[index].release()  
 
-    p = threading.Thread(target=paxel,args=(url,output,theindex,8,{},))
+    #p = threading.Thread(target=paxel,args=(url,output,theindex,1,{},))
+    p = threading.Thread(target=paxel,args=(url,output,theindex,nthread,{},))
     p.start()
     print "start_download theindex=[%d] finished"%(theindex)
     return theindex
 
 if __name__ == '__main__':
-   url = "http://192.168.7.97/download/5/baofengyu1.mp4"
+   #url = "http://192.168.7.97/download/5/baofengyu1.mp4"
+   #url = "http://192.168.7.88:8090/transfer/3/1/test.mpg"
+   #output = 'test.mpg'
+   #url = "http://192.168.7.88:8090/transfer/3/1/中文.wmv"
+   url = "http://192.168.7.88:8090/transfer/2/3/暴风雨.mp4"
+   size = GetUrlFileSize( url, {} )
 
-   output = 'baofengyu1.mp4'
-   index = start_download(url,output)
-   i = 0
-   while 1:
-      printf(index)
-      time.sleep(1)
-      i = i+1
-      if i==30:
-          stop_download(index)
-      if i==60:
-          break
+   #output = '中文.wmv'
+   #index = start_download(url,output,1)
+   #i = 0
+   #while 1:
+   #   process = printf(index)
+   #   time.sleep(1)
+   #   if process == 100:
+   #       break
 

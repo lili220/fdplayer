@@ -73,6 +73,10 @@ class ThreadArg
 			uid( _uid ), file( _file ), path( _path ), url( _url ), httpurl( _httpurl ), p_intf( _p_intf )
 	{
 	}
+		ThreadArg(  const QString& _file, const QString& _path = NULL, int _nthread = 8):
+			file(_file), path(_path), nthread(_nthread)
+	{
+	}
 		ThreadArg(  const QString& _file, const QString& _path = NULL, const QString& _url = NULL, const QString& _httpurl = NULL, intf_thread_t* _p_intf = NULL ):
 			file( _file ), path( _path ), url(_url ), httpurl(_httpurl), p_intf( _p_intf )
 	{
@@ -85,6 +89,7 @@ class ThreadArg
 	QString url;
 	QString httpurl;
 	intf_thread_t* p_intf;
+	int nthread;
 };
 
 /*用于获取文件列表*/
@@ -126,7 +131,7 @@ public:
 	int nfschina_delete( int userid, QString filename );
 	QString nfschina_download( int userid, QString filename );//return the URL of the selected cloudshare file
 
-	void downloadCloudShareFile( const QString url, const QString filename );
+	void downloadCloudShareFile( const QString url, const QString filename, int nthread = 8 );
 	int getProcess(int index);
     int getUploadProcess(int index);
 

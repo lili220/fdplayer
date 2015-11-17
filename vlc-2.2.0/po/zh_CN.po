@@ -573,12 +573,12 @@ msgid ""
 "can <b>promote</b> VLC media player.</p></body></html>"
 msgstr ""
 "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; "
-"charset=utf-8\" /></head><body><h2>欢迎使用 方德播放器 帮助</h2><h3>文"
+"charset=utf-8\" /></head><body><h2>欢迎使用 共享媒体播放器 帮助</h2><h3>文"
 "档</h3><p>您可以在 VideoLAN 的 <a href=\"http://wiki.videolan.org\">wiki</a> "
-"网站上找到 VLC 的文档。</p><p>如果您是 方德播放器 的新手，请阅读<a "
+"网站上找到 VLC 的文档。</p><p>如果您是 共享媒体播放器 的新手，请阅读<a "
 "href=\"http://wiki.videolan.org/Documentation:VLC_for_dummies\"><em>方德 "
 "播放器 介绍</em></a>。</p><p>您可以在《<a href=\"http://wiki.videolan."
-"org/Documentation:Play_HowTo\"><em>如何使用 方德播放器 播放文件</em></"
+"org/Documentation:Play_HowTo\"><em>如何使用 共享媒体播放器 播放文件</em></"
 "a>》找到一些如何使用播放器的信息。</p><p>如果您要完成保存、转换、转码、编码、"
 "混流或串流任务，可以在 <a href=\"http://wiki.videolan.org/Documentation:"
 "Streaming_HowTo\">串流处理文档</a> 中找到有用的信息。</p><p>如果您不是十分明"
@@ -592,7 +592,7 @@ msgstr ""
 "\"><em>#videolan</em></a>) 中获取 (或给予) 帮助。</p><h3>为此项目做贡献</"
 "h3><p>您可以奉献出您的一些时间，通过帮助社区、设计外观、翻译文档、测试、编写"
 "代码等方式帮助 VideoLAN 计划。您也可以为我们提供资金或材料。当然，您也可以 "
-"<b>推广</b> 方德播放器。</p></body></html>"
+"<b>推广</b> 共享媒体播放器。</p></body></html>"
 
 #: src/audio_output/filters.c:247
 msgid "Audio filtering failed"
@@ -4761,7 +4761,7 @@ msgstr "下载的文件 \"%s\" 已损坏。所以它将被删除。"
 
 #: src/misc/update.c:722
 msgid "Update VLC media player"
-msgstr "更新 方德播放器"
+msgstr "更新 共享媒体播放器"
 
 #: src/misc/update.c:723
 msgid ""
@@ -10510,7 +10510,7 @@ msgstr ""
 "%s。\n"
 "如果您不知道如何修正此问题，请向您的发布商寻求支持。\n"
 "\n"
-"这不是一个 方德播放器 内部的错误。\n"
+"这不是一个 共享媒体播放器 内部的错误。\n"
 "请不要向 VideoLAN 项目组报告此问题。\n"
 
 #: modules/codec/avcodec/encoder.c:857
@@ -13341,7 +13341,7 @@ msgstr "D-Bus 控制界面"
 #: modules/gui/qt4/main_interface.cpp:1303 modules/lua/libs/httpd.c:80
 #: modules/notify/growl.m:281 modules/video_output/xcb/window.c:313
 msgid "VLC media player"
-msgstr "方德播放器"
+msgstr "共享媒体播放器"
 
 #: modules/control/dummy.c:37 modules/control/rc.c:175
 msgid "Do not open a DOS command box interface"
@@ -15707,7 +15707,7 @@ msgstr "未知类别"
 
 #: modules/gui/macosx/about.m:88 modules/gui/macosx/MainMenu.m:348
 msgid "About VLC media player"
-msgstr "关于 方德播放器"
+msgstr "关于 共享媒体播放器"
 
 #: modules/gui/macosx/about.m:91 modules/gui/qt4/dialogs/help.cpp:125
 msgid "Credits"
@@ -15725,7 +15725,7 @@ msgstr "作者"
 #: modules/gui/macosx/about.m:100
 msgid ""
 "VLC media player and VideoLAN are trademarks of the VideoLAN Association."
-msgstr "方德播放器 及 VideoLAN 为 VideoLAN Association 的注册商标。"
+msgstr "共享媒体播放器 及 VideoLAN 为 VideoLAN Association 的注册商标。"
 
 #: modules/gui/macosx/about.m:109
 msgid "Compiled by %s with %@"
@@ -15742,7 +15742,7 @@ msgid ""
 "\"http://www.videolan.org/contribute/\"><span style=\" text-decoration: "
 "underline; color:#0057ae;\">Help and join us!</span></a>"
 msgstr ""
-"<p>方德播放器 是由 <a href=\"http://www.videolan.org/\"><span style=\" "
+"<p>共享媒体播放器 是由 <a href=\"http://www.videolan.org/\"><span style=\" "
 "text-decoration: underline; color:#0057ae;\">VideoLAN</span></a> 社区开发的自"
 "由开源媒体播放器、编码器及串流器。</p><p>VLC 使用内置的编解码器，能在几乎所有"
 "流行平台上运行，并能读取几乎所有文件、CD、DVD、网络串流、捕获设备及其他媒体格"
@@ -15751,7 +15751,7 @@ msgstr ""
 
 #: modules/gui/macosx/about.m:267
 msgid "VLC media player Help"
-msgstr "方德播放器 帮助"
+msgstr "共享媒体播放器 帮助"
 
 #: modules/gui/macosx/about.m:270 modules/gui/macosx/MainMenu.m:472
 #: modules/gui/macosx/MainMenu.m:1077
@@ -17031,7 +17031,7 @@ msgstr "帮助"
 
 #: modules/gui/macosx/MainMenu.m:494
 msgid "VLC media player Help..."
-msgstr "方德播放器 帮助..."
+msgstr "共享媒体播放器 帮助..."
 
 #: modules/gui/macosx/MainMenu.m:495
 msgid "ReadMe / FAQ..."
@@ -17952,7 +17952,7 @@ msgid ""
 "\n"
 "Are you sure you want to continue?"
 msgstr ""
-"这将重置 方德播放器 的偏好设置。\n"
+"这将重置 共享媒体播放器 的偏好设置。\n"
 "\n"
 "注意 VLC 在该过程中将重新启动，因此您当前的播放列表将被清空，最终所有回放、串"
 "流及转码操作都将立刻停止。\n"
@@ -20248,7 +20248,7 @@ msgid ""
 "express consent for the media player to access the Internet automatically.</"
 "p>\n"
 msgstr ""
-"<p>为保护您的个人隐私，<i>方德播放器</i> <b>不会</b> 收集或将个人数据"
+"<p>为保护您的个人隐私，<i>共享媒体播放器</i> <b>不会</b> 收集或将个人数据"
 "（即使以匿名形式）传输给任何人。</p>\n"
 "<p>不过，<i>VLC</i> 提供了从 Internet 上的第三方服务自动检索关于播放列表中媒"
 "体的信息的功能。这些信息包括专辑封面、音轨名称、创作者等元数据。</p>\n"
@@ -20295,7 +20295,7 @@ msgstr "否(&N)"
 
 #: modules/gui/qt4/dialogs/help.cpp:222 modules/gui/qt4/ui/update.h:147
 msgid "VLC media player updates"
-msgstr "方德播放器 更新"
+msgstr "共享媒体播放器 更新"
 
 #: modules/gui/qt4/dialogs/help.cpp:294
 msgid "A new version of VLC (%1.%2.%3%4) is available."
@@ -20303,7 +20303,7 @@ msgstr "有新版 VLC (%1.%2.%3%4) 可用。"
 
 #: modules/gui/qt4/dialogs/help.cpp:319
 msgid "You have the latest version of VLC media player."
-msgstr "您已拥有最新版本的 方德播放器。"
+msgstr "您已拥有最新版本的 共享媒体播放器。"
 
 #: modules/gui/qt4/dialogs/help.cpp:326
 msgid "An error occurred while checking for updates..."
@@ -20596,7 +20596,7 @@ msgstr "偏好设置文件无法保存"
 
 #: modules/gui/qt4/dialogs/preferences.cpp:328
 msgid "Are you sure you want to reset your VLC media player preferences?"
-msgstr "您是否确定要重置 方德播放器 的偏好设置?"
+msgstr "您是否确定要重置 共享媒体播放器 的偏好设置?"
 
 #: modules/gui/qt4/dialogs_provider.cpp:65
 msgid "Open Directory"
@@ -21168,11 +21168,11 @@ msgstr "播放(&P)"
 
 #: modules/gui/qt4/menus.cpp:1146
 msgid "&Hide VLC media player in taskbar"
-msgstr "从任务栏隐藏 方德播放器 (&H)"
+msgstr "从任务栏隐藏 共享媒体播放器 (&H)"
 
 #: modules/gui/qt4/menus.cpp:1152
 msgid "Sho&w VLC media player"
-msgstr "显示 方德播放器 (&W)"
+msgstr "显示 共享媒体播放器 (&W)"
 
 #: modules/gui/qt4/menus.cpp:1163
 msgid "&Open Media"
@@ -21204,7 +21204,7 @@ msgstr "系统托盘图标"
 msgid ""
 "Show an icon in the systray allowing you to control VLC media player for "
 "basic actions."
-msgstr "在系统托盘处显示一个图标使您可以对 方德播放器 进行简单的操作。"
+msgstr "在系统托盘处显示一个图标使您可以对 共享媒体播放器 进行简单的操作。"
 
 #: modules/gui/qt4/qt4.cpp:88
 msgid "Start VLC with only a systray icon"
@@ -26974,7 +26974,7 @@ msgstr "X11 视频窗口 (XCB)"
 #: modules/video_output/xcb/window.c:282
 msgctxt "ASCII"
 msgid "VLC media player"
-msgstr "方德播放器"
+msgstr "共享媒体播放器"
 
 #. xgettext: This is a plain ASCII spelling of "VLC"
 #. for the ICCCM window name. This must be pure ASCII.
@@ -27665,7 +27665,7 @@ msgstr "时间:"
 #: share/lua/http/index.html:26 share/lua/http/mobile_browse.html:25
 #: share/lua/http/mobile_equalizer.html:25 share/lua/http/mobile_view.html:25
 msgid "VLC media player - Web Interface"
-msgstr "方德播放器 - Web 界面"
+msgstr "共享媒体播放器 - Web 界面"
 
 #: share/lua/http/index.html:215
 msgid "Hide / Show Library"

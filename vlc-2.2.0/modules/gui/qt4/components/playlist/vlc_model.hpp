@@ -97,6 +97,8 @@ public:
         ACTION_ENQUEUEGENERIC,
         ACTION_SAVETOPLAYLIST,
 		/*add by lili*/
+        ACTION_DWNLAN,
+        ACTION_DWNREMOTE,
         ACTION_DELLOCAL,
         ACTION_ADDLOCAL,
         ACTION_UPDATELOCAL,

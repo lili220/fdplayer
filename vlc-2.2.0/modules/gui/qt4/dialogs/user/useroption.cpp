@@ -1197,7 +1197,7 @@ int thread_dwncloud( void *data )
 		return -1;
 	}
 
-	PyObject *pArgs = PyTuple_New( 2 );
+	PyObject *pArgs = PyTuple_New( 3 );
 
 #if 0
 	printf("%s:before python download url = %s\n", __func__, arg->path.toStdString().c_str() );
@@ -1207,6 +1207,7 @@ int thread_dwncloud( void *data )
 #endif
 	PyTuple_SetItem( pArgs, 0, Py_BuildValue( "s", arg->path.toStdString().c_str() ) );
 	PyTuple_SetItem( pArgs, 1, Py_BuildValue( "s", arg->file.toStdString().c_str() ) );
+	PyTuple_SetItem( pArgs, 2, Py_BuildValue( "i", arg->nthread ) );
 
 	PyObject *pRetValue = PyObject_CallObject( pFunc, pArgs );
 	int index = _PyInt_AsInt( pRetValue );
@@ -1403,12 +1404,12 @@ void UserOption::stopUpload(int index)
 	return ;
 }
 
-void UserOption::downloadCloudShareFile( const QString url, const QString file )
+void UserOption::downloadCloudShareFile( const QString url, const QString file, int nthread )
 {
 	printf( "----------------------%s-----------------------\n", __func__ );
 	//printf("before download url=%s\n", url.toStdString().c_str());
 	pthread_t dwncloud_thread_id;
-	ThreadArg *arg = new ThreadArg( file, url );//user the path memeber of TreadArg as url
+	ThreadArg *arg = new ThreadArg( file, url, nthread );//user the path memeber of TreadArg as url
 
 	int ret;
 	initpython();

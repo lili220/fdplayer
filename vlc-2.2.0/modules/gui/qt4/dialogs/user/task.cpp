@@ -492,6 +492,7 @@ void TaskDialog::deleteTask(const QString type, int uid, const QString file)
 {
 	QSettings settings(organization, application);
 	QString key = buildKeyString(type, uid, file);
+	key.replace("/", "!");
 	if(settings.contains(key))
 		settings.remove(key);
 }
