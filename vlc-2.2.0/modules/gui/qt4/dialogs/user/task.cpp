@@ -138,10 +138,11 @@ QTreeView* TaskDialog::initDownloadTreeView()
 	downloadModel->setHeaderData( 6, Qt::Horizontal, qtr("index") );
 	tree->setModel( downloadModel );
 	tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
-#if 0
+#if 1
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
 	tree->hideColumn(4);
 	tree->hideColumn(5);
+	tree->hideColumn(6);
 #endif
 
 	int uid = UserOption::getInstance( p_intf )->getLUid();
@@ -167,10 +168,11 @@ QTreeView* TaskDialog::initUploadTreeView()
 	uploadModel->setHeaderData( 6, Qt::Horizontal, qtr("index") );
 	tree->setModel( uploadModel );
 	tree->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
-#if 0
+#if 1
 	tree->hideColumn(3);//隐藏列，存储下载用户的id信息,用于标记是哪个用户对文件的操作
 	tree->hideColumn(4);
 	tree->hideColumn(5);
+	tree->hideColumn(6);
 #endif
 
 	int uid = UserOption::getInstance( p_intf )->getLUid();

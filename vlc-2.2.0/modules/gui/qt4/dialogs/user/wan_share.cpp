@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/tcp.h>
+#include <ctype.h>
 
 #include "ini.hpp"
 #include "wan_share.hpp"
@@ -153,6 +154,33 @@ Range: bytes=100-\r\n\
 CONNECTION: close\r\n\
 \r\n";
 
+void urldecode(char *dst, const char *src)
+{
+	char a, b;
+	while (*src) {
+		if ((*src == '%') &&
+				((a = src[1]) && (b = src[2])) &&
+				(isxdigit(a) && isxdigit(b))) {
+			if (a >= 'a')
+				a -= 'a'-'A';
+			if (a >= 'A')
+				a -= ('A' - 10);
+			else
+				a -= '0';
+			if (b >= 'a')
+				b -= 'a'-'A';
+			if (b >= 'A')
+				b -= ('A' - 10);
+			else
+				b -= '0';
+			*dst++ = 16*a+b;
+			src+=3;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst++ = '\0';
+}
 
 static char *substr (char *str_match, const char *str_raw, unsigned start, unsigned end)
 {
@@ -230,7 +258,8 @@ static int parse_get(char *recv_pkg, char *path, long *range)
 	printf("path_match: [%s]\n", path_match);
 	printf("-------------------parse_get------------------\n");
 #endif
-	strcpy(path, path_match);
+	//strcpy(path, path_match);
+	urldecode(path, path_match);
 	regfree(&reg);
 
 	if (strcmp(request_match, "browse") == 0) {
