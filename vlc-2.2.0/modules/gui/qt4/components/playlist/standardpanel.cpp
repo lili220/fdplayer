@@ -744,6 +744,7 @@ void StandardPLPanel::popupAction( QAction *action )
                         return;
                     }
 
+#if 0
                     /*add the selected file to current window*/
                     input_item_t *item = input_item_NewWithType ( qtu(url), qtu(filename), 0, NULL, 0, -1, ITEM_TYPE_FILE);
                     playlist_item_t *play_item = playlist_ItemGetById( THEPL, model->itemId( index, PLAYLIST_ID ) );
@@ -756,6 +757,7 @@ void StandardPLPanel::popupAction( QAction *action )
                         else
                             playlist_NodeAddInput( THEPL, item, play_item->p_parent, PLAYLIST_APPEND, PLAYLIST_END, false);
                     }
+#endif
                 }
             }
 			break;
