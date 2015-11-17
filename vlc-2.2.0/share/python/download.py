@@ -144,7 +144,11 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
         if isStop(theindex)==1:
             return
         f = open( i, 'rb' )
-        filehandle.write( f.read() )
+        data = f.read(10240)
+        while data:  
+            filehandle.write(data)
+            data = f.read(10240)
+        #filehandle.write( f.read() )
         f.close()
         try:
             os.remove(i)
