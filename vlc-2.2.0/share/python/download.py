@@ -78,13 +78,13 @@ class AxelPython(Thread, urllib.FancyURLopener):
 def GetUrlFileSize(url, proxies={}):
     urlHandler = urllib.urlopen( url, proxies=proxies )
     headers = urlHandler.info().headers
-    print "DEBUG: url:%s"%url 
+    #print "DEBUG: url:%s"%url 
     length = 0
     for header in headers:
         if header.find('Length') != -1:
             length = header.split(':')[-1].strip()
             length = int(length)
-    print "GetUrlFileSize file size =%d" %(length)
+    #print "GetUrlFileSize file size =%d" %(length)
     return length
 
 def SpliteBlocks(totalsize, blocknumber):
@@ -140,7 +140,7 @@ def paxel(url, output, theindex, blocks=6, proxies=local_proxies):
     
     filehandle = open( output, 'wb+' )
     for i in filename:
-        print str(filename)
+        #print str(filename)
         if isStop(theindex)==1:
             return
         f = open( i, 'rb' )

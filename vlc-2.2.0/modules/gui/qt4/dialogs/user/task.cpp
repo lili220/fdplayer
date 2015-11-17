@@ -44,6 +44,7 @@
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QDebug>
+#include <QString>
 
 #include <python2.7/Python.h>
 
@@ -452,6 +453,7 @@ QString TaskDialog::buildKeyString(const QString type, int uid, const QString fi
 	 * */
 	QString key = type;
 	key.append("-").append(QString::number(uid)).append("-").append(file);
+	qDebug() << key;
 
 	return key;
 }
@@ -477,16 +479,10 @@ void TaskDialog::saveNewTask(const QString type, int uid, const QString file, in
 {
 	QSettings settings(organization, application);
 	QString key = buildKeyString(type, uid, file);
-#if 0
-	printf("qtu:key = %s\n", qtu(key));
-	printf("no qtu:key = %s\n", key.toStdString().c_str());
-#endif
 	QString value = buildValueString(file, process, state, url);
-#if 0
-	printf("qtu:value = %s\n", qtu(value));
-	printf("no qtu:value = %s\n", value.toStdString().c_str());
-#endif
+	printf("%s-->%d:key = [%s]\n", __func__, __LINE__, key.toStdString().c_str());
 	key.replace("/", "!");
+	printf("%s-->%d:key = [%s]\n", __func__, __LINE__, key.toStdString().c_str());
 	settings.setValue(key, value);
 }
 
@@ -494,7 +490,9 @@ void TaskDialog::deleteTask(const QString type, int uid, const QString file)
 {
 	QSettings settings(organization, application);
 	QString key = buildKeyString(type, uid, file);
+	printf("%s-->%d:key = [%s]\n", __func__, __LINE__, key.toStdString().c_str());
 	key.replace("/", "!");
+	printf("%s-->%d:key = [%s]\n", __func__, __LINE__, key.toStdString().c_str());
 	if(settings.contains(key))
 		settings.remove(key);
 }
@@ -576,7 +574,10 @@ void TaskDialog::continueItemTask()
 		QString url = model->index(index.row(), 4).data().toString();
 		UserOption *user = UserOption::getInstance(p_intf);
 		//user->downloadCloudShareFile(qtu(url), file);
-		user->downloadCloudShareFile(url, file);
+		if(url.indexOf("/transfer/") >= 0)//远端下载
+			user->downloadCloudShareFile(url, file, 1);
+		else
+			user->downloadCloudShareFile(url, file);
 	}
 	else if(uploadTree == mainWidget->currentWidget())
 	{
@@ -621,7 +622,7 @@ void TaskDialog::deleteItemTask()
 		}
 
 		/*delete item information from QSettings*/
-		deleteTask("download", uid, file);
+		deleteTask("download", uid, qtu(file));
 
 		/*delete item from Task window*/
 		model->removeRow(index.row());
@@ -704,7 +705,10 @@ void TaskDialog::toggleDownloadState(const QModelIndex &index)
 		printf("%s: qtu url = %s\n", __func__, qtu(url));
 		printf("%s: qtu file = %s\n", __func__, qtu(file));
 #endif
-		user->downloadCloudShareFile(qtu(url), qtu(file));
+		if(url.indexOf("/transfer/") >= 0)//远端下载
+			user->downloadCloudShareFile(qtu(url), qtu(file), 1);
+		else
+			user->downloadCloudShareFile(qtu(url), qtu(file));
 		downloadTree->update(index);
 	}
 	else if(state.startsWith(qtr("下载中")))
