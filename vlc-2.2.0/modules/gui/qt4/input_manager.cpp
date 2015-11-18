@@ -1177,6 +1177,7 @@ void MainInputManager::notifyRepeatLoop(bool)
 void MainInputManager::loopRepeatLoopStatus()
 {
     /* Toggle Normal -> Loop -> Repeat -> Normal ... */
+#if 0
     bool loop = var_GetBool( THEPL, "loop" );
     bool repeat = var_GetBool( THEPL, "repeat" );
 
@@ -1200,6 +1201,43 @@ void MainInputManager::loopRepeatLoopStatus()
     var_SetBool( THEPL, "repeat", repeat );
     config_PutInt( p_intf, "loop", loop );
     config_PutInt( p_intf, "repeat", repeat );
+#endif
+
+    bool loop = var_GetBool( THEPL, "loop" );
+    bool repeat = var_GetBool( THEPL, "repeat" );
+    bool playstop = var_InheritBool( THEPL, "play-and-stop" );
+    printf("wjl input_manager.c->loopRepeatLoopStatus b_loop=[%d] b_repeat=[%d] b_playstop=[%d]\n",loop,repeat,playstop);
+
+    if( repeat )
+    {
+        loop = false;
+        repeat = false;
+        playstop = true;
+    }
+    else if( loop )
+    {
+        loop = false;
+        repeat = true;
+        playstop = false;
+    }
+    else
+    {
+        loop = true;
+        repeat = false;
+        playstop = false;
+    }
+
+    var_SetBool( THEPL, "loop", loop );
+    var_SetBool( THEPL, "repeat", repeat );
+    var_SetBool( THEPL, "play-and-stop", playstop );
+    config_PutInt( p_intf, "loop", loop );
+    config_PutInt( p_intf, "repeat", repeat );
+    config_PutInt( p_intf, "play-and-stop", playstop );
+
+    loop = var_GetBool( THEPL, "loop" );
+    repeat = var_GetBool( THEPL, "repeat" );
+    playstop = var_InheritBool( THEPL, "play-and-stop" );
+    printf("wjl input_manager.c->loopRepeatLoopStatus b_loop=[%d] b_repeat=[%d] b_playstop=[%d]\n",loop,repeat,playstop);
 }
 
 void MainInputManager::activatePlayQuit( bool b_exit )
